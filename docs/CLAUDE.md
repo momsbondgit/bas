@@ -4,82 +4,123 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is "BAS Rituals" - a Flutter app with Firebase backend that appears to be a social platform where users can post content on different "floors" and includes an admin panel for content management and system controls.
+BAS Rituals - A Flutter app with Firebase backend for a social platform where users post anonymous confessions on different "floors" (building levels), with admin management capabilities and session-based access control.
+
+## Critical Development Principles
+
+**MUST READ**: All development follows strict principles defined in `docs/DEVELOPMENT_PRINCIPLES.md`:
+- Bare minimum scope only - strip down until it breaks, add back what's necessary
+- Follow existing MVVM pattern without extra layers
+- **Confirmation required**: State plan, get "Approved" before coding each step
+- No assumptions - always ask clarifying questions
 
 ## Commands
 
 ### Development
-- `flutter run` - Run the app in development mode
-- `flutter build apk` - Build Android APK
-- `flutter build web` - Build for web platform
+- `flutter run` - Run app in development
+- `flutter build apk` - Build Android APK  
+- `flutter build web` - Build for web deployment
 - `flutter pub get` - Install dependencies
-- `flutter analyze` - Run static analysis
+- `flutter analyze` - Static analysis
 - `flutter test` - Run unit tests
 
 ### Firebase Testing
 - `npm test` - Run Firebase security rules tests
-- `npm run emulators:start` - Start Firebase emulators
+- `npm run emulators:start` - Start Firebase emulators (Auth:9099, Firestore:8080, UI:4000)
 - `npm run emulators:test` - Run tests with emulators
+
+### Deployment
+- GitHub Pages deployed from `gh-pages` branch
+- Custom domain: `www.bas.today`
+- Web builds require base href configuration for proper routing
+
+#### Timer Configuration Changes (Latest)
+- **August 30, 2024**: Updated default session timer from 5 minutes to 1 minute
+- **Critical for deployment**: Always use `flutter clean && flutter build web` to ensure fresh build
+- **Verification required**: Check compiled `main.dart.js` has no "5 minute" references before deployment
+- **Reason**: Previous stashed builds contained outdated timer values despite source code updates
 
 ## Architecture
 
-### Main Application Structure
-- Entry point: `lib/main.dart` - Initializes Firebase, sets up routing, and implements global maintenance monitoring
-- Firebase configuration: `firebase_options.dart` (auto-generated)
-- Firebase project: `basv2-9c201`
-- Global maintenance listener: `GlobalMaintenanceListener` wraps the app for real-time maintenance mode switching
+### Core Application Flow
+1. **FloorPickerScreen** - User selects building floor (1-4) and gender, saves to LocalStorage
+2. **HomeScreen** - Main feed showing confession posts with session timer
+3. **PostInput** - Loads user's floor/gender from LocalStorage for posting
+4. **SessionEndScreen** - Appears when 1-minute timer expires
 
-### Screen Navigation Flow
-- Root route (`/`) → `AppInitializationWrapper` (handles app state initialization)
-- Main app (`/app`) → `FloorPickerScreen` (main user interface)
-- Admin routes (`/admin/*`) → Protected admin interface with authentication
-- Maintenance mode → `MaintenanceScreen` (users redirected here when maintenance is enabled)
-
-### Directory Structure
-- `lib/services/` - Business logic and data services
-  - `admin_service.dart`, `post_service.dart`, `maintenance_service.dart`, `ending_service.dart`, etc.
-- `lib/ui/screens/` - Full-screen UI components
-- `lib/ui/widgets/` - Reusable UI components including `global_maintenance_listener.dart`
-- `lib/view_models/` - State management and presentation logic
-- `lib/utils/` - Utility functions and helpers
+### Data Flow & State Management
+- **LocalStorage** (`shared_preferences`): Floor, gender, posting status per session
+- **ViewModels**: Handle business logic, state changes, Firebase streams
+- **Services**: Data persistence, Firebase operations, maintenance monitoring
+- **Critical**: PostInput must load user preferences from LocalStorage on initialization
 
 ### Firebase Integration
-- Firestore database for data persistence
-- Firebase Auth for admin authentication
-- Emulator support configured (ports: Auth 9099, Firestore 8080, UI 4000)
-- Security rules testing setup in `package.json`
-- Collections: `posts` (user posts), `endings` (phone numbers with gender/floor), `system` (maintenance status)
+- **Project**: `basv2-9c201`
+- **Collections**: 
+  - `posts` (confessions with floor/gender/reactions)
+  - `endings` (phone number collection)
+  - `system` (maintenance status, session timers)
+  - `presence_home` (live user count simulation)
+- **Auth**: Admin authentication only
+- **Rules**: Located in `backend/firestore.rules`
 
-### Key Features
-- Multi-floor content system (users can post to different "floors")
-- Admin panel with post management and system controls
-- Real-time maintenance mode functionality - admin can toggle maintenance and all users immediately see maintenance screen
-- Phone number collection with floor and gender tracking
-- Cross-platform support (Android, iOS, Web, macOS, Windows, Linux)
+### Session & Timer System
+- 1-minute session timer managed by `MaintenanceService`
+- Real-time countdown displayed in UI
+- Users redirected to `SessionEndScreen` when timer expires
+- Timer state persisted in Firestore `system` collection
 
-### Data Flow
-- Users select floor → stored in LocalStorage
-- Users select gender → stored in LocalStorage  
-- Phone numbers saved to Firestore with floor and gender data
-- Admin can view all submissions with associated floor and gender information
+### Maintenance Mode Architecture
+- **GlobalMaintenanceListener**: Wraps entire app, monitors maintenance status
+- **Admin-aware navigation**: Admins stay on current screen during maintenance toggle
+- **Real-time switching**: All users instantly see maintenance screen when enabled
+- **Navigation context**: Uses `MaterialApp.navigatorKey` for global navigation control
 
-### Maintenance System
-- Global maintenance listener monitors Firestore `system/maintenance` document
-- When admin toggles maintenance mode, all users across the app immediately redirect to maintenance screen
-- **Admin-aware navigation**: Admin users remain on their current screen when maintenance is toggled, while regular users experience normal maintenance mode behavior
-- Uses MaterialApp's `navigatorKey` for reliable navigation context
-- Both `GlobalMaintenanceListener` and `MaintenanceScreen` check admin authentication status before applying navigation changes
-- Maintenance screen allows return to app when maintenance is disabled (for non-admin users only)
+### Admin System
+- **Access**: Long-press on FloorPickerScreen header
+- **Routes**: `/admin/*` with authentication protection
+- **Capabilities**: Post management, system controls, maintenance toggle, phone number viewing
+- **Separation**: Admin posts marked with `isAdminPost: true`, support custom authors
 
-#### Maintenance System Implementation Notes
-- **Problem Solved**: Originally, when admin users toggled maintenance mode from the admin panel, they would be redirected away from the admin screen to the user flow, disrupting their workflow
-- **Root Cause**: Two separate navigation triggers were occurring:
-  1. `GlobalMaintenanceListener` - wraps entire app and handles maintenance state changes
-  2. `MaintenanceScreen` - has its own maintenance status listener that always redirected to `/app` when maintenance was disabled
-- **Solution**: Implemented admin authentication checks in both components:
-  - `GlobalMaintenanceListener._handleMaintenanceEnabled()` and `_handleMaintenanceDisabled()` now check `AdminService.isLoggedIn()` before applying navigation
-  - `MaintenanceScreen._startMaintenanceStatusListener()` and `_startPeriodicCheck()` also check admin status before calling `_returnToApp()`
-- **Debug Logging**: Added comprehensive debug prints with `[MAINTENANCE DEBUG]`, `[ADMIN DEBUG]`, and `[MAINTENANCE SCREEN DEBUG]` prefixes to track admin status checks and navigation decisions
+### Content Restriction Logic
+- Users must post to see full feed (enforced by `hasPosted` LocalStorage flag)
+- Non-posters see first post only, rest are blurred with overlay
+- Reactions only available after posting
+- Session-based restrictions reset when timer expires
 
-### State Management Pattern
-Uses a hybrid approach with ViewModels handling business logic and state, while services manage data persistence and external API calls. LocalStorage used for session data (floor, gender, posting status).
+### Key Components
+- **ConfessionCard**: Displays posts with floor/gender attribution ("A girl From Freaky Floor 2")
+- **PostInput**: Loads user's selected floor/gender from LocalStorage for accurate posting
+- **StatusIndicator**: Shows timer countdown and simulated live viewer count
+- **FloorButton**: Handles floor selection with visual feedback
+
+### Common Issues & Solutions
+- **Floor display problems**: Ensure PostInput loads preferences from LocalStorage correctly
+- **Maintenance mode bugs**: Check admin authentication in both GlobalMaintenanceListener and MaintenanceScreen
+- **Navigation issues**: Verify MaterialApp.navigatorKey usage for global navigation
+- **Session state**: LocalStorage handles per-session data, Firestore handles persistent system state
+- **Timer deployment issues**: If web deployment shows wrong timer values, ensure clean rebuild from current main branch
+
+### Recent Changes Log
+
+#### Timer System Update - August 30, 2024
+**What Changed:**
+- Default session timer: 5 minutes → 1 minute
+- Admin interface defaults: Updated to 1 minute
+- All timer references updated consistently across codebase
+
+**Files Modified:**
+- `lib/services/maintenance_service.dart` - Core timer logic and defaults
+- `lib/view_models/home_view_model.dart` - Session initialization
+- `lib/ui/widgets/admin_system_controls_section.dart` - Admin interface defaults
+- `CLAUDE.md` - Documentation updates
+
+**Deployment Process:**
+1. Updated all source code with 1-minute timer values
+2. Initially deployed stashed build (contained old 5-minute values)
+3. Discovered discrepancy through compiled JS verification
+4. Rebuilt fresh with `flutter clean && flutter build web`
+5. Verified no "5 minute" references in `build/web/main.dart.js`
+6. Successfully deployed verified 1-minute timer build to gh-pages
+
+**Key Lesson:** Always verify compiled output matches source code expectations, especially when using git stash during deployment process.
