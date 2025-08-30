@@ -28,9 +28,15 @@ class _FloorPickerScreenState extends State<FloorPickerScreen> {
 
   void onReadyPressed() async {
     if (selectedFloor != null && selectedGender != null) {
+      print('DEBUG: FloorPicker saving floor: $selectedFloor, gender: $selectedGender');
       final localStorageService = LocalStorageService();
       await localStorageService.setFloor(selectedFloor!);
       await localStorageService.setGender(selectedGender!);
+      
+      // Verify it was saved
+      final savedFloor = await localStorageService.getFloor();
+      final savedGender = await localStorageService.getGender();
+      print('DEBUG: FloorPicker verified saved floor: $savedFloor, gender: $savedGender');
       
       Navigator.of(context).push(
         MaterialPageRoute(

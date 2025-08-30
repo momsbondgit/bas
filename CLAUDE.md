@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BAS Rituals - A Flutter app with Firebase backend for a social platform where users post content on different "floors" with admin management capabilities.
+BAS Rituals - A Flutter app with Firebase backend for a social platform where users post anonymous confessions on different "floors" (building levels), with admin management capabilities and session-based access control.
 
 ## Critical Development Principles
 
@@ -19,50 +19,77 @@ BAS Rituals - A Flutter app with Firebase backend for a social platform where us
 ### Development
 - `flutter run` - Run app in development
 - `flutter build apk` - Build Android APK  
-- `flutter build web` - Build for web
+- `flutter build web` - Build for web deployment
 - `flutter pub get` - Install dependencies
 - `flutter analyze` - Static analysis
 - `flutter test` - Run unit tests
 
 ### Firebase Testing
 - `npm test` - Run Firebase security rules tests
-- `npm run emulators:start` - Start Firebase emulators
+- `npm run emulators:start` - Start Firebase emulators (Auth:9099, Firestore:8080, UI:4000)
 - `npm run emulators:test` - Run tests with emulators
+
+### Deployment
+- GitHub Pages deployed from `gh-pages` branch
+- Custom domain: `www.bas.today`
+- Web builds require base href configuration for proper routing
 
 ## Architecture
 
-### Entry Point & Navigation
-- `lib/main.dart` - Firebase initialization, routing, global maintenance monitoring
-- Firebase project: `basv2-9c201`
-- `GlobalMaintenanceListener` wraps entire app for real-time maintenance switching
-- Routes: `/` → `AppInitializationWrapper`, `/app` → `FloorPickerScreen`, `/admin/*` → protected admin interface
+### Core Application Flow
+1. **FloorPickerScreen** - User selects building floor (1-4) and gender, saves to LocalStorage
+2. **HomeScreen** - Main feed showing confession posts with session timer
+3. **PostInput** - Loads user's floor/gender from LocalStorage for posting
+4. **SessionEndScreen** - Appears when 5-minute timer expires
 
-### MVVM Structure
-- `lib/services/` - Data services and business logic
-- `lib/view_models/` - State management and presentation logic
-- `lib/ui/screens/` - Full-screen UI components  
-- `lib/ui/widgets/` - Reusable components
-- `lib/utils/` - Utility functions
+### Data Flow & State Management
+- **LocalStorage** (`shared_preferences`): Floor, gender, posting status per session
+- **ViewModels**: Handle business logic, state changes, Firebase streams
+- **Services**: Data persistence, Firebase operations, maintenance monitoring
+- **Critical**: PostInput must load user preferences from LocalStorage on initialization
 
 ### Firebase Integration
-- Firestore collections: `posts`, `endings` (phone numbers), `system` (maintenance), `presence_home`
-- Firebase Auth for admin authentication
-- Emulator ports: Auth 9099, Firestore 8080, UI 4000
-- Security rules: `backend/firestore.rules`
+- **Project**: `basv2-9c201`
+- **Collections**: 
+  - `posts` (confessions with floor/gender/reactions)
+  - `endings` (phone number collection)
+  - `system` (maintenance status, session timers)
+  - `presence_home` (live user count simulation)
+- **Auth**: Admin authentication only
+- **Rules**: Located in `backend/firestore.rules`
 
-### Key Features
-- Multi-floor content system with LocalStorage session data
-- Real-time maintenance mode with admin-aware navigation
-- Phone number collection with floor/gender tracking
-- Cross-platform support (Android, iOS, Web, macOS, Windows, Linux)
+### Session & Timer System
+- 5-minute session timer managed by `MaintenanceService`
+- Real-time countdown displayed in UI
+- Users redirected to `SessionEndScreen` when timer expires
+- Timer state persisted in Firestore `system` collection
 
-### Maintenance System
-- `GlobalMaintenanceListener` monitors `system/maintenance` Firestore document
-- Admin users remain on current screen when toggling maintenance
-- Regular users redirect to maintenance screen when enabled
-- Admin authentication checks prevent admin workflow disruption
+### Maintenance Mode Architecture
+- **GlobalMaintenanceListener**: Wraps entire app, monitors maintenance status
+- **Admin-aware navigation**: Admins stay on current screen during maintenance toggle
+- **Real-time switching**: All users instantly see maintenance screen when enabled
+- **Navigation context**: Uses `MaterialApp.navigatorKey` for global navigation control
 
-### Testing
-- Firebase rules testing: `backend/rules-test.js`
-- Widget tests: `test/widget_test.dart`
-- Emulator configuration in `firebase.json`
+### Admin System
+- **Access**: Long-press on FloorPickerScreen header
+- **Routes**: `/admin/*` with authentication protection
+- **Capabilities**: Post management, system controls, maintenance toggle, phone number viewing
+- **Separation**: Admin posts marked with `isAdminPost: true`, support custom authors
+
+### Content Restriction Logic
+- Users must post to see full feed (enforced by `hasPosted` LocalStorage flag)
+- Non-posters see first post only, rest are blurred with overlay
+- Reactions only available after posting
+- Session-based restrictions reset when timer expires
+
+### Key Components
+- **ConfessionCard**: Displays posts with floor/gender attribution ("A girl From Freaky Floor 2")
+- **PostInput**: Loads user's selected floor/gender from LocalStorage for accurate posting
+- **StatusIndicator**: Shows timer countdown and simulated live viewer count
+- **FloorButton**: Handles floor selection with visual feedback
+
+### Common Issues & Solutions
+- **Floor display problems**: Ensure PostInput loads preferences from LocalStorage correctly
+- **Maintenance mode bugs**: Check admin authentication in both GlobalMaintenanceListener and MaintenanceScreen
+- **Navigation issues**: Verify MaterialApp.navigatorKey usage for global navigation
+- **Session state**: LocalStorage handles per-session data, Firestore handles persistent system state
