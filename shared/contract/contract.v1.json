@@ -1,0 +1,96 @@
+{
+  "version": "1.0.0",
+  "collections": {
+    "floors": "floors",
+    "sessions": "sessions",
+    "confessions": "confessions",
+    "reactions": "reactions",
+    "votes": "votes",
+    "users": "users"
+  },
+  "fields": {
+    "floor": {
+      "activeSessionId": "activeSessionId",
+      "stampEmoji": "stampEmoji"
+    },
+    "session": {
+      "theme": "theme",
+      "startsAt": "startsAt",
+      "endsAt": "endsAt",
+      "status": "status"
+    },
+    "confession": {
+      "text": "text",
+      "createdAt": "createdAt"
+    },
+    "reaction": {
+      "confessionId": "confessionId",
+      "emoji": "emoji",
+      "createdAt": "createdAt"
+    },
+    "vote": {
+      "choiceEmoji": "choiceEmoji",
+      "createdAt": "createdAt"
+    },
+    "user": {
+      "hasPostedThisSession": "hasPostedThisSession",
+      "notificationsOptIn": "notificationsOptIn"
+    }
+  },
+  "enums": {
+    "sessionStatus": [
+      "scheduled",
+      "live", 
+      "ended"
+    ],
+    "reactionEmojis": [
+      "😂",
+      "😱", 
+      "❤️",
+      "🤯"
+    ]
+  },
+  "paths": {
+    "floor": "floors/{floorId}",
+    "session": "floors/{floorId}/sessions/{sessionId}",
+    "confession": "floors/{floorId}/sessions/{sessionId}/confessions/{uid}",
+    "reaction": "floors/{floorId}/sessions/{sessionId}/reactions/{uid}_{confessionId}",
+    "vote": "floors/{floorId}/sessions/{sessionId}/votes/{uid}",
+    "user": "users/{uid}"
+  },
+  "constraints": {
+    "confession": {
+      "maxPerUserPerSession": 1,
+      "textMaxLength": 500
+    },
+    "reaction": {
+      "maxPerUserPerConfession": 1,
+      "allowedEmojis": ["😂", "😱", "❤️", "🤯"]
+    },
+    "vote": {
+      "maxPerUserPerSession": 1
+    }
+  },
+  "security": {
+    "confessions": {
+      "readAccess": "userHasPostedOrSessionEnded",
+      "writeAccess": "onePerUserPerSession"
+    },
+    "reactions": {
+      "readAccess": "public",
+      "writeAccess": "onePerUserPerConfession"
+    },
+    "votes": {
+      "readAccess": "ownerOnly",
+      "writeAccess": "onePerUserPerSession"
+    },
+    "sessions": {
+      "readAccess": "public",
+      "writeAccess": "none"
+    },
+    "floors": {
+      "readAccess": "public",
+      "writeAccess": "stampEmojiOnly"
+    }
+  }
+}

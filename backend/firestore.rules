@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Posts collection - existing rules
+    match /posts/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // System collection - existing rules  
+    match /system/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Endings collection - existing rules
+    match /endings/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Presence Home collection - new rules for presence tracking
+    match /presence_home/{document} {
+      // Allow all users to read and write (temporary for testing)
+      allow read, write: if true;
+    }
+  }
+}
