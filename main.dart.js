@@ -84997,24 +84997,24 @@ A.akA.prototype={
 $1(a){return this.a.wv(B.b.gar(this.b.b.b.a),a)},
 $S:61}
 A.akG.prototype={
-$2(a6,a7){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0=this,a1=null,a2="SF Pro",a3=a0.b,a4=A.kM(0,a3&&a0.c>0?-a0.c:0,0),a5=a0.e
-if(a5)s=24
+$2(a5,a6){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0=this,a1=null,a2="SF Pro",a3=A.kM(0,a0.b&&a0.c>0?-a0.c:0,0),a4=a0.e
+if(a4)s=24
 else s=a0.f?20:a0.r*0.05
-if(a5)r=20
+if(a4)r=20
 else r=a0.f?18:B.c.aR(a0.w*0.015,12,18)
-if(a5)q=18
+if(a4)q=18
 else q=a0.f?16:B.c.aR(a0.r*0.038,14,16)
-if(a5)p=0.6
+if(a4)p=0.6
 else p=a0.f?0.55:0.5
-if(a5)o=1.2
+if(a4)o=1.2
 else o=a0.f?1.15:1.1
 n=t.p
 p=A.bI(A.b([A.au("SAY WHAT YOU REALLY WANNA SAY \ud83e\udee2\ud83e\udd2b\ud83d\ude2c",a1,a1,a1,a1,A.b2(a1,a1,B.k,a1,a1,a1,a1,a1,a2,a1,a1,q,a1,a1,B.n,a1,o,!0,a1,p,a1,a1,a1,a1,a1,a1),a1,a1)],n),B.a2,B.q,B.r)
-if(a5)q=24
+if(a4)q=24
 else q=a0.f?20:a0.r*0.05
 o=A.av(20)
 m=A.ca(B.Eb,1)
-if(a5)l=24
+if(a4)l=24
 else l=a0.f?20:B.c.aR(a0.r*0.04,16,20)
 k=A.b([],n)
 j=a0.a
@@ -85026,7 +85026,7 @@ k.push(B.fe)
 i=j.e
 i===$&&A.a()
 k.push(A.j4(i,new A.akF(j),a1))
-if(a5)i=15
+if(a4)i=15
 else i=a0.f?12:B.c.aR(a0.r*0.025,8,12)
 k.push(A.bt(a1,a1,i))
 i=j.d.r
@@ -85036,12 +85036,12 @@ i=j.d
 h=i.x.length
 if(h===0)i=B.Dm
 else{i=!i.d&&h>1?B.LS:B.iI
-if(a5)h=24
+if(a4)h=24
 else h=a0.f?20:B.c.aR(a0.r*0.04,16,20)
-if(a5)g=24
+if(a4)g=24
 else g=a0.f?20:B.c.aR(a0.r*0.04,16,20)
 f=A.W(j.a2J(),t.l7)
-if(a5)e=50
+if(a4)e=50
 else e=a0.f?40:B.c.aR(a0.w*0.06,30,45)
 f.push(A.bt(a1,e,a1))
 i=A.b([A.Bv(A.bI(f,B.a2,B.q,B.r),new A.ad(h,10,g,0),i,B.ao)],n)
@@ -85064,36 +85064,35 @@ f=A.av(12)
 if(b)e=18
 else e=c?16:B.c.aR(d*0.045,16,18)
 i.push(A.tP(0,A.aS(a1,A.dl(new A.bK(B.G7,A.au("You not about to see all the tea without you posting. So get to it.",a1,a1,a1,a1,A.b2(a1,a1,B.k,a1,a1,a1,a1,a1,a2,a1,a1,e,a1,a1,B.x,a1,1.4,!0,a1,0.4,a1,a1,a1,a1,a1,a1),B.bc,a1),a1),a1,a1),B.m,a1,a1,new A.aB(g,a1,a1,f,a1,a1,B.v),a1,a1,new A.ad(h,0,h,0),a1,a1,a1,a1),a1,a1,0,0,160+a,a1))}i=A.jK(B.c_,i,B.G,B.bI,a1)}q=A.dp(A.dl(A.aS(a1,A.bI(A.b([new A.bK(new A.ad(s,r,s,r),p,a1),A.dp(A.aS(a1,A.bI(A.b([new A.bK(new A.ad(l,l,l,l),k,a1),A.dp(i,1)],n),B.a5,B.q,B.r),B.m,a1,a1,new A.aB(B.bg,a1,m,o,a1,a1,B.v),a1,a1,new A.ad(q,0,q,0),a1,a1,a1,a1),1)],n),B.a5,B.q,B.r),B.m,a1,a1,a1,a1,a1,a1,a1,a1,a1,a0.d),a1,a1),1)
-if(a5)s=24
+if(a4)s=24
 else s=a0.f?20:a0.r*0.05
 s=A.bt(a1,a1,s)
-if(a5)r=35
+if(a4)r=35
 else r=a0.f?30:B.c.aR(a0.w*0.04,25,35)
 r=A.bt(a1,r,a1)
-if(a5)p=16
+if(a4)p=16
 else p=a0.f?15:B.c.aR(a0.r*0.036,13,15)
-if(a5)o=0.6
+if(a4)o=0.6
 else o=a0.f?0.55:0.5
 o=A.au("POST RULES!",a1,a1,a1,a1,A.b2(a1,a1,B.k,a1,a1,a1,a1,a1,a2,a1,a1,p,a1,a1,B.n,a1,a1,!0,a1,o,a1,a1,a1,a1,a1,a1),a1,a1)
-if(a5)p=18
+if(a4)p=18
 else p=a0.f?16:B.c.aR(a0.w*0.015,12,16)
 p=A.bt(a1,p,a1)
 m=j.vY("1. Be funny, embarrassing, or spicy.")
-if(a5)l=12
+if(a4)l=12
 else l=a0.f?10:B.c.aR(a0.w*0.01,8,12)
 l=A.bt(a1,l,a1)
 k=j.vY("2. No dry posts, no capping.")
-if(a5)i=12
+if(a4)i=12
 else i=a0.f?10:B.c.aR(a0.w*0.01,8,12)
 i=A.bt(a1,i,a1)
 h=j.vY("3. When the timer runs out, it's over. So hurry up.")
-if(a5)g=12
+if(a4)g=12
 else g=a0.f?10:B.c.aR(a0.w*0.01,8,12)
 g=A.cm(A.b([s,A.dp(A.bI(A.b([r,o,p,m,l,k,i,h,A.bt(a1,g,a1),j.vY("4. Post to scroll and see all posts.")],n),B.a2,B.q,B.r),1)],n),B.q,B.r)
-if(a5)a3=20
-else if(a0.f)a3=16
-else a3=a3&&a0.c>0?0:B.c.aR(a0.w*0.015,10,18)
-return A.asb(A.bI(A.b([q,g,new A.Ak(j.gabi(),a1),A.bt(a1,a3,a1)],n),B.a5,B.q,B.r),B.ev,a1,B.bA,a1,a1,a4,a1)},
+if(a4)a4=20
+else a4=a0.f?16:B.c.aR(a0.w*0.015,10,18)
+return A.asb(A.bI(A.b([q,g,new A.Ak(j.gabi(),a1),A.bt(a1,a4,a1)],n),B.a5,B.q,B.r),B.ev,a1,B.bA,a1,a1,a3,a1)},
 $S:555}
 A.akF.prototype={
 $2(a,b){var s=this.a.e
