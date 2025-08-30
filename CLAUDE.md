@@ -40,7 +40,7 @@ BAS Rituals - A Flutter app with Firebase backend for a social platform where us
 1. **FloorPickerScreen** - User selects building floor (1-4) and gender, saves to LocalStorage
 2. **HomeScreen** - Main feed showing confession posts with session timer
 3. **PostInput** - Loads user's floor/gender from LocalStorage for posting
-4. **SessionEndScreen** - Appears when 5-minute timer expires
+4. **SessionEndScreen** - Appears when 1-minute timer expires
 
 ### Data Flow & State Management
 - **LocalStorage** (`shared_preferences`): Floor, gender, posting status per session
@@ -59,7 +59,7 @@ BAS Rituals - A Flutter app with Firebase backend for a social platform where us
 - **Rules**: Located in `backend/firestore.rules`
 
 ### Session & Timer System
-- 5-minute session timer managed by `MaintenanceService`
+- 1-minute session timer managed by `MaintenanceService`
 - Real-time countdown displayed in UI
 - Users redirected to `SessionEndScreen` when timer expires
 - Timer state persisted in Firestore `system` collection

@@ -19,8 +19,8 @@ class MaintenanceService {
         isEnabled: false,
         message: 'We\'re currently performing some maintenance. Please check back soon!',
         lastUpdated: DateTime.now(),
-        sessionEndTime: DateTime.now().add(const Duration(minutes: 5)),
-        defaultSessionMinutes: 5,
+        sessionEndTime: DateTime.now().add(const Duration(minutes: 1)),
+        defaultSessionMinutes: 1,
       );
     }
 
@@ -81,8 +81,8 @@ class MaintenanceService {
       isEnabled: false,
       message: 'We\'re currently performing some maintenance. Please check back soon!',
       lastUpdated: DateTime.now(),
-      sessionEndTime: DateTime.now().add(const Duration(minutes: 5)),
-      defaultSessionMinutes: 5,
+      sessionEndTime: DateTime.now().add(const Duration(minutes: 1)),
+      defaultSessionMinutes: 1,
     );
 
     await _firestore
@@ -113,7 +113,7 @@ class MaintenanceService {
   }
 
   /// Start a fresh session timer (used on app initialization)
-  Future<void> startFreshSession({int minutes = 5}) async {
+  Future<void> startFreshSession({int minutes = 1}) async {
     final status = await getMaintenanceStatus();
     final newEndTime = DateTime.now().add(Duration(minutes: minutes));
     
@@ -162,7 +162,7 @@ class MaintenanceStatus {
     required this.message,
     required this.lastUpdated,
     this.sessionEndTime,
-    this.defaultSessionMinutes = 5,
+    this.defaultSessionMinutes = 1,
   });
 
   Map<String, dynamic> toMap() {
@@ -181,7 +181,7 @@ class MaintenanceStatus {
       message: map['message'] ?? 'We\'re currently performing some maintenance. Please check back soon!',
       lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       sessionEndTime: (map['sessionEndTime'] as Timestamp?)?.toDate(),
-      defaultSessionMinutes: map['defaultSessionMinutes'] ?? 5,
+      defaultSessionMinutes: map['defaultSessionMinutes'] ?? 1,
     );
   }
 

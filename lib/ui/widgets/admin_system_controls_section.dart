@@ -28,8 +28,8 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
   @override
   void initState() {
     super.initState();
-    _timerMinutesController.text = '5';
-    _extendMinutesController.text = '5';
+    _timerMinutesController.text = '1';
+    _extendMinutesController.text = '1';
   }
 
   @override

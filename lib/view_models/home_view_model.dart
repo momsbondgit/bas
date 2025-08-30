@@ -49,7 +49,7 @@ class HomeViewModel extends ChangeNotifier {
 
   void _initializeFreshTimer() async {
     try {
-      await _maintenanceService.startFreshSession(minutes: 5);
+      await _maintenanceService.startFreshSession(minutes: 1);
       _timerExpiredAndCleared = false;
       _listenToMaintenance();
     } catch (e) {
