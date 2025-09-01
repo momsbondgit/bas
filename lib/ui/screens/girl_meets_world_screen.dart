@@ -20,7 +20,7 @@ class GirlMeetsWorldScreen extends StatelessWidget {
                 _buildTitle(),
                 const SizedBox(height: 10),
                 _buildTimer(),
-                const SizedBox(height: 40),
+                const SizedBox(height: 25),
                 _buildTeaTopicSection(),
                 const Spacer(),
                 _buildVibeSection(),
@@ -30,6 +30,8 @@ class GirlMeetsWorldScreen extends StatelessWidget {
               ],
             ),
           ),
+          _buildLiveStreamElements(),
+          _buildChatArea(),
         ],
       ),
     );
@@ -138,7 +140,7 @@ class GirlMeetsWorldScreen extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 40),
           child: Text(
@@ -214,4 +216,194 @@ class GirlMeetsWorldScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildLiveStreamElements() {
+    return Positioned(
+      top: 220,
+      right: 50,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // LIVE button
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+            decoration: BoxDecoration(
+              color: const Color.fromRGBO(255, 252, 252, 0.54),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromRGBO(83, 83, 83, 0.04),
+                  offset: const Offset(1, 2),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'LIVE',
+                  style: TextStyle(
+                    fontFamily: 'SF Compact Rounded',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 15,
+                    color: Colors.black,
+                    letterSpacing: 1.65,
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Container(
+                  width: 16,
+                  height: 15,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFF6262),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Viewer count
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+            decoration: BoxDecoration(
+              color: const Color.fromRGBO(255, 252, 252, 0.54),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromRGBO(83, 83, 83, 0.04),
+                  offset: const Offset(1, 2),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/ChatGPT Image Aug 27, 2025 at 06_48_31 AM 1.png',
+                  width: 21,
+                  height: 21,
+                ),
+                const SizedBox(width: 3),
+                const Text(
+                  '15',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro Rounded',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 15,
+                    color: Colors.black,
+                    letterSpacing: 1.65,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChatArea() {
+    return Stack(
+      children: [
+        // Main chat area
+        Positioned(
+          top: 210,
+          left: 40,
+          right: 40,
+          child: Container(
+            height: 324,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: const Color(0xFFD8D8D8),
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+        // Sketch lines - left side
+        Positioned(
+          top: 190,
+          left: 10,
+          child: CustomPaint(
+            size: const Size(28.29, 20.24),
+            painter: SketchLinesPainter1(),
+          ),
+        ),
+        // Sketch lines - right side bottom
+        Positioned(
+          top: 530,
+          right: 5,
+          child: CustomPaint(
+            size: const Size(42, 61.24),
+            painter: SketchLinesPainter2(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class SketchLinesPainter1 extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+    
+    // First line
+    canvas.drawLine(
+      const Offset(21, 0),
+      const Offset(28.29, 15.24),
+      paint,
+    );
+    
+    // Second line
+    canvas.drawLine(
+      const Offset(0, 4),
+      const Offset(23.29, 20.24),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class SketchLinesPainter2 extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+    
+    // First line
+    canvas.drawLine(
+      const Offset(0, 9),
+      const Offset(21.29, 61.24),
+      paint,
+    );
+    
+    // Second line
+    canvas.drawLine(
+      const Offset(7, 4),
+      const Offset(15, 13),
+      paint,
+    );
+    
+    // Third line
+    canvas.drawLine(
+      const Offset(11, 0),
+      const Offset(42, 9),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
