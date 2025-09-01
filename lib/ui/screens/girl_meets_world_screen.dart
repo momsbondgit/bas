@@ -18,9 +18,7 @@ class GirlMeetsWorldScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 50),
                 _buildTitle(),
-                const SizedBox(height: 10),
-                _buildTimer(),
-                const SizedBox(height: 25),
+                const SizedBox(height: 35),
                 _buildTeaTopicSection(),
                 const Spacer(),
                 _buildVibeSection(),
@@ -136,7 +134,7 @@ class GirlMeetsWorldScreen extends StatelessWidget {
               fontFamily: 'SF Pro Rounded',
               fontWeight: FontWeight.w600,
               fontSize: 15,
-              color: Color(0xFF484848),
+              color: Colors.black,
             ),
           ),
         ),
@@ -202,14 +200,18 @@ class GirlMeetsWorldScreen extends StatelessWidget {
           color: const Color(0xFFE8E8E8),
           borderRadius: BorderRadius.circular(37),
         ),
-        child: const Center(
-          child: Text(
-            'We know that you have cringing moments too...',
-            style: TextStyle(
-              fontFamily: 'SF Pro Rounded',
-              fontWeight: FontWeight.w500,
-              fontSize: 11,
-              color: Color(0xFF8F8F8F),
+        child: const Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: EdgeInsets.only(left: 21),
+            child: Text(
+              'We know that you have cringing moments too...',
+              style: TextStyle(
+                fontFamily: 'SF Pro Rounded',
+                fontWeight: FontWeight.w500,
+                fontSize: 11,
+                color: Color(0xFF8F8F8F),
+              ),
             ),
           ),
         ),
@@ -219,7 +221,7 @@ class GirlMeetsWorldScreen extends StatelessWidget {
 
   Widget _buildLiveStreamElements() {
     return Positioned(
-      top: 220,
+      top: 190,
       right: 50,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -310,7 +312,7 @@ class GirlMeetsWorldScreen extends StatelessWidget {
       children: [
         // Main chat area
         Positioned(
-          top: 210,
+          top: 180,
           left: 40,
           right: 40,
           child: Container(
@@ -322,20 +324,171 @@ class GirlMeetsWorldScreen extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(10),
             ),
+            child: Padding(
+              padding: const EdgeInsets.all(17),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 60), // Space to move content down under LIVE button
+                  // Example confession post
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'NICKNAME: THATGIRL123',
+                        style: TextStyle(
+                          fontFamily: 'SF Compact Rounded',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: Colors.black,
+                          letterSpacing: 1.65,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'I called my crush pretending that i was his mom so that he would tell me where he is 😭',
+                        style: TextStyle(
+                          fontFamily: 'SF Compact Rounded',
+                          fontWeight: FontWeight.w400,
+                          fontSize: 15,
+                          color: Colors.black,
+                          letterSpacing: 1.65,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'REACT: [SAMEE🤭] [DEAD☠] [W🤪]',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'SF Compact Rounded',
+                          fontWeight: FontWeight.w400,
+                          fontSize: 15,
+                          color: Color(0xFFB2B2B2),
+                          letterSpacing: 1.65,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                  // Subtle divider
+                  Container(
+                    width: double.infinity,
+                    height: 1,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFDEDBD9),
+                    ),
+                  ),
+                  const SizedBox(height: 25),
+                  // Queue section
+                  Center(
+                    child: Column(
+                      children: [
+                        const Text(
+                          '[ Upcoming Turns Queue ]',
+                          style: TextStyle(
+                            fontFamily: 'SF Pro Rounded',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 17,
+                            color: Color(0xFFABABAB),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          width: 280,
+                          child: const Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 5,
+                            runSpacing: 5,
+                            children: [
+                              Text(
+                                'THATGIRL123',
+                                style: TextStyle(
+                                  fontFamily: 'SF Compact Rounded',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                  color: Color(0xFFFF6262),
+                                ),
+                              ),
+                              Text(
+                                '→Who IS ShE',
+                                style: TextStyle(
+                                  fontFamily: 'SF Compact Rounded',
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                  color: Color(0xFFABABAB),
+                                ),
+                              ),
+                              Text(
+                                '→Girlly',
+                                style: TextStyle(
+                                  fontFamily: 'SF Compact Rounded',
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                  color: Color(0xFFABABAB),
+                                ),
+                              ),
+                              Text(
+                                '→316 girlly',
+                                style: TextStyle(
+                                  fontFamily: 'SF Compact Rounded',
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                  color: Color(0xFFABABAB),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         // Sketch lines - left side
         Positioned(
-          top: 190,
+          top: 160,
           left: 10,
           child: CustomPaint(
             size: const Size(28.29, 20.24),
             painter: SketchLinesPainter1(),
           ),
         ),
+        // Timer button - left of comment section
+        Positioned(
+          top: 190,
+          left: 50,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+            decoration: BoxDecoration(
+              color: const Color.fromRGBO(255, 252, 252, 0.54),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromRGBO(83, 83, 83, 0.04),
+                  offset: const Offset(1, 2),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: const Text(
+              '11:43',
+              style: TextStyle(
+                fontFamily: 'SF Compact Rounded',
+                fontWeight: FontWeight.w400,
+                fontSize: 15,
+                color: Colors.black,
+                letterSpacing: 1.65,
+              ),
+            ),
+          ),
+        ),
         // Sketch lines - right side bottom
         Positioned(
-          top: 530,
+          top: 500,
           right: 5,
           child: CustomPaint(
             size: const Size(42, 61.24),
