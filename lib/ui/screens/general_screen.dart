@@ -1,0 +1,162 @@
+import 'package:flutter/material.dart';
+import 'dart:ui';
+
+void main() => runApp(MaterialApp(home: GeneralScreen()));
+
+class GeneralScreen extends StatelessWidget {
+  const GeneralScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFFFFF),
+      body: Stack(
+        children: [
+          _buildFadeBackground(context),
+          _buildBox(context),
+          _buildTapImage(context),
+          _buildTitle(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFadeBackground(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final groupWidth = 124.0;
+    final groupHeight = 128.0;
+    
+    // Center the background group on screen
+    return Positioned(
+      left: (screenSize.width - groupWidth) / 2,
+      top: (screenSize.height - groupHeight) / 2,
+      child: SizedBox(
+        width: groupWidth,
+        height: groupHeight,
+        child: Stack(
+          children: [
+            // Circle 1: #F9D6D3 at (39,39)
+            Positioned(
+              left: 39,
+              top: 39,
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 32.5, sigmaY: 32.5),
+                child: Container(
+                  width: 85,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFF9D6D3).withOpacity(0.83),
+                  ),
+                ),
+              ),
+            ),
+            // Circle 2: #FDBFC5 at (25,0)
+            Positioned(
+              left: 25,
+              top: 0,
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 32.5, sigmaY: 32.5),
+                child: Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFFDBFC5).withOpacity(0.83),
+                  ),
+                ),
+              ),
+            ),
+            // Circle 3: #FDC4A0 at (0,54)
+            Positioned(
+              left: 0,
+              top: 54,
+              child: ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 32.5, sigmaY: 32.5),
+                child: Container(
+                  width: 77,
+                  height: 74,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFFDC4A0).withOpacity(0.83),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBox(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final boxWidth = 122.0;
+    final boxHeight = 126.0;
+    
+    // Center the box on screen
+    return Positioned(
+      left: (screenSize.width - boxWidth) / 2,
+      top: (screenSize.height - boxHeight) / 2,
+      child: Container(
+        width: boxWidth,
+        height: boxHeight,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFefd),
+          border: Border.all(
+            color: const Color(0xFFEFEFEF),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color.fromRGBO(0, 0, 0, 0.07),
+              offset: const Offset(4, 6),
+              blurRadius: 8.9,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTapImage(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    
+    // Position the tap image relative to the centered layout
+    // In Figma it's at (244, 267) relative to frame, which is to the right of the box
+    return Positioned(
+      left: (screenSize.width / 2) + 60, // Position slightly left of previous position
+      top: (screenSize.height / 2) - 150, // Position much higher above center
+      child: Image.asset(
+        'assets/tap.png',
+        width: 98,
+        height: 98,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+
+  Widget _buildTitle(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final boxHeight = 126.0;
+    
+    // Center the title horizontally and position it below the centered box
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: (screenSize.height / 2) + (boxHeight / 2) + 15, // Position below centered box with padding
+      child: const Center(
+        child: Text(
+          'Girl Meets College',
+          style: TextStyle(
+            fontFamily: 'SF Pro Rounded',
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
+            color: Color(0xFFB2B2B2),
+          ),
+        ),
+      ),
+    );
+  }
+}
