@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'girl_meets_college_screen.dart';
 
 void main() => runApp(MaterialApp(home: GeneralScreen()));
 
@@ -13,9 +14,23 @@ class GeneralScreen extends StatelessWidget {
       body: Stack(
         children: [
           _buildFadeBackground(context),
-          _buildBox(context),
-          _buildStickerImage(context),
-          _buildTapImage(context),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GirlMeetsCollegeScreen(selectedFloor: 1),
+                ),
+              );
+            },
+            child: Stack(
+              children: [
+                _buildBox(context),
+                _buildStickerImage(context),
+                _buildTapImage(context),
+              ],
+            ),
+          ),
           _buildTitle(context),
         ],
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/maintenance_service.dart';
 import '../screens/maintenance_screen.dart';
-import '../screens/floor_picker_screen.dart';
+import '../screens/general_screen.dart';
 import 'dart:async';
 
 class AppInitializationWrapper extends StatefulWidget {
@@ -27,19 +27,21 @@ class _AppInitializationWrapperState extends State<AppInitializationWrapper> {
 
   Future<void> _initializeApp() async {
     try {
-      // Check initial maintenance status
-      final status = await _maintenanceService.getMaintenanceStatus();
-      final isMaintenanceActive = status.isEnabled;
+      // TESTING: Hard code maintenance mode to false to bypass Firebase checks
+      // TODO: Uncomment these lines when ready to use live maintenance mode
+      // final status = await _maintenanceService.getMaintenanceStatus();
+      // final isMaintenanceActive = status.isEnabled;
       
       if (mounted) {
         setState(() {
-          _isMaintenanceMode = isMaintenanceActive;
+          _isMaintenanceMode = false; // Hard coded for testing
           _isLoading = false;
         });
       }
 
-      // Start listening for real-time maintenance status updates
-      _startMaintenanceListener();
+      // TESTING: Comment out real-time maintenance listener
+      // TODO: Uncomment when ready to use live maintenance mode
+      // _startMaintenanceListener();
       
     } catch (e) {
       if (mounted) {
@@ -87,7 +89,7 @@ class _AppInitializationWrapperState extends State<AppInitializationWrapper> {
       return const MaintenanceScreen();
     }
 
-    return const FloorPickerScreen();
+    return const GeneralScreen();
   }
 
   Widget _buildLoadingScreen() {

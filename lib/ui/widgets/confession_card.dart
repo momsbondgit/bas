@@ -147,7 +147,11 @@ class ConfessionCard extends StatelessWidget {
   }
   
   Widget _buildReactionRow(double fontSize) {
-    final emojis = ['😂', '🫢', '🤪'];
+    final reactionData = [
+      {'label': 'SAMEE', 'emoji': '🤭'},
+      {'label': 'DEAD', 'emoji': '☠️'},
+      {'label': 'W', 'emoji': '🤪'},
+    ];
     
     return Row(
       children: [
@@ -161,8 +165,11 @@ class ConfessionCard extends StatelessWidget {
             letterSpacing: 0.4,
           ),
         ),
-        ...emojis.map((emoji) {
+        ...reactionData.map((reaction) {
+          final emoji = reaction['emoji']!;
+          final label = reaction['label']!;
           final count = reactions[emoji] ?? 0;
+          
           return GestureDetector(
             onTap: () => onReaction?.call(emoji),
             child: Container(
@@ -172,20 +179,15 @@ class ConfessionCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    emoji,
-                    style: TextStyle(fontSize: fontSize * 1.4),
-                  ),
-                  if (count > 0)
-                    Text(
-                      count.toString(),
-                      style: TextStyle(
-                        fontFamily: 'SF Compact Rounded',
-                        fontSize: fontSize * 1.1,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFFB2B2B2),
-                        letterSpacing: 0.4,
-                      ),
+                    count > 0 ? '[$label$emoji]$count' : '[$label$emoji]',
+                    style: TextStyle(
+                      fontFamily: 'SF Compact Rounded',
+                      fontSize: fontSize * 1.1,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFFB2B2B2),
+                      letterSpacing: 0.4,
                     ),
+                  ),
                 ],
               ),
             ),
@@ -197,12 +199,18 @@ class ConfessionCard extends StatelessWidget {
 
   String _buildReactionString() {
     final reactionParts = <String>[];
+    final reactionLabels = {
+      '🤭': 'SAMEE',
+      '☠️': 'DEAD', 
+      '🤪': 'W',
+    };
     
     reactions.forEach((emoji, count) {
+      final label = reactionLabels[emoji] ?? '';
       if (count > 0) {
-        reactionParts.add('$emoji$count');
+        reactionParts.add('[$label$emoji]$count');
       } else {
-        reactionParts.add(emoji);
+        reactionParts.add('[$label$emoji]');
       }
     });
     

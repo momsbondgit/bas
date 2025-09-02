@@ -26,7 +26,9 @@ class _GlobalMaintenanceListenerState extends State<GlobalMaintenanceListener> {
   @override
   void initState() {
     super.initState();
-    _startMaintenanceListener();
+    // TESTING: Comment out maintenance listener to prevent Firebase maintenance checks
+    // TODO: Uncomment when ready to use live maintenance mode
+    // _startMaintenanceListener();
   }
 
   void _startMaintenanceListener() {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'ui/screens/floor_picker_screen.dart';
+import 'ui/screens/general_screen.dart';
 import 'ui/screens/admin_login_screen.dart';
 import 'ui/screens/admin_screen.dart';
 import 'ui/screens/maintenance_screen.dart';
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
       },
       routes: {
         '/': (context) => const AppInitializationWrapper(),
-        '/app': (context) => const FloorPickerScreen(),
+        '/app': (context) => const GeneralScreen(),
         '/maintenance': (context) => const MaintenanceScreen(),
         '/admin': (context) => const AdminLoginScreen(),
         '/admin/dashboard': (context) => const AdminScreen(),
