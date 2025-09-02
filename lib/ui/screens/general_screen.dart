@@ -14,6 +14,7 @@ class GeneralScreen extends StatelessWidget {
         children: [
           _buildFadeBackground(context),
           _buildBox(context),
+          _buildStickerImage(context),
           _buildTapImage(context),
           _buildTitle(context),
         ],
@@ -116,6 +117,23 @@ class GeneralScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStickerImage(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    
+    // Position the sticker image relative to the centered layout
+    // In Figma it's at (120, 373) relative to frame, overlapping with the centered box area
+    return Positioned(
+      left: (screenSize.width / 2) - 80, // Position to the left of center
+      top: (screenSize.height / 2) - 55, // Position even higher above center
+      child: Image.asset(
+        'assets/Sicker image.png',
+        width: 165.29,
+        height: 113.53,
+        fit: BoxFit.contain,
       ),
     );
   }
