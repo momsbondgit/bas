@@ -153,32 +153,33 @@ class ConfessionCard extends StatelessWidget {
       {'label': 'W', 'emoji': '🤪'},
     ];
     
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'REACT: ',
-          style: TextStyle(
-            fontFamily: 'SF Compact Rounded',
-            fontSize: fontSize * 1.1,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFFB2B2B2),
-            letterSpacing: 0.4,
-          ),
-        ),
-        ...reactionData.map((reaction) {
-          final emoji = reaction['emoji']!;
-          final label = reaction['label']!;
-          final count = reactions[emoji] ?? 0;
-          
-          return GestureDetector(
-            onTap: () => onReaction?.call(emoji),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-              margin: const EdgeInsets.only(right: 10.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 4.0,
+          children: [
+            Text(
+              'REACT: ',
+              style: TextStyle(
+                fontFamily: 'SF Compact Rounded',
+                fontSize: fontSize * 1.1,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFFB2B2B2),
+                letterSpacing: 0.4,
+              ),
+            ),
+            ...reactionData.map((reaction) {
+              final emoji = reaction['emoji']!;
+              final label = reaction['label']!;
+              final count = reactions[emoji] ?? 0;
+              
+              return GestureDetector(
+                onTap: () => onReaction?.call(emoji),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+                  child: Text(
                     count > 0 ? '[$label$emoji]$count' : '[$label$emoji]',
                     style: TextStyle(
                       fontFamily: 'SF Compact Rounded',
@@ -188,11 +189,11 @@ class ConfessionCard extends StatelessWidget {
                       letterSpacing: 0.4,
                     ),
                   ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
+                ),
+              );
+            }).toList(),
+          ],
+        ),
       ],
     );
   }
