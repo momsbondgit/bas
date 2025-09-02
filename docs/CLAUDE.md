@@ -1,76 +1,53 @@
-# CLAUDE.md
+# DEVELOPMENT PRINCIPLES
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file contains the core principles that must be followed for all implementations and changes in this codebase.
 
-## Project Overview
+---
 
-BAS Rituals is a Flutter mobile application with Firebase backend integration for anonymous social interactions. The app features real-time presence tracking, post management, and administrative controls with maintenance mode capabilities.
+## Guiding Rules
 
-## Development Commands
+1. **Bare minimum only**  
+   - Strip the scope down until it breaks.  
+   - Add back only what's strictly necessary for functionality.
 
-### Flutter Commands
-- `flutter run` - Run the app in development mode
-- `flutter build apk` - Build Android APK
-- `flutter test` - Run Flutter unit/widget tests
-- `flutter analyze` - Static analysis and linting
-- `flutter pub get` - Install dependencies
-- `flutter clean` - Clean build files
+2. **MVVM, simplest possible**  
+   - Follow the app's existing MVVM pattern.  
+   - No extra layers or abstractions.  
+   - No third-party dependencies unless absolutely unavoidable.
 
-### Firebase Testing & Emulation
-- `npm test` - Run Firebase security rules tests
-- `firebase emulators:start` - Start Firebase emulators (Firestore on port 8080, Auth on port 9099, UI on port 4000)
-- `firebase emulators:exec --only firestore,auth 'npm test'` - Run tests against emulators
+3. **Confirm before coding each step**  
+   - Developer must **state the plan** (files, functions, exclusions, and test cases).  
+   - Wait for explicit **"Approved"** confirmation before proceeding.  
+   - Repeat this loop for every step.
 
-## Architecture
+---
 
-### Flutter App Structure
-```
-lib/
-├── main.dart                    # App entry point with Firebase initialization
-├── firebase_options.dart       # Firebase configuration
-├── services/                   # Business logic services
-│   ├── admin_service.dart      # Admin authentication & operations
-│   ├── ending_service.dart     # Session management
-│   ├── local_storage_service.dart  # SharedPreferences wrapper
-│   ├── maintenance_service.dart    # App maintenance mode
-│   ├── post_service.dart       # Firestore post operations
-│   └── presence_service.dart   # Real-time presence tracking
-├── ui/
-│   ├── screens/               # Full-screen views
-│   └── widgets/               # Reusable UI components
-├── view_models/               # State management
-└── utils/                     # Utility functions
-```
+## Confirmation Protocol
 
-### Key Services Integration
-- **Firebase Core**: Initialized in main.dart with platform-specific options
-- **Cloud Firestore**: Real-time database for posts and presence data
-- **SharedPreferences**: Local storage for user preferences and session data
-- **Maintenance Mode**: Global app state control through MaintenanceService
+For **every change step**, the developer must post:
 
-### Navigation Structure
-- `/` - App initialization wrapper
-- `/app` - Floor picker (main entry)
-- `/maintenance` - Maintenance mode screen
-- `/admin` - Admin login
-- `/admin/dashboard` - Admin dashboard
-- All `/admin/*` routes redirect to AdminScreen with built-in authentication
+**"Step N — Plan to implement:"**
+- **Files to add/edit**: exact paths (e.g., `lib/services/feedback_service.dart`)  
+- **Data structures / functions**: names + signatures (e.g., `Future<FeedbackModel> generateFeedback(...)`)  
+- **What will and will not be included**  
+- **Test cases**: list of validations they will run  
 
-### Firebase Configuration
-- Project ID: basv2-9c201
-- Firestore rules: `backend/firestore.rules`
-- Security rules testing: `backend/rules-test.js`
+**Questions**
+- **Always question me if you are not sure about something - never make things up. There should be no room for assumptions.**
 
-## State Management Pattern
+⚠️ **DO NOT WRITE CODE** until receiving explicit **"Approved"** reply.  
+Once approved, implement **only** what was confirmed.
 
-The app uses a service-based architecture with ViewModels for UI state:
-- Services handle business logic and Firebase integration
-- ViewModels manage screen-specific state using ChangeNotifier
-- Global state (maintenance mode) handled through dedicated listeners
+---
 
-## Testing
+## Implementation Checklist
 
-- Widget tests: `test/widget_test.dart`
-- Firebase rules tests: Backend security rules testing via Node.js
-- Use Flutter's built-in testing framework for unit/widget tests
-- Firebase emulators required for integration testing
+Before starting any work:
+- [ ] Read DEVELOPMENT_PRINCIPLES.md
+- [ ] Define minimal scope
+- [ ] Identify exact files and functions needed
+- [ ] List what will NOT be included
+- [ ] Define test cases
+- [ ] Ask clarifying questions if ANY assumptions are needed
+- [ ] Wait for "Approved" confirmation
+- [ ] Implement only what was approved

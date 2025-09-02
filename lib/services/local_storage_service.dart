@@ -4,6 +4,10 @@ class LocalStorageService {
   static const String _floorKey = 'user.floor';
   static const String _genderKey = 'user.gender';
   static const String _hasPostedKey = 'user.hasPosted';
+  
+  // Ritual Queue keys
+  static const String _ritualUserIdKey = 'ritual.userId';
+  static const String _ritualDisplayNameKey = 'ritual.displayName';
 
   Future<void> setFloor(int floor) async {
     final prefs = await SharedPreferences.getInstance();
@@ -33,5 +37,26 @@ class LocalStorageService {
   Future<bool> getHasPosted() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_hasPostedKey) ?? false;
+  }
+  
+  // Ritual Queue methods
+  Future<void> setRitualUserId(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_ritualUserIdKey, userId);
+  }
+  
+  Future<String?> getRitualUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_ritualUserIdKey);
+  }
+  
+  Future<void> setRitualDisplayName(String displayName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_ritualDisplayNameKey, displayName);
+  }
+  
+  Future<String?> getRitualDisplayName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_ritualDisplayNameKey);
   }
 }
