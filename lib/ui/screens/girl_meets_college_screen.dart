@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../widgets/confession_card.dart';
 import '../widgets/status_indicator.dart';
+import '../widgets/message_area_typing_indicator.dart';
 import '../../view_models/home_view_model.dart';
 import '../../services/presence_service.dart';
 import 'session_end_screen.dart';
@@ -24,6 +25,8 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   late HomeViewModel _viewModel;
   late AnimationController _pulseController;
   final PresenceService _presenceService = PresenceService();
+  final TextEditingController _textController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -35,6 +38,17 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     _viewModel.initialize();
     
     _presenceService.start();
+    _setupTextFieldListeners();
+  }
+
+  void _setupTextFieldListeners() {
+    _textController.addListener(() {
+      if (_textController.text.isNotEmpty) {
+        _viewModel.startRealUserTyping();
+      } else {
+        _viewModel.stopRealUserTyping();
+      }
+    });
   }
 
   void _onViewModelChanged() {
@@ -63,6 +77,26 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   void _handleReaction(String postId, String emoji) async {
     await _viewModel.addReaction(postId, emoji);
+  }
+
+  void _handlePostSubmission(String text) async {
+    if (text.trim().isEmpty || !_viewModel.canPost) return;
+    
+    try {
+      await _viewModel.submitPost(text);
+      
+      // Clear the text field
+      _textController.clear();
+      _focusNode.unfocus();
+    } catch (e) {
+      // Handle error - could show a snackbar or dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to post. Please try again.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   List<Widget> _buildPostWidgets() {
@@ -125,6 +159,8 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     _presenceService.stop();
     _viewModel.removeListener(_onViewModelChanged);
     _viewModel.dispose();
+    _textController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -324,28 +360,96 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   }
 
   Widget _buildBottomInput() {
+    final canPost = _viewModel.canPost;
+    final activeUser = _viewModel.activeUser;
+    
+    String placeholderText;
+    if (canPost) {
+      placeholderText = 'We know that you have cringing moments too...';
+    } else if (activeUser != null && activeUser.isReal) {
+      placeholderText = 'Your turn! Start typing...';
+    } else if (activeUser != null) {
+      placeholderText = 'Wait for ${activeUser.displayName} to finish their turn...';
+    } else {
+      placeholderText = 'Queue is loading...';
+    }
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Container(
-        height: 47,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8E8E8),
-          borderRadius: BorderRadius.circular(37),
-        ),
-        child: const Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: EdgeInsets.only(left: 21),
-            child: Text(
-              'We know that you have cringing moments too...',
-              style: TextStyle(
-                fontFamily: 'SF Pro Rounded',
-                fontWeight: FontWeight.w500,
-                fontSize: 11,
-                color: Color(0xFF8F8F8F),
-              ),
+            height: 47,
+            decoration: BoxDecoration(
+              color: canPost ? const Color(0xFFE8E8E8) : const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(37),
+              border: canPost ? null : Border.all(color: const Color(0xFFDDDDDD), width: 1),
             ),
-          ),
+        child: Row(
+          children: [
+            Expanded(
+              child: canPost
+                ? TextField(
+                    controller: _textController,
+                    focusNode: _focusNode,
+                    enabled: canPost,
+                    decoration: InputDecoration(
+                      hintText: placeholderText,
+                      hintStyle: const TextStyle(
+                        fontFamily: 'SF Pro Rounded',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 11,
+                        color: Color(0xFF8F8F8F),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.only(left: 21, right: 12),
+                    ),
+                    style: const TextStyle(
+                      fontFamily: 'SF Pro Rounded',
+                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
+                      color: Colors.black,
+                    ),
+                    maxLines: 1,
+                    onSubmitted: _handlePostSubmission,
+                  )
+                : Padding(
+                    padding: const EdgeInsets.only(left: 21),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        placeholderText,
+                        style: const TextStyle(
+                          fontFamily: 'SF Pro Rounded',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 11,
+                          color: Color(0xFFBBBBBB),
+                        ),
+                      ),
+                    ),
+                  ),
+            ),
+            if (canPost)
+              GestureDetector(
+                onTap: () => _handlePostSubmission(_textController.text),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6262),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'POST',
+                    style: TextStyle(
+                      fontFamily: 'SF Compact Rounded',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 9,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -467,29 +571,9 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 60), // Space to move content down under LIVE button
-                  // Scrollable confession feed
+                  // Dynamic content area based on queue state
                   Expanded(
-                    child: _viewModel.posts.isEmpty
-                        ? const Center(child: CircularProgressIndicator())
-                        : Stack(
-                            children: [
-                              SingleChildScrollView(
-                                physics: (!_viewModel.hasPosted && _viewModel.posts.length > 1) 
-                                    ? const NeverScrollableScrollPhysics() 
-                                    : const AlwaysScrollableScrollPhysics(),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ..._buildPostWidgets(),
-                                    const SizedBox(height: 20),
-                                  ],
-                                ),
-                              ),
-                              // Overlay for locked content
-                              if (!_viewModel.hasPosted && _viewModel.posts.length > 1)
-                                _buildLockedContentOverlay(),
-                            ],
-                          ),
+                    child: _buildMessageAreaContent(),
                   ),
                   // Subtle divider
                   Container(
@@ -501,68 +585,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
                   ),
                   const SizedBox(height: 25),
                   // Queue section
-                  Center(
-                    child: Column(
-                      children: [
-                        const Text(
-                          '[ Upcoming Turns Queue ]',
-                          style: TextStyle(
-                            fontFamily: 'SF Pro Rounded',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 17,
-                            color: Color(0xFFABABAB),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          width: 280,
-                          child: const Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 5,
-                            runSpacing: 5,
-                            children: [
-                              Text(
-                                'THATGIRL123',
-                                style: TextStyle(
-                                  fontFamily: 'SF Compact Rounded',
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12,
-                                  color: Color(0xFFFF6262),
-                                ),
-                              ),
-                              Text(
-                                '→Who IS ShE',
-                                style: TextStyle(
-                                  fontFamily: 'SF Compact Rounded',
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12,
-                                  color: Color(0xFFABABAB),
-                                ),
-                              ),
-                              Text(
-                                '→Girlly',
-                                style: TextStyle(
-                                  fontFamily: 'SF Compact Rounded',
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12,
-                                  color: Color(0xFFABABAB),
-                                ),
-                              ),
-                              Text(
-                                '→316 girlly',
-                                style: TextStyle(
-                                  fontFamily: 'SF Compact Rounded',
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12,
-                                  color: Color(0xFFABABAB),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildQueueSection(),
                 ],
               ),
             ),
@@ -596,7 +619,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
             ),
             child: _viewModel.shouldShowTimer
               ? Text(
-                  '${_viewModel.remainingMinutes.toString().padLeft(2, '0')}:${_viewModel.remainingSeconds.toString().padLeft(2, '0')}',
+                  _viewModel.timerDisplay,
                   style: const TextStyle(
                     fontFamily: 'SF Compact Rounded',
                     fontWeight: FontWeight.w400,
@@ -618,6 +641,211 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMessageAreaContent() {
+    final activeUser = _viewModel.activeUser;
+    
+    // If no active user, show loading
+    if (activeUser == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    // If active user has posted, show only their post with reactions
+    if (activeUser.hasPosted) {
+      return _buildActiveUserPostView();
+    }
+    
+    // If active user is typing (and not the real user), show typing indicator
+    if (activeUser.isTyping && !activeUser.isReal) {
+      return MessageAreaTypingIndicator(
+        username: activeUser.displayName,
+        isVisible: true,
+      );
+    }
+    
+    // If someone has their turn but hasn't posted yet, show waiting message
+    if (activeUser.isActive) {
+      return Center(
+        child: Text(
+          activeUser.isReal 
+            ? 'Your turn! Start typing your confession...'
+            : '${activeUser.displayName} is preparing their confession...',
+          style: const TextStyle(
+            fontSize: 16.0,
+            color: Color(0xFF8F8F8F),
+            fontStyle: FontStyle.italic,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+    
+    // Default: show all posts
+    return _buildAllPostsView();
+  }
+
+  Widget _buildActiveUserPostView() {
+    final activeUser = _viewModel.activeUser;
+    if (activeUser == null) return const SizedBox.shrink();
+    
+    // Get the most recent post (should be the active user's post)
+    final posts = _viewModel.posts;
+    if (posts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(
+              '${activeUser.displayName} ${activeUser.isReal ? "your" : "their"} post is loading...',
+              style: const TextStyle(
+                fontSize: 16.0,
+                color: Color(0xFF8F8F8F),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Show only the most recent post (which should be the active user's)
+    final recentPost = posts.first;
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildSinglePostWidget(recentPost),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSinglePostWidget(dynamic post) {
+    // Extract post data
+    final data = post.data() as Map<String, dynamic>;
+    final postId = post.id;
+    final confession = data['confession'] as String? ?? '';
+    final rawReactions = Map<String, dynamic>.from(data['reactions'] ?? {});
+    final floor = data['floor'] as int? ?? 1;
+    final gender = data['gender'] as String? ?? 'girl';
+    
+    // Convert reactions to the expected format
+    final reactions = <String, int>{};
+    rawReactions.forEach((key, value) {
+      if (value is List) {
+        reactions[key] = value.length;
+      } else if (value is int) {
+        reactions[key] = value;
+      }
+    });
+    
+    return ConfessionCard(
+      floor: floor,
+      text: confession,
+      gender: gender,
+      reactions: reactions,
+      onReaction: (emoji) => _handleReaction(postId, emoji),
+      key: ValueKey(postId),
+    );
+  }
+
+  Widget _buildAllPostsView() {
+    return _viewModel.posts.isEmpty
+        ? const Center(child: CircularProgressIndicator())
+        : Stack(
+            children: [
+              SingleChildScrollView(
+                physics: (!_viewModel.hasPosted && _viewModel.posts.length > 1) 
+                    ? const NeverScrollableScrollPhysics() 
+                    : const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ..._buildPostWidgets(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+              // Overlay for locked content
+              if (!_viewModel.hasPosted && _viewModel.posts.length > 1)
+                _buildLockedContentOverlay(),
+            ],
+          );
+  }
+
+  Widget _buildQueueSection() {
+    final activeUser = _viewModel.activeUser;
+    final upcomingUsers = _viewModel.upcomingUsers;
+    
+    return Center(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                '[ ',
+                style: TextStyle(
+                  fontFamily: 'SF Pro Rounded',
+                  fontWeight: FontWeight.w500,
+                  fontSize: 17,
+                  color: Color(0xFFABABAB),
+                ),
+              ),
+              if (activeUser != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6262).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFF6262), width: 1),
+                  ),
+                  child: Text(
+                    activeUser.displayName,
+                    style: const TextStyle(
+                      fontFamily: 'SF Compact Rounded',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      color: Color(0xFFFF6262),
+                    ),
+                  ),
+                ),
+              const Text(
+                ' Turn Queue ]',
+                style: TextStyle(
+                  fontFamily: 'SF Pro Rounded',
+                  fontWeight: FontWeight.w500,
+                  fontSize: 17,
+                  color: Color(0xFFABABAB),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: 280,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 5,
+              runSpacing: 5,
+              children: upcomingUsers.map((user) {
+                return Text(
+                  '→${user.displayName}',
+                  style: const TextStyle(
+                    fontFamily: 'SF Compact Rounded',
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    color: Color(0xFFABABAB),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

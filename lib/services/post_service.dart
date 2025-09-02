@@ -10,7 +10,7 @@ class PostService {
     }
     
     await _firestore.collection('posts').add({
-      'text': text,
+      'confession': text,
       'floor': floor,
       'gender': gender,
       'createdAt': FieldValue.serverTimestamp(),
@@ -36,7 +36,7 @@ class PostService {
     }
     
     final postData = <String, dynamic>{
-      'text': text,
+      'confession': text,
       'floor': floor,
       'gender': gender,
       'createdAt': FieldValue.serverTimestamp(),
@@ -76,7 +76,7 @@ class PostService {
   /// Edit a post's text content (simplified)
   Future<void> editPost(String postId, String newText) async {
     await _firestore.collection('posts').doc(postId).update({
-      'text': newText,
+      'confession': newText,
       'isEdited': true,
       'lastEditedAt': FieldValue.serverTimestamp(),
     });

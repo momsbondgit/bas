@@ -145,7 +145,7 @@ class GeneralScreen extends StatelessWidget {
       left: (screenSize.width / 2) - 80, // Position to the left of center
       top: (screenSize.height / 2) - 55, // Position even higher above center
       child: Image.asset(
-        'assets/Sicker image.png',
+        'assets/sticker_image.png',
         width: 165.29,
         height: 113.53,
         fit: BoxFit.contain,
