@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/ritual_config.dart';
 
 class TypingIndicatorWidget extends StatefulWidget {
   final String username;
@@ -89,7 +90,7 @@ class _TypingIndicatorWidgetState extends State<TypingIndicatorWidget>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${widget.username} is typing',
+                  '${widget.username} ${RitualConfig.typingIndicatorText}',
                   style: const TextStyle(
                     fontSize: 13.0,
                     color: Colors.grey,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/ritual_config.dart';
 
 class MessageAreaTypingIndicator extends StatefulWidget {
   final String username;
@@ -80,7 +81,7 @@ class _MessageAreaTypingIndicatorState extends State<MessageAreaTypingIndicator>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '${widget.username} is typing',
+                  '${widget.username} ${RitualConfig.typingIndicatorText}',
                   style: const TextStyle(
                     fontSize: 18.0,
                     color: Color(0xFF8F8F8F),

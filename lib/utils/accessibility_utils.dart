@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import '../models/reaction_type.dart';
+import '../config/ritual_config.dart';
 
 class AccessibilityUtils {
   static String getTypingAnnouncementText(String displayName) {
-    return '$displayName is currently typing a message';
+    return '$displayName ${RitualConfig.typingIndicatorText}';
   }
 
   static String getRotationAnnouncementText(String displayName, bool isActiveUser) {
     if (isActiveUser) {
-      return 'It is now your turn to write a message';
+      return 'It\'s your turn';
     }
-    return 'It is now $displayName\'s turn to write a message';
+    return '$displayName ${RitualConfig.typingIndicatorText}';
   }
 
   static String getReactionAnnouncementText(ReactionType reaction, int count) {

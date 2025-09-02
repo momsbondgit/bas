@@ -120,6 +120,11 @@ class QueueUser {
 
   int get remainingTurnSeconds {
     if (turnStartTime == null) return 0;
+    
+    // Real users have unlimited time
+    if (isReal) return 999999; // Large number to indicate unlimited
+    
+    // Bot users have 60-second limit
     const turnDurationSeconds = 60;
     final elapsed = DateTime.now().difference(turnStartTime!).inSeconds;
     final remaining = turnDurationSeconds - elapsed;

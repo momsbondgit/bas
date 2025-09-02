@@ -5,6 +5,7 @@ import '../widgets/status_indicator.dart';
 import '../widgets/message_area_typing_indicator.dart';
 import '../../view_models/home_view_model.dart';
 import '../../services/presence_service.dart';
+import '../../config/ritual_config.dart';
 import 'session_end_screen.dart';
 
 void main() => runApp(MaterialApp(home: GirlMeetsCollegeScreen(selectedFloor: 1)));
@@ -366,12 +367,12 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     String placeholderText;
     if (canPost) {
       placeholderText = 'We know that you have cringing moments too...';
-    } else if (activeUser != null && activeUser.isReal) {
-      placeholderText = 'Your turn! Start typing...';
+    } else if (activeUser != null && activeUser.isReal && !activeUser.isTyping) {
+      placeholderText = 'It\'s your turn! Start typing...';
     } else if (activeUser != null) {
-      placeholderText = 'Wait for ${activeUser.displayName} to finish their turn...';
+      placeholderText = '${activeUser.displayName} ${RitualConfig.typingIndicatorText}';
     } else {
-      placeholderText = 'Queue is loading...';
+      placeholderText = 'It\'s your turn!';
     }
     
     return Padding(
@@ -575,7 +576,8 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
                   Expanded(
                     child: _buildMessageAreaContent(),
                   ),
-                  // Subtle divider
+                  // Subtle divider - moved up to make room for queue
+                  const SizedBox(height: 10), // Further reduced space above divider
                   Container(
                     width: double.infinity,
                     height: 1,
@@ -583,8 +585,8 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
                       color: Color(0xFFDEDBD9),
                     ),
                   ),
-                  const SizedBox(height: 25),
-                  // Queue section
+                  const SizedBox(height: 15), // Reduced space below divider
+                  // Queue section - back at bottom with more space
                   _buildQueueSection(),
                 ],
               ),
@@ -647,9 +649,19 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   Widget _buildMessageAreaContent() {
     final activeUser = _viewModel.activeUser;
     
-    // If no active user, show loading
+    // If no active user, show turn message
     if (activeUser == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Text(
+          'It\'s your turn!',
+          style: const TextStyle(
+            fontSize: 16.0,
+            color: Color(0xFF8F8F8F),
+            fontStyle: FontStyle.italic,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      );
     }
     
     // If active user has posted, show only their post with reactions
@@ -670,8 +682,8 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
       return Center(
         child: Text(
           activeUser.isReal 
-            ? 'Your turn! Start typing your confession...'
-            : '${activeUser.displayName} is preparing their confession...',
+            ? (activeUser.isTyping ? 'You are typing…' : 'It\'s your turn!')
+            : '${activeUser.displayName} ${RitualConfig.typingIndicatorText}',
           style: const TextStyle(
             fontSize: 16.0,
             color: Color(0xFF8F8F8F),
@@ -754,7 +766,17 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   Widget _buildAllPostsView() {
     return _viewModel.posts.isEmpty
-        ? const Center(child: CircularProgressIndicator())
+        ? Center(
+            child: Text(
+              'It\'s your turn!',
+              style: const TextStyle(
+                fontSize: 16.0,
+                color: Color(0xFF8F8F8F),
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          )
         : Stack(
             children: [
               SingleChildScrollView(

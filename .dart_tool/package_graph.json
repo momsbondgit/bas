@@ -11,11 +11,13 @@
         "cupertino_icons",
         "firebase_core",
         "flutter",
-        "shared_preferences"
+        "shared_preferences",
+        "stream_transform"
       ],
       "devDependencies": [
         "flutter_lints",
-        "flutter_test"
+        "flutter_test",
+        "mocktail"
       ]
     },
     {
@@ -468,6 +470,20 @@
       "dependencies": [
         "meta",
         "path"
+      ]
+    },
+    {
+      "name": "stream_transform",
+      "version": "2.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "mocktail",
+      "version": "1.0.4",
+      "dependencies": [
+        "collection",
+        "matcher",
+        "test_api"
       ]
     }
   ],

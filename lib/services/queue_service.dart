@@ -51,6 +51,7 @@ class QueueService extends ChangeNotifier {
   Timer? _turnTimer;
   Timer? _dummyActionTimer;
   Timer? _typingTimer;
+  Timer? _botTypingDelayTimer;
   final StreamController<QueueState> _stateController = StreamController<QueueState>.broadcast();
   
   QueueState _currentState = const QueueState(
@@ -63,6 +64,7 @@ class QueueService extends ChangeNotifier {
   Stream<QueueState> get stateStream => _stateController.stream;
 
   static const int turnDurationSeconds = 60;
+  static const int botTypingDelaySeconds = 10;
   static const List<String> dummyNames = [
     'THATGIRL123',
     'Who IS ShE', 
@@ -143,6 +145,10 @@ class QueueService extends ChangeNotifier {
     final activeUser = _currentState.activeUser;
     if (activeUser == null) return;
 
+    // Skip timeout check for real users - they have unlimited time
+    if (activeUser.isReal) return;
+
+    // Only apply timeout to bot users
     if (activeUser.remainingTurnSeconds <= 0) {
       _advanceToNextUser();
     }
@@ -153,20 +159,39 @@ class QueueService extends ChangeNotifier {
     if (queue.isEmpty) return;
 
     final nextIndex = (_currentState.currentIndex + 1) % queue.length;
-    final nextUser = queue[nextIndex].copyWith(
-      state: QueueUserState.active,
-      turnStartTime: DateTime.now(),
-    );
-
+    
+    // Check if we've completed a full round (next user would be index 0)
+    final isStartingNewRound = nextIndex == 0;
+    
+    final updatedQueue = List<QueueUser>.from(queue);
+    
+    // If starting a new round, reset all completed users back to waiting
+    if (isStartingNewRound) {
+      for (int i = 0; i < updatedQueue.length; i++) {
+        if (updatedQueue[i].state == QueueUserState.completed) {
+          updatedQueue[i] = updatedQueue[i].copyWith(
+            state: QueueUserState.waiting,
+            turnStartTime: null,
+            reactionStartTime: null,
+          );
+        }
+      }
+    }
+    
+    // Set current user as completed
     final currentUser = _currentState.activeUser?.copyWith(
       state: QueueUserState.completed,
       turnStartTime: null,
     );
-
-    final updatedQueue = List<QueueUser>.from(queue);
     if (currentUser != null) {
       updatedQueue[_currentState.currentIndex] = currentUser;
     }
+    
+    // Set next user as active
+    final nextUser = updatedQueue[nextIndex].copyWith(
+      state: QueueUserState.active,
+      turnStartTime: DateTime.now(),
+    );
     updatedQueue[nextIndex] = nextUser;
 
     _currentState = _currentState.copyWith(
@@ -190,15 +215,30 @@ class QueueService extends ChangeNotifier {
     final activeUser = _currentState.activeUser;
     if (activeUser == null || activeUser.isReal) return;
 
+    // Check if bot should start typing and posting process
     final shouldPost = _random.nextDouble() < 0.3;
-    if (shouldPost) {
-      _simulateDummyPost(activeUser);
+    if (shouldPost && !activeUser.isTyping) {
+      _startBotTypingDelay(activeUser);
+      return;
     }
 
     final shouldAdvance = _random.nextDouble() < 0.1 || activeUser.remainingTurnSeconds < 10;
-    if (shouldAdvance) {
+    if (shouldAdvance && !activeUser.isTyping) {
       _advanceToNextUser();
     }
+  }
+
+  void _startBotTypingDelay(QueueUser botUser) {
+    // Start typing immediately
+    _startTyping(botUser);
+    
+    // Cancel any existing bot typing delay timer
+    _botTypingDelayTimer?.cancel();
+    
+    // Start 10-second delay timer before posting
+    _botTypingDelayTimer = Timer(Duration(seconds: botTypingDelaySeconds), () {
+      _simulateDummyPost(botUser);
+    });
   }
 
   Future<void> _simulateDummyPost(QueueUser dummyUser) async {
@@ -250,23 +290,9 @@ class QueueService extends ChangeNotifier {
   }
 
   void _handleTypingSimulation() {
-    final activeUser = _currentState.activeUser;
-    if (activeUser == null || activeUser.isReal) return;
-
-    if (activeUser.isTyping) {
-      final typingDuration = activeUser.typingStartTime != null
-          ? DateTime.now().difference(activeUser.typingStartTime!).inSeconds
-          : 0;
-      
-      if (typingDuration >= 3 + _random.nextInt(4)) {
-        _stopTyping(activeUser);
-      }
-    } else {
-      final shouldStartTyping = _random.nextDouble() < 0.4;
-      if (shouldStartTyping) {
-        _startTyping(activeUser);
-      }
-    }
+    // Remove random typing simulation for bots
+    // Bots will only show typing when they're about to post (via _startBotTypingDelay)
+    return;
   }
 
   void _startTyping(QueueUser user) {
@@ -360,6 +386,7 @@ class QueueService extends ChangeNotifier {
     _turnTimer?.cancel();
     _dummyActionTimer?.cancel();
     _typingTimer?.cancel();
+    _botTypingDelayTimer?.cancel();
     _stateController.close();
     super.dispose();
   }

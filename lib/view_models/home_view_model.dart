@@ -147,6 +147,11 @@ class HomeViewModel extends ChangeNotifier {
 
   void _initializeQueue() async {
     await _queueService.initialize();
+    
+    // Get the initial state immediately after initialization
+    _queueState = _queueService.currentState;
+    notifyListeners();
+    
     _queueSubscription = _queueService.stateStream.listen((queueState) {
       final previousActiveUser = _queueState.activeUser;
       _queueState = queueState;

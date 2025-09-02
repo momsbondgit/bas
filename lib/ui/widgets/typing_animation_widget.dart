@@ -118,7 +118,7 @@ class _TypingAnimationWidgetState extends State<TypingAnimationWidget>
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'is typing',
+          RitualConfig.typingIndicatorText,
           style: TextStyle(
             fontFamily: 'SF Compact Rounded',
             fontSize: fontSize,

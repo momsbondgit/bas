@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/ritual_queue_state.dart';
 import '../../models/reaction_type.dart';
 import '../../utils/accessibility_utils.dart';
+import '../../config/ritual_config.dart';
 import 'typing_animation_widget.dart';
 import 'ritual_message_card.dart';
 import 'queue_rotation_banner.dart';
@@ -98,8 +99,8 @@ class ActiveUserFeedWidget extends StatelessWidget {
 
     final isActiveUser = queueState.activeUserId == currentUserId;
     final message = isActiveUser 
-        ? 'It\'s your turn! Start typing to begin...'
-        : 'Waiting for ${queueState.activeDisplayName} to start typing...';
+        ? 'It\'s your turn!'
+        : '${queueState.activeDisplayName} ${RitualConfig.typingIndicatorText}';
 
     return Center(
       child: AccessibilityUtils.wrapWithSemantics(
