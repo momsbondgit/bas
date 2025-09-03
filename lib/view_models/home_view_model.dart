@@ -16,7 +16,7 @@ class HomeViewModel extends ChangeNotifier {
   
   // State
   bool _hasPosted = false;
-  int _viewerCount = 15;
+  int _viewerCount = 6;
   List<QueryDocumentSnapshot> _posts = [];
   QueueState _queueState = const QueueState(queue: [], currentIndex: 0, isInitialized: false);
   
@@ -104,7 +104,7 @@ class HomeViewModel extends ChangeNotifier {
 
   void _startViewerUpdates() {
     _viewerTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      _viewerCount = 15 + _random.nextInt(6);
+      _viewerCount = 6;
       notifyListeners();
     });
   }

@@ -87,7 +87,7 @@ class StatusIndicator extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: Image.asset(
-                  'assets/ChatGPT Image Aug 27, 2025 at 06_48_31 AM 1.png',
+                  'assets/eye.png',
                   width: profileIconSize,
                   height: profileIconSize,
                   fit: BoxFit.cover,
@@ -137,3 +137,4 @@ class StatusIndicator extends StatelessWidget {
     );
   }
 }
+

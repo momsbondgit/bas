@@ -32,5 +32,8 @@ For **every change step**, the developer must post:
 ** questions ** 
 - ** always question me if you are are not sure about somthing never make things up theres should be no room for assuptions. 
 
+** key thing to keep in mind **
+- ** everything that we do or implment has to be simple, simplify over all complexity we should not include complexity at all 
+
 ⚠️ Do not write code until receiving explicit **“Approved”** reply.  
 Once approved, implement **only** what was confirmed.

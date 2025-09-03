@@ -539,7 +539,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/ChatGPT Image Aug 27, 2025 at 06_48_31 AM 1.png',
+                  'assets/eye.png',
                   width: 21,
                   height: 21,
                 ),
@@ -821,51 +821,23 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   Widget _buildQueueContent() {
     final activeUser = _viewModel.activeUser;
-    final upcomingUsers = _viewModel.upcomingUsers;
+    final queueState = _viewModel.queueState;
+    
+    // Use the original fixed queue order (never changes)
+    final allUsers = queueState.queue;
     
     return Center(
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                '[ ',
-                style: TextStyle(
-                  fontFamily: 'SF Pro Rounded',
-                  fontWeight: FontWeight.w500,
-                  fontSize: 17,
-                  color: Color(0xFFABABAB),
-                ),
-              ),
-              if (activeUser != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF6262).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFFF6262), width: 1),
-                  ),
-                  child: Text(
-                    activeUser.displayName,
-                    style: const TextStyle(
-                      fontFamily: 'SF Compact Rounded',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                      color: Color(0xFFFF6262),
-                    ),
-                  ),
-                ),
-              const Text(
-                ' Turn Queue ]',
-                style: TextStyle(
-                  fontFamily: 'SF Pro Rounded',
-                  fontWeight: FontWeight.w500,
-                  fontSize: 17,
-                  color: Color(0xFFABABAB),
-                ),
-              ),
-            ],
+          // Static header
+          const Text(
+            '[ Turn queue ]',
+            style: TextStyle(
+              fontFamily: 'SF Pro Rounded',
+              fontWeight: FontWeight.w500,
+              fontSize: 17,
+              color: Color(0xFFABABAB),
+            ),
           ),
           const SizedBox(height: 10),
           Container(
@@ -874,22 +846,51 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
               alignment: WrapAlignment.center,
               spacing: 5,
               runSpacing: 5,
-              children: upcomingUsers.map((user) {
-                return Text(
-                  '→${user.displayName}',
-                  style: const TextStyle(
-                    fontFamily: 'SF Compact Rounded',
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                    color: Color(0xFFABABAB),
-                  ),
-                );
-              }).toList(),
+              children: _buildUsersWithSeparators(allUsers, activeUser),
             ),
           ),
         ],
       ),
     );
+  }
+
+  List<Widget> _buildUsersWithSeparators(List users, activeUser) {
+    final widgets = <Widget>[];
+    
+    for (int i = 0; i < users.length; i++) {
+      final user = users[i];
+      final isCurrentUser = user == activeUser;
+      
+      // Add user name
+      widgets.add(
+        Text(
+          user.displayName,
+          style: TextStyle(
+            fontFamily: 'SF Compact Rounded',
+            fontWeight: isCurrentUser ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 12,
+            color: isCurrentUser ? const Color(0xFFFF6262) : const Color(0xFFABABAB),
+          ),
+        ),
+      );
+      
+      // Add separator (except after last user)
+      if (i < users.length - 1) {
+        widgets.add(
+          const Text(
+            '|',
+            style: TextStyle(
+              fontFamily: 'SF Compact Rounded',
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              color: Color(0xFFABABAB),
+            ),
+          ),
+        );
+      }
+    }
+    
+    return widgets;
   }
 }
 
@@ -953,3 +954,4 @@ class SketchLinesPainter2 extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
