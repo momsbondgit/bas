@@ -1,11 +1,71 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'girl_meets_college_screen.dart';
+import '../../services/auth_service.dart';
+import '../widgets/world_access_modal.dart';
 
 void main() => runApp(MaterialApp(home: GeneralScreen()));
 
 class GeneralScreen extends StatelessWidget {
   const GeneralScreen({super.key});
+
+  Future<void> _checkAuthAndNavigate(BuildContext context) async {
+    final authService = AuthService();
+    
+    // Check if user already has an account
+    final isLoggedIn = await authService.isLoggedIn();
+    
+    if (isLoggedIn) {
+      // User has account, navigate directly
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const GirlMeetsCollegeScreen(selectedFloor: 1),
+          ),
+        );
+      }
+    } else {
+      // User needs to create account, show modal
+      if (context.mounted) {
+        _showWorldAccessModal(context);
+      }
+    }
+  }
+
+  void _showWorldAccessModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WorldAccessModal(
+        onSubmit: (accessCode, nickname) async {
+          final authService = AuthService();
+          final success = await authService.createAccount(accessCode, nickname);
+          
+          if (success && context.mounted) {
+            Navigator.of(context).pop(); // Close modal
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const GirlMeetsCollegeScreen(selectedFloor: 1),
+              ),
+            );
+          } else if (context.mounted) {
+            // Show error - could enhance this with better error handling
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('something went wrong bestie, try again'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        onCancel: () {
+          Navigator.of(context).pop();
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,14 +75,7 @@ class GeneralScreen extends StatelessWidget {
         children: [
           _buildFadeBackground(context),
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const GirlMeetsCollegeScreen(selectedFloor: 1),
-                ),
-              );
-            },
+            onTap: () => _checkAuthAndNavigate(context),
             child: Stack(
               children: [
                 _buildBox(context),
