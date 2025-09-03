@@ -50,7 +50,12 @@ class HomeViewModel extends ChangeNotifier {
     return '00:00';
   }
   QueueState get queueState => _queueState;
-  bool get canPost => _queueService.canRealUserPost();
+  bool get canPost {
+    print('DEBUG HomeViewModel.canPost: Checking canPost');
+    final result = _queueService.canRealUserPost();
+    print('DEBUG HomeViewModel.canPost: result=$result');
+    return result;
+  }
   QueueUser? get activeUser => _queueState.activeUser;
   List<QueueUser> get upcomingUsers => _queueState.upcomingUsers;
   bool get activeUserHasPosted => _queueService.activeUserHasPosted;
@@ -86,7 +91,7 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void _startReactionTimer() {
-    _reactionTimeRemaining = 30; // 30 seconds for reactions
+    _reactionTimeRemaining = 20; // 20 seconds for reactions
     _isReactionTimerActive = true;
     notifyListeners();
   }
@@ -146,11 +151,14 @@ class HomeViewModel extends ChangeNotifier {
   bool get isTimerExpired => false; // Don't auto-navigate on timer expiry
 
   void _initializeQueue() async {
+    print('DEBUG HomeViewModel._initializeQueue: Starting queue initialization');
     await _queueService.initialize();
     
     // Get the initial state immediately after initialization
     _queueState = _queueService.currentState;
+    print('DEBUG HomeViewModel._initializeQueue: Got initial state, activeUser=${_queueState.activeUser?.id}');
     notifyListeners();
+    print('DEBUG HomeViewModel._initializeQueue: notifyListeners called');
     
     _queueSubscription = _queueService.stateStream.listen((queueState) {
       final previousActiveUser = _queueState.activeUser;

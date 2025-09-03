@@ -81,7 +81,12 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   }
 
   void _handlePostSubmission(String text) async {
-    if (text.trim().isEmpty || !_viewModel.canPost) return;
+    print('DEBUG _handlePostSubmission: text length=${text.trim().length}');
+    print('DEBUG _handlePostSubmission: _viewModel.canPost=${_viewModel.canPost}');
+    if (text.trim().isEmpty || !_viewModel.canPost) {
+      print('DEBUG _handlePostSubmission: Blocked - empty text or canPost=false');
+      return;
+    }
     
     try {
       await _viewModel.submitPost(text);
@@ -362,6 +367,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   Widget _buildBottomInput() {
     final canPost = _viewModel.canPost;
+    print('DEBUG build: canPost=$canPost');
     final activeUser = _viewModel.activeUser;
     
     String placeholderText;

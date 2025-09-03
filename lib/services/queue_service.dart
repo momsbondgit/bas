@@ -63,8 +63,13 @@ class QueueService extends ChangeNotifier {
   QueueState get currentState => _currentState;
   Stream<QueueState> get stateStream => _stateController.stream;
 
+  // Configuration constants
   static const int turnDurationSeconds = 60;
-  static const int botTypingDelaySeconds = 10;
+  static const int baseBotTypingDelaySeconds = 15;
+  static const int maxBotTypingDelaySeconds = 25;
+  static const int maxTurnTimeForBots = 10;
+  static const int reactionTimerSeconds = 20;
+  static const int unlimitedTimeForRealUsers = 999999;
   static const List<String> dummyNames = [
     'THATGIRL123',
     'Who IS ShE', 
@@ -83,16 +88,29 @@ class QueueService extends ChangeNotifier {
     'I started going to the library at the exact times he does his homework. Been there for 3 weeks, still no courage to say hi'
   ];
 
+  /// Initializes the queue service with users and starts all timers
   Future<void> initialize() async {
-    if (_currentState.isInitialized) return;
+    print('DEBUG QueueService.initialize: Starting initialization');
+    if (_currentState.isInitialized) {
+      print('DEBUG QueueService.initialize: Already initialized, returning');
+      return;
+    }
 
     await _createInitialQueue();
+    print('DEBUG QueueService.initialize: Initial queue created, activeUser=${_currentState.activeUser?.id}');
+    _startAllTimers();
+    
+    _currentState = _currentState.copyWith(isInitialized: true);
+    print('DEBUG QueueService.initialize: Broadcasting state, isInitialized=true');
+    _broadcastState();
+    print('DEBUG QueueService.initialize: Initialization complete');
+  }
+
+  /// Starts all timer-based services
+  void _startAllTimers() {
     _startTurnManagement();
     _startDummySimulation();
     _startTypingSimulation();
-    
-    _currentState = _currentState.copyWith(isInitialized: true);
-    _broadcastState();
   }
 
   Future<void> _createInitialQueue() async {
@@ -154,49 +172,71 @@ class QueueService extends ChangeNotifier {
     }
   }
 
+  /// Advances queue to the next user in line
   void _advanceToNextUser() {
     final queue = _currentState.queue;
     if (queue.isEmpty) return;
 
-    final nextIndex = (_currentState.currentIndex + 1) % queue.length;
-    
-    // Check if we've completed a full round (next user would be index 0)
-    final isStartingNewRound = nextIndex == 0;
-    
+    final nextIndex = _calculateNextIndex();
     final updatedQueue = List<QueueUser>.from(queue);
     
-    // If starting a new round, reset all completed users back to waiting
-    if (isStartingNewRound) {
-      for (int i = 0; i < updatedQueue.length; i++) {
-        if (updatedQueue[i].state == QueueUserState.completed) {
-          updatedQueue[i] = updatedQueue[i].copyWith(
-            state: QueueUserState.waiting,
-            turnStartTime: null,
-            reactionStartTime: null,
-          );
-        }
-      }
+    if (_isStartingNewRound(nextIndex)) {
+      _resetCompletedUsers(updatedQueue);
     }
     
-    // Set current user as completed
+    _updateCurrentUserAsCompleted(updatedQueue);
+    _activateNextUser(updatedQueue, nextIndex);
+    _updateQueueState(updatedQueue, nextIndex);
+  }
+
+  /// Calculates the next user index in the queue
+  int _calculateNextIndex() {
+    return (_currentState.currentIndex + 1) % _currentState.queue.length;
+  }
+
+  /// Checks if we're starting a new round (back to index 0)
+  bool _isStartingNewRound(int nextIndex) {
+    return nextIndex == 0;
+  }
+
+  /// Resets all completed users back to waiting state for new round
+  void _resetCompletedUsers(List<QueueUser> queue) {
+    for (int i = 0; i < queue.length; i++) {
+      if (queue[i].state == QueueUserState.completed) {
+        queue[i] = queue[i].copyWith(
+          state: QueueUserState.waiting,
+          turnStartTime: null,
+          reactionStartTime: null,
+        );
+      }
+    }
+  }
+
+  /// Marks current active user as completed
+  void _updateCurrentUserAsCompleted(List<QueueUser> queue) {
     final currentUser = _currentState.activeUser?.copyWith(
       state: QueueUserState.completed,
       turnStartTime: null,
     );
     if (currentUser != null) {
-      updatedQueue[_currentState.currentIndex] = currentUser;
+      queue[_currentState.currentIndex] = currentUser;
     }
-    
-    // Set next user as active
-    final nextUser = updatedQueue[nextIndex].copyWith(
+  }
+
+  /// Activates the next user in the queue
+  void _activateNextUser(List<QueueUser> queue, int nextIndex) {
+    final nextUser = queue[nextIndex].copyWith(
       state: QueueUserState.active,
       turnStartTime: DateTime.now(),
     );
-    updatedQueue[nextIndex] = nextUser;
+    queue[nextIndex] = nextUser;
+  }
 
+  /// Updates the queue state with new queue and active user
+  void _updateQueueState(List<QueueUser> updatedQueue, int nextIndex) {
     _currentState = _currentState.copyWith(
       queue: updatedQueue,
-      activeUser: nextUser,
+      activeUser: updatedQueue[nextIndex],
       currentIndex: nextIndex,
     );
 
@@ -211,69 +251,104 @@ class QueueService extends ChangeNotifier {
     });
   }
 
+  /// Handles bot user actions - ensures consistent flow for all bots
   void _handleDummyUserAction() {
     final activeUser = _currentState.activeUser;
-    if (activeUser == null || activeUser.isReal) return;
+    if (!_isBotUserActive(activeUser)) return;
 
-    // Check if bot should start typing and posting process
-    final shouldPost = _random.nextDouble() < 0.3;
-    if (shouldPost && !activeUser.isTyping) {
-      _startBotTypingDelay(activeUser);
-      return;
-    }
-
-    final shouldAdvance = _random.nextDouble() < 0.1 || activeUser.remainingTurnSeconds < 10;
-    if (shouldAdvance && !activeUser.isTyping) {
-      _advanceToNextUser();
+    // Every bot must go through the complete flow: typing → delay → post → reaction timer
+    if (!activeUser!.isTyping && !activeUser.hasPosted) {
+      _startBotTurnSequence(activeUser);
     }
   }
 
-  void _startBotTypingDelay(QueueUser botUser) {
+  /// Checks if the active user is a bot
+  bool _isBotUserActive(QueueUser? user) {
+    return user != null && !user.isReal;
+  }
+
+  /// Starts the complete bot turn sequence
+  void _startBotTurnSequence(QueueUser botUser) {
+    final confession = _getRandomConfession();
+    final typingDelay = _calculateBotTypingDelay(confession);
+    
     // Start typing immediately
     _startTyping(botUser);
     
-    // Cancel any existing bot typing delay timer
+    // Schedule post after calculated delay
     _botTypingDelayTimer?.cancel();
-    
-    // Start 10-second delay timer before posting
-    _botTypingDelayTimer = Timer(Duration(seconds: botTypingDelaySeconds), () {
-      _simulateDummyPost(botUser);
-    });
+    _botTypingDelayTimer = Timer(
+      Duration(seconds: typingDelay),
+      () => _simulateDummyPost(botUser)
+    );
   }
 
+  /// Calculates typing delay based on word count (10-15 seconds)
+  int _calculateBotTypingDelay(String confession) {
+    final wordCount = confession.split(' ').length;
+    final baseDelay = baseBotTypingDelaySeconds;
+    final extraTime = (wordCount / 10).ceil(); // 1 extra second per 10 words
+    return (baseDelay + extraTime).clamp(baseBotTypingDelaySeconds, maxBotTypingDelaySeconds);
+  }
+
+
+  /// Simulates a bot user posting a confession
   Future<void> _simulateDummyPost(QueueUser dummyUser) async {
     try {
-      final confession = dummyConfessions[_random.nextInt(dummyConfessions.length)];
+      final confession = _getRandomConfession();
       await _postService.addPost(confession, dummyUser.floor, dummyUser.gender);
       
-      // Transition to posted state and start reaction timer
       _transitionToPostedState(dummyUser);
     } catch (e) {
-      // Silent fail for dummy posts
+      // Silent fail for dummy posts to prevent disruption
     }
   }
 
-  bool canRealUserPost() {
-    final activeUser = _currentState.activeUser;
-    return activeUser != null && activeUser.isReal && activeUser.isActive;
+  /// Gets a random confession from the predefined list
+  String _getRandomConfession() {
+    return dummyConfessions[_random.nextInt(dummyConfessions.length)];
   }
 
+  /// Checks if the real user can post (is active and real)
+  bool canRealUserPost() {
+    final activeUser = _currentState.activeUser;
+    print('DEBUG canRealUserPost: activeUser=$activeUser');
+    print('DEBUG canRealUserPost: activeUser?.id=${activeUser?.id}');
+    print('DEBUG canRealUserPost: activeUser?.isReal=${activeUser?.isReal}');
+    print('DEBUG canRealUserPost: activeUser?.isActive=${activeUser?.isActive}');
+    print('DEBUG canRealUserPost: activeUser?.state=${activeUser?.state}');
+    final result = activeUser != null && activeUser.isReal && activeUser.isActive;
+    print('DEBUG canRealUserPost: result=$result');
+    return result;
+  }
+
+  /// Checks if the currently active user has posted
   bool get activeUserHasPosted {
     final activeUser = _currentState.activeUser;
     return activeUser != null && activeUser.hasPosted;
   }
 
+  /// Handles when the real user submits a post
   Future<void> handleRealUserPost() async {
     final activeUser = _currentState.activeUser;
-    if (activeUser == null || !activeUser.isReal) return;
+    if (!_isRealUserActive(activeUser)) return;
 
-    if (activeUser.isTyping) {
+    if (activeUser!.isTyping) {
       _stopTyping(activeUser);
     }
 
-    // Transition to posted state and start reaction timer
-    await Future.delayed(const Duration(milliseconds: 500));
+    await _delayBeforeStateTransition();
     _transitionToPostedState(activeUser);
+  }
+
+  /// Checks if active user is the real user
+  bool _isRealUserActive(QueueUser? user) {
+    return user != null && user.isReal;
+  }
+
+  /// Small delay before transitioning state for better UX
+  Future<void> _delayBeforeStateTransition() async {
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 
   void _broadcastState() {
@@ -337,46 +412,66 @@ class QueueService extends ChangeNotifier {
     }
   }
 
+  /// Starts typing indicator for real user
   void startRealUserTyping() {
     final activeUser = _currentState.activeUser;
-    if (activeUser == null || !activeUser.isReal) return;
+    if (!_isRealUserActive(activeUser)) return;
     
-    _startTyping(activeUser);
+    _startTyping(activeUser!);
   }
 
+  /// Stops typing indicator for real user
   void stopRealUserTyping() {
     final activeUser = _currentState.activeUser;
-    if (activeUser == null || !activeUser.isReal) return;
+    if (!_isRealUserActive(activeUser)) return;
     
-    _stopTyping(activeUser);
+    _stopTyping(activeUser!);
   }
 
+  /// Transitions user to posted state after submitting
   void _transitionToPostedState(QueueUser user) {
-    final updatedUser = user.copyWith(
+    final updatedUser = _createPostedUser(user);
+    final queue = _updateUserInQueue(user.id, updatedUser);
+    
+    if (queue != null) {
+      _updateStateWithPostedUser(queue, updatedUser);
+    }
+  }
+
+  /// Creates a user in posted state
+  QueueUser _createPostedUser(QueueUser user) {
+    return user.copyWith(
       state: QueueUserState.posted,
       typingState: TypingState.idle,
       typingStartTime: null,
       reactionStartTime: DateTime.now(),
     );
-
-    final queue = List<QueueUser>.from(_currentState.queue);
-    final userIndex = queue.indexWhere((u) => u.id == user.id);
-    if (userIndex != -1) {
-      queue[userIndex] = updatedUser;
-      
-      _currentState = _currentState.copyWith(
-        queue: queue,
-        activeUser: updatedUser,
-      );
-      
-      _broadcastState();
-      notifyListeners();
-      
-      // No longer start individual reaction timer - let HomeViewModel handle universal timer
-    }
   }
 
-  // Public method for HomeViewModel to call when universal timer expires
+  /// Updates a specific user in the queue and returns new queue
+  List<QueueUser>? _updateUserInQueue(String userId, QueueUser updatedUser) {
+    final queue = List<QueueUser>.from(_currentState.queue);
+    final userIndex = queue.indexWhere((u) => u.id == userId);
+    
+    if (userIndex != -1) {
+      queue[userIndex] = updatedUser;
+      return queue;
+    }
+    return null;
+  }
+
+  /// Updates state with posted user and broadcasts changes
+  void _updateStateWithPostedUser(List<QueueUser> queue, QueueUser updatedUser) {
+    _currentState = _currentState.copyWith(
+      queue: queue,
+      activeUser: updatedUser,
+    );
+    
+    _broadcastState();
+    notifyListeners();
+  }
+
+  /// Public method for HomeViewModel to advance queue when timer expires
   void moveToNextUser() {
     _advanceToNextUser();
   }
