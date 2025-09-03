@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'dart:math';
 
 class ConfessionCard extends StatelessWidget {
   // Constants
@@ -27,6 +28,21 @@ class ConfessionCard extends StatelessWidget {
     {'label': 'W', 'emoji': '🤪'},
   ];
   
+  static const List<String> _nicknames = [
+    'THATGIRL123',
+    'Who IS ShE', 
+    'Girlly',
+    '316 girlly',
+    'queenbee',
+    'spicygirlll',
+    'ur fav girl',
+    'miss anonymous',
+    'girlie pop',
+    'that one girl',
+    'mysterious babe',
+    'campus queen'
+  ];
+  
   static const Map<String, String> _reactionLabels = {
     '🤭': 'SAMEE',
     '☠️': 'DEAD', 
@@ -50,6 +66,13 @@ class ConfessionCard extends StatelessWidget {
     this.onReaction,
     this.customAuthor,
   });
+
+  String _generateNickname() {
+    // Use the text content and floor to generate a consistent random index
+    final seed = text.hashCode + floor;
+    final random = Random(seed);
+    return _nicknames[random.nextInt(_nicknames.length)];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +98,7 @@ class ConfessionCard extends StatelessWidget {
           children: [
         // Floor and gender label
         Text(
-          customAuthor ?? 'A $gender From Freaky Floor $floor',
+          customAuthor ?? 'It\'s ya girl: ${_generateNickname()}',
           style: TextStyle(
             fontFamily: 'SF Compact Rounded',
             fontSize: labelFontSize,

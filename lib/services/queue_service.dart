@@ -74,7 +74,9 @@ class QueueService extends ChangeNotifier {
     'THATGIRL123',
     'Who IS ShE', 
     'Girlly',
-    '316 girlly'
+    '316 girlly',
+    'queenbee404',
+    'ur campus girl'
   ];
 
   static const List<String> dummyConfessions = [
@@ -85,7 +87,9 @@ class QueueService extends ChangeNotifier {
     'I learned to skateboard because he mentioned he liked skater girls. Fell flat on my face in front of him the first day',
     'Signed up for the same electives as him three semesters in a row. My transcript looks so random now lol',
     'Pretended to be into his favorite band and bought concert tickets just to \'accidentally\' run into him there',
-    'I started going to the library at the exact times he does his homework. Been there for 3 weeks, still no courage to say hi'
+    'I started going to the library at the exact times he does his homework. Been there for 3 weeks, still no courage to say hi',
+    'Changed my major because he mentioned it was cool. Now I\'m stuck in engineering and I hate math 💀',
+    'Accidentally liked his Instagram post from 2019 while deep diving his profile. Immediately threw my phone across the room'
   ];
 
   /// Initializes the queue service with users and starts all timers
@@ -127,7 +131,7 @@ class QueueService extends ChangeNotifier {
         floor: realUserFloor,
         gender: realUserGender,
       ),
-      ...List.generate(3, (index) => _createDummyUser(index)),
+      ...List.generate(5, (index) => _createDummyUser(index)),
     ];
 
     _currentState = QueueState(

@@ -831,7 +831,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
         children: [
           // Static header
           const Text(
-            '[ Turn queue ]',
+            '[ Turn Queue ]',
             style: TextStyle(
               fontFamily: 'SF Pro Rounded',
               fontWeight: FontWeight.w500,
