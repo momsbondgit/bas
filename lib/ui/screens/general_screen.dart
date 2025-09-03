@@ -10,13 +10,16 @@ class GeneralScreen extends StatelessWidget {
   const GeneralScreen({super.key});
 
   Future<void> _checkAuthAndNavigate(BuildContext context) async {
+    print('DEBUG GeneralScreen._checkAuthAndNavigate: Starting auth check');
     final authService = AuthService();
     
     // Check if user already has an account
     final isLoggedIn = await authService.isLoggedIn();
+    print('DEBUG GeneralScreen._checkAuthAndNavigate: User logged in: $isLoggedIn');
     
     if (isLoggedIn) {
       // User has account, navigate directly
+      print('DEBUG GeneralScreen._checkAuthAndNavigate: Navigating existing user to GirlMeetsCollegeScreen');
       if (context.mounted) {
         Navigator.push(
           context,
@@ -27,6 +30,7 @@ class GeneralScreen extends StatelessWidget {
       }
     } else {
       // User needs to create account, show modal
+      print('DEBUG GeneralScreen._checkAuthAndNavigate: Showing auth modal for new user');
       if (context.mounted) {
         _showWorldAccessModal(context);
       }
@@ -39,10 +43,13 @@ class GeneralScreen extends StatelessWidget {
       barrierDismissible: false,
       builder: (context) => WorldAccessModal(
         onSubmit: (accessCode, nickname) async {
+          print('DEBUG GeneralScreen._showWorldAccessModal: User submitted modal with code: $accessCode, nickname: $nickname');
           final authService = AuthService();
           final success = await authService.createAccount(accessCode, nickname);
+          print('DEBUG GeneralScreen._showWorldAccessModal: Account creation success: $success');
           
           if (success && context.mounted) {
+            print('DEBUG GeneralScreen._showWorldAccessModal: Closing modal and navigating to GirlMeetsCollegeScreen');
             Navigator.of(context).pop(); // Close modal
             Navigator.push(
               context,
@@ -51,6 +58,7 @@ class GeneralScreen extends StatelessWidget {
               ),
             );
           } else if (context.mounted) {
+            print('DEBUG GeneralScreen._showWorldAccessModal: ERROR - Account creation failed, showing error');
             // Show error - could enhance this with better error handling
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(

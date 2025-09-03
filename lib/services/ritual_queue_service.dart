@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/ritual_queue_state.dart';
 import '../models/queue_user.dart';
 import '../models/message.dart';
-import '../models/reaction_type.dart';
 import '../config/ritual_config.dart';
 import 'local_storage_service.dart';
 
@@ -128,56 +127,48 @@ class RitualQueueService {
   }
 
   Future<void> submitMessage(String userId, String content) async {
-    if (_currentState?.activeUserId != userId) return;
-    if (content.trim().isEmpty) return;
+    print('DEBUG RitualQueueService.submitMessage: User $userId attempting to submit message');
+    if (_currentState?.activeUserId != userId) {
+      print('DEBUG RitualQueueService.submitMessage: ERROR - User $userId is not active user');
+      return;
+    }
+    if (content.trim().isEmpty) {
+      print('DEBUG RitualQueueService.submitMessage: ERROR - Message content is empty');
+      return;
+    }
 
+    print('DEBUG RitualQueueService.submitMessage: Creating message without reactions field');
     final message = Message(
       id: _generateMessageId(),
       userId: userId,
       displayName: _currentState!.activeDisplayName,
       content: content.trim(),
       timestamp: DateTime.now(),
-      reactions: {},
     );
 
+    print('DEBUG RitualQueueService.submitMessage: Writing message to Firebase (no reaction writes)');
     await _messagesCollection.doc(message.id).set(message.toMap());
+    print('DEBUG RitualQueueService.submitMessage: Successfully wrote message to Firebase');
 
     final newState = _currentState!.submitMessage(message);
     await _saveState(newState);
+    print('DEBUG RitualQueueService.submitMessage: Updated queue state');
   }
 
-  Future<void> addReaction(String messageId, String userId, ReactionType reaction) async {
-    if (!(_currentState?.reactionsEnabled ?? false)) return;
-
-    final messageDoc = await _messagesCollection.doc(messageId).get();
-    if (!messageDoc.exists) return;
-
-    final message = Message.fromMap(messageDoc.data() as Map<String, dynamic>);
-    final updatedMessage = message.addReaction(userId, reaction);
-
-    await _messagesCollection.doc(messageId).update(updatedMessage.toMap());
-
-    if (_currentState?.currentMessage?.id == messageId) {
-      final newState = _currentState!.updateReactions(updatedMessage.reactions);
-      await _saveState(newState);
-    }
+  // DEBUG: addReaction() and removeReaction() methods were REMOVED during Firebase optimization
+  // This eliminates Firebase writes for message reactions
+  // All message reactions are now client-only (no backend persistence)
+  
+  void addLocalReaction(String messageId, String emoji) {
+    print('DEBUG RitualQueueService.addLocalReaction: Local reaction added - messageId: $messageId, emoji: $emoji (not saved to Firebase)');
+    // This method exists for API compatibility but doesn't write to Firebase
+    // All reaction handling is now done locally in the UI components
   }
-
-  Future<void> removeReaction(String messageId, String userId) async {
-    if (!(_currentState?.reactionsEnabled ?? false)) return;
-
-    final messageDoc = await _messagesCollection.doc(messageId).get();
-    if (!messageDoc.exists) return;
-
-    final message = Message.fromMap(messageDoc.data() as Map<String, dynamic>);
-    final updatedMessage = message.removeReaction(userId);
-
-    await _messagesCollection.doc(messageId).update(updatedMessage.toMap());
-
-    if (_currentState?.currentMessage?.id == messageId) {
-      final newState = _currentState!.updateReactions(updatedMessage.reactions);
-      await _saveState(newState);
-    }
+  
+  void removeLocalReaction(String messageId, String emoji) {
+    print('DEBUG RitualQueueService.removeLocalReaction: Local reaction removed - messageId: $messageId, emoji: $emoji (not saved to Firebase)');
+    // This method exists for API compatibility but doesn't write to Firebase
+    // All reaction handling is now done locally in the UI components
   }
 
   Future<void> rotateQueue() async {

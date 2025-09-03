@@ -4,7 +4,6 @@ import '../widgets/confession_card.dart';
 import '../widgets/status_indicator.dart';
 import '../widgets/message_area_typing_indicator.dart';
 import '../../view_models/home_view_model.dart';
-import '../../services/presence_service.dart';
 import '../../config/ritual_config.dart';
 import 'session_end_screen.dart';
 
@@ -35,9 +34,11 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   late HomeViewModel _viewModel;
   late AnimationController _pulseController;
-  final PresenceService _presenceService = PresenceService();
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  
+  // Local reaction storage (not persisted to Firebase)
+  final Map<String, Map<String, int>> _localReactions = {};
 
   @override
   void initState() {
@@ -48,7 +49,6 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     _viewModel.addListener(_onViewModelChanged);
     _viewModel.initialize();
     
-    _presenceService.start();
     _setupTextFieldListeners();
   }
 
@@ -86,9 +86,8 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     _viewModel.onPostSubmitted();
   }
 
-  void _handleReaction(String postId, String emoji) async {
-    await _viewModel.addReaction(postId, emoji);
-  }
+  // DEBUG: _handleReaction() method was REMOVED during Firebase optimization
+  // All reaction handling eliminated - no more Firebase writes for reactions
 
   void _handlePostSubmission(String text) async {
     if (text.trim().isEmpty || !_viewModel.canPost) {
@@ -112,11 +111,24 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     }
   }
 
+  void _handleLocalReaction(String postId, String emoji) {
+    print('DEBUG GirlMeetsCollegeScreen._handleLocalReaction: Local reaction - postId: $postId, emoji: $emoji (not saved to Firebase)');
+    setState(() {
+      // Initialize reactions for this post if not exists
+      _localReactions[postId] ??= {};
+      
+      // Increment reaction count
+      _localReactions[postId]![emoji] = (_localReactions[postId]![emoji] ?? 0) + 1;
+    });
+  }
+
   List<Widget> _buildPostWidgets() {
     return _viewModel.posts.asMap().entries.map((entry) {
       final index = entry.key;
       final doc = entry.value;
       final data = doc.data() as Map<String, dynamic>;
+      
+      final postId = doc.id;
       
       return Padding(
         padding: const EdgeInsets.only(bottom: 20.0),
@@ -124,10 +136,10 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
           floor: data['floor'] ?? 0,
           text: data['text'] ?? '',
           gender: data['gender'] ?? '',
-          reactions: Map<String, int>.from(data['reactions'] ?? {'🤭': 0, '☠️': 0, '🤪': 0}),
           isBlurred: false,
-          onReaction: (emoji) => _handleReaction(doc.id, emoji),
           customAuthor: data['customAuthor'] as String?,
+          reactions: _localReactions[postId] ?? {},
+          onReaction: (emoji) => _handleLocalReaction(postId, emoji),
         ),
       );
     }).toList();
@@ -169,7 +181,6 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   @override
   void dispose() {
     _pulseController.dispose();
-    _presenceService.stop();
     _viewModel.removeListener(_onViewModelChanged);
     _viewModel.dispose();
     _textController.dispose();
@@ -745,27 +756,18 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     final data = post.data() as Map<String, dynamic>;
     final postId = post.id;
     final confession = data['confession'] as String? ?? '';
-    final rawReactions = Map<String, dynamic>.from(data['reactions'] ?? {});
     final floor = data['floor'] as int? ?? 1;
     final gender = data['gender'] as String? ?? 'girl';
     
-    // Convert reactions to the expected format
-    final reactions = <String, int>{};
-    rawReactions.forEach((key, value) {
-      if (value is List) {
-        reactions[key] = value.length;
-      } else if (value is int) {
-        reactions[key] = value;
-      }
-    });
+    print('DEBUG GirlMeetsCollegeScreen._buildSinglePostWidget: Building post widget with local reactions - postId: $postId');
     
     return ConfessionCard(
       floor: floor,
       text: confession,
       gender: gender,
-      reactions: reactions,
-      onReaction: (emoji) => _handleReaction(postId, emoji),
       key: ValueKey(postId),
+      reactions: _localReactions[postId] ?? {},
+      onReaction: (emoji) => _handleLocalReaction(postId, emoji),
     );
   }
 

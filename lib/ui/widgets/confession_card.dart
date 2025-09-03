@@ -22,12 +22,6 @@ class ConfessionCard extends StatelessWidget {
   static const double _messageBoxVerticalPadding = 15.0;
   static const double _messageBoxBorderRadius = 12.0;
   
-  static const List<Map<String, String>> _reactionData = [
-    {'label': 'SAMEE', 'emoji': '🤭'},
-    {'label': 'DEAD', 'emoji': '☠️'},
-    {'label': 'W', 'emoji': '🤪'},
-  ];
-  
   static const List<String> _nicknames = [
     'THATGIRL123',
     'Who IS ShE', 
@@ -43,28 +37,23 @@ class ConfessionCard extends StatelessWidget {
     'campus queen'
   ];
   
-  static const Map<String, String> _reactionLabels = {
-    '🤭': 'SAMEE',
-    '☠️': 'DEAD', 
-    '🤪': 'W',
-  };
   final int floor;
   final String text;
   final String gender;
-  final Map<String, int> reactions;
   final bool isBlurred;
-  final Function(String)? onReaction;
   final String? customAuthor;
+  final Map<String, int> reactions;
+  final Function(String)? onReaction;
 
   const ConfessionCard({
     super.key,
     required this.floor,
     required this.text,
     required this.gender,
-    required this.reactions,
     this.isBlurred = false,
-    this.onReaction,
     this.customAuthor,
+    this.reactions = const {},
+    this.onReaction,
   });
 
   String _generateNickname() {
@@ -76,6 +65,8 @@ class ConfessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('DEBUG ConfessionCard.build: Rendering confession card without reactions - floor: $floor, gender: $gender');
+    
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     
@@ -131,22 +122,9 @@ class ConfessionCard extends StatelessWidget {
         
         SizedBox(height: verticalSpacing),
         
-        // Reactions
+        // Local reactions section (not stored in Firebase)  
         if (onReaction != null)
-          _buildReactionRow(reactionFontSize)
-        else
-          Text(
-            _buildReactionString(),
-            style: TextStyle(
-              fontFamily: 'SF Compact Rounded',
-              fontSize: reactionFontSize,
-              fontWeight: FontWeight.w400,
-              color: const Color(0xFFB2B2B2),
-              letterSpacing: 0.4,
-            ),
-          ),
-        
-        SizedBox(height: verticalSpacing),
+          _buildReactionRow(reactionFontSize),
           ],
         ),
         
@@ -191,15 +169,19 @@ class ConfessionCard extends StatelessWidget {
   }
   
   Widget _buildReactionRow(double fontSize) {
-    final reactionData = [
-      {'label': 'SAMEE', 'emoji': '🤭'},
-      {'label': 'DEAD', 'emoji': '☠️'},
-      {'label': 'W', 'emoji': '🤪'},
-    ];
+    print('DEBUG ConfessionCard._buildReactionRow: Building local reaction UI with original SAMEE/DEAD/W format');
+    
+    // Original reaction labels (matching the exact original format)
+    final reactionLabels = {
+      '🤭': 'SAMEE',
+      '☠️': 'DEAD', 
+      '🤪': 'W',
+    };
     
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // REACT: label (matching original styling)
         Text(
           'REACT: ',
           style: TextStyle(
@@ -210,53 +192,38 @@ class ConfessionCard extends StatelessWidget {
             letterSpacing: 0.4,
           ),
         ),
-        ...reactionData.map((reaction) {
-              final emoji = reaction['emoji']!;
-              final label = reaction['label']!;
-              final count = reactions[emoji] ?? 0;
-              
-              return Padding(
-                padding: const EdgeInsets.only(right: _reactionSpacing),
-                child: GestureDetector(
-                  onTap: () => onReaction?.call(emoji),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
-                    child: Text(
-                      count > 0 ? '[$label$emoji]$count' : '[$label$emoji]',
-                      style: TextStyle(
-                        fontFamily: 'SF Compact Rounded',
-                        fontSize: fontSize * _fontSizeMultiplier,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFFB2B2B2),
-                        letterSpacing: 0.4,
-                      ),
-                    ),
+        // Original reaction format
+        ...reactionLabels.entries.map((entry) {
+          final emoji = entry.key;
+          final label = entry.value;
+          final count = reactions[emoji] ?? 0;
+          final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
+          
+          return Padding(
+            padding: const EdgeInsets.only(right: _reactionSpacing),
+            child: GestureDetector(
+              onTap: () {
+                print('DEBUG ConfessionCard: Local reaction tap - $label $emoji (not saved to Firebase)');
+                onReaction?.call(emoji);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
+                child: Text(
+                  displayText,
+                  style: TextStyle(
+                    fontFamily: 'SF Compact Rounded',
+                    fontSize: fontSize * _fontSizeMultiplier,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFFB2B2B2),
+                    letterSpacing: 0.4,
                   ),
                 ),
-              );
-            }).toList(),
+              ),
+            ),
+          );
+        }).toList(),
       ],
     );
-  }
-
-  String _buildReactionString() {
-    final reactionParts = <String>[];
-    final reactionLabels = {
-      '🤭': 'SAMEE',
-      '☠️': 'DEAD', 
-      '🤪': 'W',
-    };
-    
-    reactions.forEach((emoji, count) {
-      final label = reactionLabels[emoji] ?? '';
-      if (count > 0) {
-        reactionParts.add('[$label$emoji]$count');
-      } else {
-        reactionParts.add('[$label$emoji]');
-      }
-    });
-    
-    return 'REACT: ${reactionParts.join(' ')}';
   }
 
 }

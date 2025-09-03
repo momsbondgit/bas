@@ -123,21 +123,23 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> submitPost(String text) async {
+    print('DEBUG HomeViewModel.submitPost: Starting post submission');
     final floor = await _localStorageService.getFloor() ?? 1;
     final gender = await _localStorageService.getGender() ?? 'girl';
+    print('DEBUG HomeViewModel.submitPost: Using floor: $floor, gender: $gender');
     
     await _postService.addPost(text.trim(), floor, gender);
+    print('DEBUG HomeViewModel.submitPost: Post added via PostService');
     // Wait a moment for Firestore to update the stream
     await Future.delayed(const Duration(milliseconds: 1000));
     onPostSubmitted();
+    print('DEBUG HomeViewModel.submitPost: Post submission complete');
   }
 
-  Future<void> addReaction(String postId, String emoji) async {
-    try {
-      await _postService.addReaction(postId, emoji);
-    } catch (e) {
-      // Handle error - could notify listeners with error state if needed
-    }
+  void addLocalReaction(String postId, String emoji) {
+    print('DEBUG HomeViewModel.addLocalReaction: Local reaction added - postId: $postId, emoji: $emoji (not saved to Firebase)');
+    // This method exists for API compatibility but doesn't write to Firebase
+    // All reaction handling is now done locally in the UI components
   }
 
   void startRealUserTyping() {
