@@ -199,7 +199,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: widget.endings.length,
-                          separatorBuilder: (context, index) => const Divider(color: Color(0xFFE5E7EB), height: 1),
+                          separatorBuilder: (context, index) => const SizedBox(height: 8),
                           itemBuilder: (context, index) {
                             final data = widget.endings[index].data() as Map<String, dynamic>;
                             return _buildPhoneNumberItem(

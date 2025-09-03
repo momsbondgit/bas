@@ -8,7 +8,6 @@ import '../../services/presence_service.dart';
 import '../../config/ritual_config.dart';
 import 'session_end_screen.dart';
 
-void main() => runApp(MaterialApp(home: GirlMeetsCollegeScreen(selectedFloor: 1)));
 
 class GirlMeetsCollegeScreen extends StatefulWidget {
   final int selectedFloor;
@@ -23,6 +22,17 @@ class GirlMeetsCollegeScreen extends StatefulWidget {
 }
 
 class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with TickerProviderStateMixin {
+  // Constants
+  static const double _containerHorizontalMargin = 17.0;
+  static const double _containerBorderRadius = 12.0;
+  static const double _contentPadding = 17.0;
+  static const double _spaceBelowLiveButton = 60.0;
+  static const double _dividerSpacing = 25.0;
+  static const double _dividerHeight = 2.0;
+  static const double _dividerHorizontalMargin = 20.0;
+  static const int _pulseAnimationDuration = 1000;
+  static const int _snackBarDuration = 2;
+
   late HomeViewModel _viewModel;
   late AnimationController _pulseController;
   final PresenceService _presenceService = PresenceService();
@@ -66,7 +76,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   void _setupPulseAnimation() {
     _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: _pulseAnimationDuration),
       vsync: this,
     );
     _pulseController.repeat(reverse: true);
@@ -81,10 +91,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   }
 
   void _handlePostSubmission(String text) async {
-    print('DEBUG _handlePostSubmission: text length=${text.trim().length}');
-    print('DEBUG _handlePostSubmission: _viewModel.canPost=${_viewModel.canPost}');
     if (text.trim().isEmpty || !_viewModel.canPost) {
-      print('DEBUG _handlePostSubmission: Blocked - empty text or canPost=false');
       return;
     }
     
@@ -99,7 +106,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to post. Please try again.'),
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: _snackBarDuration),
         ),
       );
     }
@@ -578,22 +585,14 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 60), // Space to move content down under LIVE button
-                  // Dynamic content area based on queue state
-                  Expanded(
+                  // Message content area
+                  Flexible(
                     child: _buildMessageAreaContent(),
                   ),
-                  // Subtle divider - moved up to make room for queue
-                  const SizedBox(height: 10), // Further reduced space above divider
-                  Container(
-                    width: double.infinity,
-                    height: 1,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFDEDBD9),
-                    ),
-                  ),
-                  const SizedBox(height: 15), // Reduced space below divider
-                  // Queue section - back at bottom with more space
-                  _buildQueueSection(),
+                  // Static divider above Turn Queue
+                  _buildStaticDivider(),
+                  // Queue section
+                  _buildQueueContent(),
                 ],
               ),
             ),
@@ -804,7 +803,23 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
           );
   }
 
-  Widget _buildQueueSection() {
+  Widget _buildStaticDivider() {
+    return Column(
+      children: [
+        const SizedBox(height: 25),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20), // Spacing from comment area borders
+          height: 2,
+          decoration: const BoxDecoration(
+            color: Color(0xFFDEDBD9),
+          ),
+        ),
+        const SizedBox(height: 15),
+      ],
+    );
+  }
+
+  Widget _buildQueueContent() {
     final activeUser = _viewModel.activeUser;
     final upcomingUsers = _viewModel.upcomingUsers;
     

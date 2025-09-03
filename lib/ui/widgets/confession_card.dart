@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:ui';
 
 class ConfessionCard extends StatelessWidget {
+  // Constants
+  static const double _tabletBreakpoint = 768.0;
+  static const double _desktopBreakpoint = 1024.0;
+  static const double _screenWidthFontFactor = 0.038;
+  static const double _screenHeightSpacingFactor = 0.008;
+  static const double _screenWidthFactor = 0.6;
+  static const double _lineHeight = 1.3;
+  static const double _blurSigma = 3.0;
+  static const double _fontSizeMultiplier = 1.1;
+  static const double _reactionSpacing = 8.0;
+  static const double _reactionRunSpacing = 4.0;
+  static const double _reactionPadding = 6.0;
+  static const double _reactionVerticalPadding = 3.0;
+  static const double _blurOverlayOpacity = 0.1;
+  static const double _messageBoxOpacity = 0.9;
+  static const double _messageBoxHorizontalPadding = 20.0;
+  static const double _messageBoxVerticalPadding = 15.0;
+  static const double _messageBoxBorderRadius = 12.0;
+  
+  static const List<Map<String, String>> _reactionData = [
+    {'label': 'SAMEE', 'emoji': '🤭'},
+    {'label': 'DEAD', 'emoji': '☠️'},
+    {'label': 'W', 'emoji': '🤪'},
+  ];
+  
+  static const Map<String, String> _reactionLabels = {
+    '🤭': 'SAMEE',
+    '☠️': 'DEAD', 
+    '🤪': 'W',
+  };
   final int floor;
   final String text;
   final String gender;
@@ -28,17 +57,16 @@ class ConfessionCard extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     
     // Responsive breakpoints
-    final isTablet = screenWidth >= 768;
-    final isDesktop = screenWidth >= 1024;
+    final isTablet = screenWidth >= _tabletBreakpoint;
+    final isDesktop = screenWidth >= _desktopBreakpoint;
     
     // Responsive font sizes
-    final labelFontSize = isDesktop ? 16.0 : (isTablet ? 15.0 : (screenWidth * 0.038).clamp(14.0, 16.0));
-    final textFontSize = isDesktop ? 15.0 : (isTablet ? 14.0 : (screenWidth * 0.038).clamp(14.0, 16.0));
-    final reactionFontSize = isDesktop ? 15.0 : (isTablet ? 14.0 : (screenWidth * 0.038).clamp(14.0, 16.0));
+    final labelFontSize = isDesktop ? 16.0 : (isTablet ? 15.0 : (screenWidth * _screenWidthFontFactor).clamp(14.0, 16.0));
+    final textFontSize = isDesktop ? 15.0 : (isTablet ? 14.0 : (screenWidth * _screenWidthFontFactor).clamp(14.0, 16.0));
+    final reactionFontSize = isDesktop ? 15.0 : (isTablet ? 14.0 : (screenWidth * _screenWidthFontFactor).clamp(14.0, 16.0));
     
     // Responsive spacing
-    final verticalSpacing = (screenHeight * 0.008).clamp(6.0, 12.0);
-    final underlineWidth = isDesktop ? 300.0 : (isTablet ? 250.0 : (screenWidth * 0.6).clamp(180.0, 250.0));
+    final verticalSpacing = (screenHeight * _screenHeightSpacingFactor).clamp(6.0, 12.0);
     
     return Stack(
       children: [
@@ -96,13 +124,6 @@ class ConfessionCard extends StatelessWidget {
           ),
         
         SizedBox(height: verticalSpacing),
-        
-        // Underline - responsive width
-        Container(
-          width: underlineWidth,
-          height: 2,
-          color: const Color(0xFFDEDBD9),
-        ),
           ],
         ),
         
@@ -153,47 +174,44 @@ class ConfessionCard extends StatelessWidget {
       {'label': 'W', 'emoji': '🤪'},
     ];
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Wrap(
-          spacing: 8.0,
-          runSpacing: 4.0,
-          children: [
-            Text(
-              'REACT: ',
-              style: TextStyle(
-                fontFamily: 'SF Compact Rounded',
-                fontSize: fontSize * 1.1,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFFB2B2B2),
-                letterSpacing: 0.4,
-              ),
-            ),
-            ...reactionData.map((reaction) {
+        Text(
+          'REACT: ',
+          style: TextStyle(
+            fontFamily: 'SF Compact Rounded',
+            fontSize: fontSize * _fontSizeMultiplier,
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFFB2B2B2),
+            letterSpacing: 0.4,
+          ),
+        ),
+        ...reactionData.map((reaction) {
               final emoji = reaction['emoji']!;
               final label = reaction['label']!;
               final count = reactions[emoji] ?? 0;
               
-              return GestureDetector(
-                onTap: () => onReaction?.call(emoji),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
-                  child: Text(
-                    count > 0 ? '[$label$emoji]$count' : '[$label$emoji]',
-                    style: TextStyle(
-                      fontFamily: 'SF Compact Rounded',
-                      fontSize: fontSize * 1.1,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFFB2B2B2),
-                      letterSpacing: 0.4,
+              return Padding(
+                padding: const EdgeInsets.only(right: _reactionSpacing),
+                child: GestureDetector(
+                  onTap: () => onReaction?.call(emoji),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
+                    child: Text(
+                      count > 0 ? '[$label$emoji]$count' : '[$label$emoji]',
+                      style: TextStyle(
+                        fontFamily: 'SF Compact Rounded',
+                        fontSize: fontSize * _fontSizeMultiplier,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFFB2B2B2),
+                        letterSpacing: 0.4,
+                      ),
                     ),
                   ),
                 ),
               );
             }).toList(),
-          ],
-        ),
       ],
     );
   }
