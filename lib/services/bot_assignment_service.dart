@@ -100,4 +100,48 @@ class BotAssignmentService {
       throw Exception('Failed to ensure user has bot assignments: $e');
     }
   }
+  
+  /// Reassigns fresh bots to returning users for a new experience
+  Future<void> reassignBotsForReturningUser(String anonId, int sessionCount) async {
+    try {
+      // Delete existing bot assignments
+      final existingAssignments = await _firestore
+          .collection('users')
+          .doc(anonId)
+          .collection('assigned_bots')
+          .get();
+
+      if (existingAssignments.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        for (final doc in existingAssignments.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      }
+
+      // Generate new seed based on anonId + session count for fresh randomization
+      final seed = (anonId.hashCode.abs() + sessionCount).abs();
+      final newAssignedBots = BotPool.getRandomBotSubset(6, seed: seed);
+
+      // Store new assignments in Firestore
+      final batch = _firestore.batch();
+      for (final bot in newAssignedBots) {
+        final docRef = _firestore
+            .collection('users')
+            .doc(anonId)
+            .collection('assigned_bots')
+            .doc(bot.botId);
+
+        batch.set(docRef, {
+          'nickname': bot.nickname,
+          'assignedAt': FieldValue.serverTimestamp(),
+          'sessionNumber': sessionCount, // Track which session these bots are for
+        });
+      }
+
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to reassign bots for returning user: $e');
+    }
+  }
 }

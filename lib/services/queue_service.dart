@@ -96,13 +96,22 @@ class QueueService extends ChangeNotifier {
     _broadcastState();
   }
 
-  /// Load user's assigned bots from Firebase (ensures assignments exist first)
+  /// Load user's assigned bots from Firebase (handles returning users with fresh bots)
   Future<void> _loadAssignedBots() async {
     try {
       final anonId = await _authService.getOrCreateAnonId();
       
-      // Ensure user has bot assignments (creates them for existing users if missing)
-      await _botAssignmentService.ensureUserHasBots(anonId);
+      // Check if this is a returning user
+      final isReturningUser = await _localStorageService.recordSessionAndCheckIfReturning();
+      
+      if (isReturningUser) {
+        // Returning users get fresh bot assignments for new experience
+        final sessionCount = await _localStorageService.getSessionCount();
+        await _botAssignmentService.reassignBotsForReturningUser(anonId, sessionCount);
+      } else {
+        // First-time users get initial bot assignments
+        await _botAssignmentService.ensureUserHasBots(anonId);
+      }
       
       _assignedBots = await _botAssignmentService.getAssignedBots(anonId);
     } catch (e) {
@@ -135,13 +144,55 @@ class QueueService extends ChangeNotifier {
       (index) => _createDummyUser(index)
     );
     
-    // Create queue with real user in third position
-    final queue = <QueueUser>[
-      if (botUsers.isNotEmpty) botUsers[0].copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()),
-      if (botUsers.length > 1) botUsers[1],
-      realUser,
-      ...botUsers.skip(2),
-    ];
+    // Determine user's queue position (random for returning users, third for new users)
+    final sessionCount = await _localStorageService.getSessionCount();
+    final isReturningUser = sessionCount > 1;
+    
+    List<QueueUser> queue;
+    
+    if (isReturningUser) {
+      // Returning users get random position (2-6, never first)
+      final availablePositions = List.generate(botUsers.length, (i) => i + 1)
+          .where((pos) => pos > 0) // Never position 0 (first)
+          .toList();
+      
+      if (availablePositions.isEmpty) availablePositions.add(1); // Fallback
+      
+      final userPosition = availablePositions[_random.nextInt(availablePositions.length)];
+      
+      // Build queue with user at random position
+      queue = <QueueUser>[];
+      
+      // Add first bot as active
+      if (botUsers.isNotEmpty) {
+        queue.add(botUsers[0].copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()));
+      }
+      
+      // Add remaining bots and user at specified position
+      for (int i = 1; i < botUsers.length + 1; i++) {
+        if (i == userPosition) {
+          queue.add(realUser);
+        } else {
+          final botIndex = i > userPosition ? i - 1 : i;
+          if (botIndex < botUsers.length && botIndex > 0) {
+            queue.add(botUsers[botIndex]);
+          }
+        }
+      }
+      
+      // Ensure user is added if position is at end
+      if (userPosition >= botUsers.length) {
+        queue.add(realUser);
+      }
+    } else {
+      // New users get third position (existing behavior)
+      queue = <QueueUser>[
+        if (botUsers.isNotEmpty) botUsers[0].copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()),
+        if (botUsers.length > 1) botUsers[1],
+        realUser,
+        ...botUsers.skip(2),
+      ];
+    }
 
     _currentState = QueueState(
       queue: queue,

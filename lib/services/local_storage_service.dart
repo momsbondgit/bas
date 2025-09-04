@@ -14,6 +14,10 @@ class LocalStorageService {
   // Ritual Queue keys
   static const String _ritualUserIdKey = 'ritual.userId';
   static const String _ritualDisplayNameKey = 'ritual.displayName';
+  
+  // Session tracking keys
+  static const String _lastSessionKey = 'session.lastVisit';
+  static const String _sessionCountKey = 'session.count';
 
   Future<void> setFloor(int floor) async {
     final prefs = await SharedPreferences.getInstance();
@@ -105,5 +109,42 @@ class LocalStorageService {
   Future<bool> getHasAccount() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_hasAccountKey) ?? false;
+  }
+
+  // Session tracking methods
+  
+  /// Records current session and detects if user is returning
+  Future<bool> recordSessionAndCheckIfReturning() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    
+    // Get last session time (null for first-time users)
+    final lastSession = prefs.getInt(_lastSessionKey);
+    final sessionCount = prefs.getInt(_sessionCountKey) ?? 0;
+    
+    // Save current session
+    await prefs.setInt(_lastSessionKey, now);
+    await prefs.setInt(_sessionCountKey, sessionCount + 1);
+    
+    // Return true if this is a returning user (has previous session)
+    return lastSession != null;
+  }
+  
+  /// Gets the number of sessions for this user
+  Future<int> getSessionCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_sessionCountKey) ?? 0;
+  }
+  
+  /// Gets time since last session in hours (null for first-time users)
+  Future<double?> getHoursSinceLastSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastSession = prefs.getInt(_lastSessionKey);
+    
+    if (lastSession == null) return null;
+    
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final diffMs = now - lastSession;
+    return diffMs / (1000 * 60 * 60); // Convert to hours
   }
 }

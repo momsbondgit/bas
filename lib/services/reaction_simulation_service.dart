@@ -117,35 +117,31 @@ class ReactionSimulationService {
       print('🎭 REACTION_SIM: REAL USER engagement level: $engagementLevel ($reactionCount reactions)');
       return reactionCount;
     } else {
-      // Bot posts get normal engagement distribution
-      // With 6 users total, we want good engagement but natural variation
+      // Bot posts get good engagement - MINIMUM 5 reactions guaranteed!
+      // With 6 users total, we want consistent active engagement
       final engagementRoll = _random.nextDouble();
       String engagementLevel;
       int reactionCount;
       
-      if (engagementRoll < 0.05) {
-        // 5% chance: No reactions (post didn't resonate)
-        engagementLevel = "none";
-        reactionCount = 0;
-      } else if (engagementRoll < 0.20) {
-        // 15% chance: Low engagement (1-2 reactions)
-        engagementLevel = "low";
-        reactionCount = 1 + _random.nextInt(2); // 1-2 reactions
-      } else if (engagementRoll < 0.75) {
-        // 55% chance: Good engagement (3-4 reactions) - most common
-        engagementLevel = "good";
-        reactionCount = 3 + _random.nextInt(2); // 3-4 reactions
-      } else if (engagementRoll < 0.95) {
-        // 20% chance: High engagement (5 reactions)
-        engagementLevel = "high";
+      if (engagementRoll < 0.30) {
+        // 30% chance: Minimum engagement (5 reactions)
+        engagementLevel = "minimum active";
         reactionCount = 5;
+      } else if (engagementRoll < 0.65) {
+        // 35% chance: Good engagement (6-7 reactions) - most common
+        engagementLevel = "good";
+        reactionCount = 6 + _random.nextInt(2); // 6-7 reactions
+      } else if (engagementRoll < 0.90) {
+        // 25% chance: High engagement (8-9 reactions)
+        engagementLevel = "high";
+        reactionCount = 8 + _random.nextInt(2); // 8-9 reactions
       } else {
-        // 5% chance: Very high engagement (6 reactions)
+        // 10% chance: Very high engagement (10+ reactions)
         engagementLevel = "very high";
-        reactionCount = 6;
+        reactionCount = 10 + _random.nextInt(3); // 10-12 reactions
       }
       
-      print('🎭 REACTION_SIM: Bot engagement level: $engagementLevel ($reactionCount reactions)');
+      print('🎭 REACTION_SIM: Bot engagement level: $engagementLevel ($reactionCount reactions, 5+ guaranteed)');
       return reactionCount;
     }
   }
