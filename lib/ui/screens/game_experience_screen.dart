@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import '../widgets/confession_card.dart';
-import '../widgets/status_indicator.dart';
-import '../widgets/message_area_typing_indicator.dart';
+import '../widgets/cards/confession_card.dart';
+import '../widgets/indicators/status_indicator.dart';
+import '../widgets/indicators/message_area_typing_indicator.dart';
 import '../../view_models/home_view_model.dart';
 import '../../config/ritual_config.dart';
 import '../../config/world_config.dart';
-import '../../services/reaction_simulation_service.dart';
-import '../../services/local_storage_service.dart';
-import '../../services/world_service.dart';
+import '../../services/simulation/reaction_simulation_service.dart';
+import '../../services/data/local_storage_service.dart';
+import '../../services/core/world_service.dart';
 import 'session_end_screen.dart';
 
 
@@ -659,7 +659,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/eye.png',
+                  'Assets/eye.png',
                   width: 21,
                   height: 21,
                 ),

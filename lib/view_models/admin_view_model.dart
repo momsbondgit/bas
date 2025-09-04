@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
-import '../services/admin_service.dart';
-import '../services/maintenance_service.dart';
-import '../services/post_service.dart';
+import '../services/admin/admin_service.dart';
+import '../services/admin/maintenance_service.dart';
+import '../services/data/post_service.dart';
 import '../ui/screens/admin_screen.dart';
 
 class AdminViewModel extends ChangeNotifier {

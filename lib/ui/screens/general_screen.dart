@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'game_experience_screen.dart';
-import '../../services/auth_service.dart';
-import '../../services/world_service.dart';
-import '../../services/local_storage_service.dart';
+import '../../services/auth/auth_service.dart';
+import '../../services/core/world_service.dart';
+import '../../services/data/local_storage_service.dart';
 import '../../config/world_config.dart';
-import '../widgets/world_access_modal.dart';
+import '../widgets/forms/world_access_modal.dart';
 
 void main() => runApp(MaterialApp(home: GeneralScreen()));
 

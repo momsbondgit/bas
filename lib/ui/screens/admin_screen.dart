@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../services/admin_service.dart';
-import '../../services/maintenance_service.dart';
-import '../../services/post_service.dart';
-import '../widgets/admin_sidebar.dart';
-import '../widgets/admin_posts_section.dart';
-import '../widgets/admin_add_post_section.dart';
-import '../widgets/admin_system_controls_section.dart';
-import '../widgets/home_presence_counter.dart';
+import '../../services/admin/admin_service.dart';
+import '../../services/admin/maintenance_service.dart';
+import '../../services/data/post_service.dart';
+import '../widgets/admin/admin_sidebar.dart';
+import '../widgets/admin/admin_posts_section.dart';
+import '../widgets/admin/admin_add_post_section.dart';
+import '../widgets/admin/admin_system_controls_section.dart';
+import '../widgets/indicators/home_presence_counter.dart';
 import 'admin_login_screen.dart';
 import 'dart:async';
 

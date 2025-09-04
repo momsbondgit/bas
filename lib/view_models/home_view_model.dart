@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'dart:math';
-import '../services/post_service.dart';
-import '../services/local_storage_service.dart';
-import '../services/maintenance_service.dart';
-import '../services/queue_service.dart';
-import '../models/queue_user.dart';
+import '../services/data/post_service.dart';
+import '../services/data/local_storage_service.dart';
+import '../services/admin/maintenance_service.dart';
+import '../services/core/queue_service.dart';
+import '../models/user/queue_user.dart';
 
 class HomeViewModel extends ChangeNotifier {
   final PostService _postService = PostService();

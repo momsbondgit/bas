@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/maintenance_service.dart';
-import '../../services/admin_service.dart';
+import '../../services/admin/maintenance_service.dart';
+import '../../services/admin/admin_service.dart';
 import '../../utils/admin_navigation.dart';
 import 'dart:async';
 

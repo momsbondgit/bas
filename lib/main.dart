@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'ui/screens/general_screen.dart';
 import 'ui/screens/admin_login_screen.dart';
 import 'ui/screens/admin_screen.dart';
 import 'ui/screens/maintenance_screen.dart';
-import 'ui/widgets/app_initialization_wrapper.dart';
-import 'ui/widgets/global_maintenance_listener.dart';
+import 'ui/widgets/layout/app_initialization_wrapper.dart';
+import 'ui/widgets/layout/global_maintenance_listener.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
+        textTheme: GoogleFonts.notoSansTextTheme(),
       ),
       navigatorKey: navigatorKey,
       initialRoute: '/',

@@ -1,5 +1,5 @@
 import 'dart:math';
-import '../models/bot_user.dart';
+import '../models/user/bot_user.dart';
 
 class BotPool {
   static const List<BotUser> allBots = [

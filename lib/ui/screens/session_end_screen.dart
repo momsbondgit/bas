@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/ending_service.dart';
+import '../../services/core/ending_service.dart';
 
 void main() {
   runApp(const SessionEndApp());

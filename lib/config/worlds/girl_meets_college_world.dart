@@ -1,4 +1,4 @@
-import '../../models/bot_user.dart';
+import '../../models/user/bot_user.dart';
 import '../world_config.dart';
 
 class GirlMeetsCollegeWorld {

@@ -1,4 +1,4 @@
-import '../models/bot_user.dart';
+import '../models/user/bot_user.dart';
 
 class WorldConfig {
   final String id;                    // "girl-meets-college"

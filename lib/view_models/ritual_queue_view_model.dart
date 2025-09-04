@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../models/ritual_queue_state.dart';
-import '../services/ritual_queue_service.dart';
-import '../services/local_storage_service.dart';
+import '../models/queue/ritual_queue_state.dart';
+import '../services/core/ritual_queue_service.dart';
+import '../services/data/local_storage_service.dart';
 
 class RitualQueueViewModel extends ChangeNotifier {
   final RitualQueueService _ritualQueueService = RitualQueueService();

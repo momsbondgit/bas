@@ -37,6 +37,7 @@ dependencies:
   firebase_core: ^2.24.2
   cloud_firestore: ^4.17.5
   shared_preferences: ^2.2.0
+  google_fonts: ^6.1.0  # For Noto fonts and better font support
   
   # Ritual Queue Feature Dependencies
   stream_transform: ^2.1.0  # For stream manipulation

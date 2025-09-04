@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/post_service.dart';
-import '../services/local_storage_service.dart';
+import '../services/data/post_service.dart';
+import '../services/data/local_storage_service.dart';
 
 class PostInputViewModel extends ChangeNotifier {
   final PostService _postService = PostService();
