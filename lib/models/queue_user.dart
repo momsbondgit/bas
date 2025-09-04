@@ -26,7 +26,7 @@ class QueueUser {
   final DateTime? typingStartTime;
   final DateTime? reactionStartTime;
   final int floor;
-  final String gender;
+  final String world;
 
   const QueueUser({
     required this.id,
@@ -39,7 +39,7 @@ class QueueUser {
     this.typingStartTime,
     this.reactionStartTime,
     required this.floor,
-    required this.gender,
+    required this.world,
   });
 
   QueueUser copyWith({
@@ -53,7 +53,7 @@ class QueueUser {
     DateTime? typingStartTime,
     DateTime? reactionStartTime,
     int? floor,
-    String? gender,
+    String? world,
   }) {
     return QueueUser(
       id: id ?? this.id,
@@ -66,7 +66,7 @@ class QueueUser {
       typingStartTime: typingStartTime ?? this.typingStartTime,
       reactionStartTime: reactionStartTime ?? this.reactionStartTime,
       floor: floor ?? this.floor,
-      gender: gender ?? this.gender,
+      world: world ?? this.world,
     );
   }
 
@@ -82,7 +82,7 @@ class QueueUser {
       'typingStartTime': typingStartTime?.millisecondsSinceEpoch,
       'reactionStartTime': reactionStartTime?.millisecondsSinceEpoch,
       'floor': floor,
-      'gender': gender,
+      'world': world,
     };
   }
 
@@ -108,7 +108,7 @@ class QueueUser {
           ? DateTime.fromMillisecondsSinceEpoch(map['reactionStartTime'] as int)
           : null,
       floor: map['floor'] as int,
-      gender: map['gender'] as String,
+      world: map['world'] as String,
     );
   }
 

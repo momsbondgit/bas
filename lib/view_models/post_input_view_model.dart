@@ -58,11 +58,11 @@ class PostInputViewModel extends ChangeNotifier {
 
   Future<Map<String, dynamic>> loadUserPreferences() async {
     final floor = await _localStorageService.getFloor();
-    final gender = await _localStorageService.getGender();
+    final world = await _localStorageService.getWorldOrMigrateFromGender();
     
     return {
       'floor': floor ?? 1, // Default to floor 1
-      'gender': gender ?? 'girl', // Default to girl
+      'world': world, // Will be Girl Meets College by default
     };
   }
 }

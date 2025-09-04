@@ -19,7 +19,7 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
   final TextEditingController _authorController = TextEditingController();
   
   int _selectedFloor = 1;
-  String _selectedGender = 'Boy';
+  String _selectedWorld = 'Girl Meets College';
   bool _isSubmitting = false;
   bool _isAnnouncement = false;
 
@@ -227,19 +227,19 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
                                     ),
                                     child: DropdownButtonHideUnderline(
                                       child: DropdownButton<String>(
-                                        value: _selectedGender,
+                                        value: _selectedWorld,
                                         isExpanded: true,
                                         style: const TextStyle(
                                           fontSize: 14,
                                           color: Color(0xFF111827),
                                         ),
-                                        items: ['Boy', 'Girl']
-                                            .map((gender) => DropdownMenuItem(
-                                                  value: gender,
-                                                  child: Text(gender),
+                                        items: ['Girl Meets College', 'Guy Meets College']
+                                            .map((world) => DropdownMenuItem(
+                                                  value: world,
+                                                  child: Text(world),
                                                 ))
                                             .toList(),
-                                        onChanged: (value) => setState(() => _selectedGender = value!),
+                                        onChanged: (value) => setState(() => _selectedWorld = value!),
                                       ),
                                     ),
                                   ),
@@ -476,7 +476,7 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
       await _postService.addAdminPost(
         text: _textController.text.trim(),
         floor: _selectedFloor,
-        gender: _selectedGender.toLowerCase(),
+        world: _selectedWorld,
         customAuthor: customAuthor,
         isAnnouncement: _isAnnouncement,
       );
@@ -487,7 +487,7 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
       setState(() {
         _isAnnouncement = false;
         _selectedFloor = 1;
-        _selectedGender = 'Boy';
+        _selectedWorld = 'Girl Meets College';
       });
 
       widget.onPostAdded();

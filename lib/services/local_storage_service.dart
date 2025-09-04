@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalStorageService {
   static const String _floorKey = 'user.floor';
   static const String _genderKey = 'user.gender';
+  static const String _worldKey = 'user.world';
   static const String _hasPostedKey = 'user.hasPosted';
   
   // Auth keys
@@ -37,6 +38,39 @@ class LocalStorageService {
   Future<String?> getGender() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_genderKey);
+  }
+
+  Future<void> setWorld(String world) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_worldKey, world);
+  }
+
+  Future<String?> getWorld() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_worldKey);
+  }
+
+  /// Migration helper: Get world from gender if world not set
+  Future<String> getWorldOrMigrateFromGender() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Check if world is already set
+    final world = prefs.getString(_worldKey);
+    if (world != null) return world;
+    
+    // Migrate from gender if available
+    final gender = prefs.getString(_genderKey);
+    if (gender == 'girl') {
+      await setWorld('Girl Meets College');
+      return 'Girl Meets College';
+    } else if (gender == 'boy') {
+      await setWorld('Guy Meets College');
+      return 'Guy Meets College';
+    }
+    
+    // Default to Girl Meets College for backward compatibility
+    await setWorld('Girl Meets College');
+    return 'Girl Meets College';
   }
 
   Future<void> setHasPosted(bool hasPosted) async {

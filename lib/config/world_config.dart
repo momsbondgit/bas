@@ -1,0 +1,73 @@
+import '../models/bot_user.dart';
+
+class WorldConfig {
+  final String id;                    // "girl-meets-college"
+  final String displayName;          // "Girl Meets College"
+  final String topicOfDay;          // "confess your college experiences"
+  final String modalTitle;          // "join the world bestie ✨"
+  final String modalDescription;    // world-specific copy
+  final String entryTileImage;      // path to world image
+  final List<BotUser> botPool;      // world-specific bots
+  final String vibeSection;         // "The vibe" section content
+  final String headingText;         // "tea topic of the day" or similar
+  final int backgroundColorHue;     // HSL hue value for background gradient
+
+  const WorldConfig({
+    required this.id,
+    required this.displayName,
+    required this.topicOfDay,
+    required this.modalTitle,
+    required this.modalDescription,
+    required this.entryTileImage,
+    required this.botPool,
+    required this.vibeSection,
+    required this.headingText,
+    required this.backgroundColorHue,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'displayName': displayName,
+      'topicOfDay': topicOfDay,
+      'modalTitle': modalTitle,
+      'modalDescription': modalDescription,
+      'entryTileImage': entryTileImage,
+      'botPool': botPool.map((bot) => bot.toMap()).toList(),
+      'vibeSection': vibeSection,
+      'headingText': headingText,
+      'backgroundColorHue': backgroundColorHue,
+    };
+  }
+
+  factory WorldConfig.fromMap(Map<String, dynamic> map) {
+    return WorldConfig(
+      id: map['id'] as String,
+      displayName: map['displayName'] as String,
+      topicOfDay: map['topicOfDay'] as String,
+      modalTitle: map['modalTitle'] as String,
+      modalDescription: map['modalDescription'] as String,
+      entryTileImage: map['entryTileImage'] as String,
+      botPool: (map['botPool'] as List<dynamic>)
+          .map((botMap) => BotUser.fromMap(botMap as Map<String, dynamic>))
+          .toList(),
+      vibeSection: map['vibeSection'] as String,
+      headingText: map['headingText'] as String,
+      backgroundColorHue: map['backgroundColorHue'] as int,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is WorldConfig && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return 'WorldConfig(id: $id, displayName: $displayName)';
+  }
+}

@@ -56,7 +56,7 @@ class QueueService extends ChangeNotifier {
   List<BotUser> _assignedBots = [];
   
   // Callback for when a bot posts locally
-  Function({required String botNickname, required String confession, required int floor, required String gender})? onBotPost;
+  Function({required String botNickname, required String confession, required int floor, required String world})? onBotPost;
   
   
   Timer? _turnTimer;
@@ -129,7 +129,7 @@ class QueueService extends ChangeNotifier {
 
   Future<void> _createInitialQueue() async {
     final realUserFloor = await _localStorageService.getFloor() ?? 1;
-    final realUserGender = await _localStorageService.getGender() ?? 'girl';
+    final realUserWorld = await _localStorageService.getWorldOrMigrateFromGender();
     
     final realUser = QueueUser(
       id: 'real_user',
@@ -137,7 +137,7 @@ class QueueService extends ChangeNotifier {
       type: QueueUserType.real,
       state: QueueUserState.waiting,
       floor: realUserFloor,
-      gender: realUserGender,
+      world: realUserWorld,
     );
     
     final botUsers = List.generate(
@@ -209,8 +209,10 @@ class QueueService extends ChangeNotifier {
     }
     
     final floors = [1, 2, 3, 4, 5];
-    final genders = ['girl', 'boy'];
     final bot = _assignedBots[index];
+    
+    // Determine world based on bot's origin (all bots in same world as real user)
+    final world = _getCurrentUserWorld();
     
     return QueueUser(
       id: bot.botId,
@@ -218,8 +220,24 @@ class QueueService extends ChangeNotifier {
       type: QueueUserType.dummy,
       state: QueueUserState.waiting,
       floor: floors[_random.nextInt(floors.length)],
-      gender: genders[_random.nextInt(genders.length)],
+      world: world,
     );
+  }
+
+  String _getCurrentUserWorld() {
+    // Get world from current queue real user, or default to Girl Meets College
+    final realUser = _currentState.queue.firstWhere(
+      (user) => user.type == QueueUserType.real,
+      orElse: () => const QueueUser(
+        id: 'default',
+        displayName: 'Default',
+        type: QueueUserType.real,
+        state: QueueUserState.waiting,
+        floor: 1,
+        world: 'Girl Meets College',
+      ),
+    );
+    return realUser.world;
   }
 
   void _startTurnManagement() {
@@ -376,7 +394,7 @@ class QueueService extends ChangeNotifier {
         botNickname: dummyUser.displayName,
         confession: confession,
         floor: dummyUser.floor,
-        gender: dummyUser.gender,
+        world: dummyUser.world,
       );
       
       

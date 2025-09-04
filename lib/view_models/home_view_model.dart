@@ -124,9 +124,9 @@ class HomeViewModel extends ChangeNotifier {
 
   Future<void> submitPost(String text) async {
     final floor = await _localStorageService.getFloor() ?? 1;
-    final gender = await _localStorageService.getGender() ?? 'girl';
+    final world = await _localStorageService.getWorldOrMigrateFromGender();
     
-    await _postService.addPost(text.trim(), floor, gender);
+    await _postService.addPost(text.trim(), floor, world);
     // Wait a moment for Firestore to update the stream
     await Future.delayed(const Duration(milliseconds: 1000));
     onPostSubmitted();
@@ -193,13 +193,13 @@ class HomeViewModel extends ChangeNotifier {
     required String botNickname,
     required String confession,
     required int floor,
-    required String gender,
+    required String world,
   }) {
     final botPost = {
       'id': 'local_bot_${DateTime.now().millisecondsSinceEpoch}',
       'confession': confession,
       'floor': floor,
-      'gender': gender,
+      'world': world,
       'customAuthor': botNickname, // Use bot's actual nickname
       'createdAt': DateTime.now(),
       'isLocalBotPost': true,

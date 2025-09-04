@@ -1,16 +1,37 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'girl_meets_college_screen.dart';
+import 'game_experience_screen.dart';
 import '../../services/auth_service.dart';
+import '../../services/world_service.dart';
+import '../../services/local_storage_service.dart';
+import '../../config/world_config.dart';
 import '../widgets/world_access_modal.dart';
 
 void main() => runApp(MaterialApp(home: GeneralScreen()));
 
-class GeneralScreen extends StatelessWidget {
+class GeneralScreen extends StatefulWidget {
   const GeneralScreen({super.key});
 
-  Future<void> _checkAuthAndNavigate(BuildContext context) async {
+  @override
+  State<GeneralScreen> createState() => _GeneralScreenState();
+}
+
+class _GeneralScreenState extends State<GeneralScreen> {
+  final WorldService _worldService = WorldService();
+  late List<WorldConfig> _availableWorlds;
+
+  @override
+  void initState() {
+    super.initState();
+    _availableWorlds = _worldService.getAllWorlds();
+  }
+
+  Future<void> _checkAuthAndNavigate(BuildContext context, WorldConfig world) async {
     final authService = AuthService();
+    final localStorageService = LocalStorageService();
+    
+    // Store the selected world
+    await localStorageService.setWorld(world.displayName);
     
     // Check if user already has an account
     final isLoggedIn = await authService.isLoggedIn();
@@ -21,23 +42,27 @@ class GeneralScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const GirlMeetsCollegeScreen(selectedFloor: 1),
+            builder: (context) => GameExperienceScreen(
+              selectedFloor: 1,
+              worldConfig: world,
+            ),
           ),
         );
       }
     } else {
       // User needs to create account, show modal
       if (context.mounted) {
-        _showWorldAccessModal(context);
+        _showWorldAccessModal(context, world);
       }
     }
   }
 
-  void _showWorldAccessModal(BuildContext context) {
+  void _showWorldAccessModal(BuildContext context, WorldConfig world) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => WorldAccessModal(
+        worldConfig: world,
         onSubmit: (accessCode, nickname) async {
           final authService = AuthService();
           final success = await authService.createAccount(accessCode, nickname);
@@ -47,7 +72,10 @@ class GeneralScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const GirlMeetsCollegeScreen(selectedFloor: 1),
+                builder: (context) => GameExperienceScreen(
+                  selectedFloor: 1,
+                  worldConfig: world,
+                ),
               ),
             );
           } else if (context.mounted) {
@@ -73,38 +101,43 @@ class GeneralScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFFFFFFF),
       body: Stack(
         children: [
-          _buildFadeBackground(context),
-          GestureDetector(
-            onTap: () => _checkAuthAndNavigate(context),
-            child: Stack(
-              children: [
-                _buildBox(context),
-                _buildStickerImage(context),
-                _buildTapImage(context),
-              ],
-            ),
-          ),
-          _buildTitle(context),
+          _buildBackgroundCollages(context),
+          _buildWorldTiles(context),
         ],
       ),
     );
   }
 
-  Widget _buildFadeBackground(BuildContext context) {
+  Widget _buildBackgroundCollages(BuildContext context) {
+    return Stack(
+      children: [
+        // Girl Meets College background (left side)
+        _buildFadeBackground(context, isLeft: true),
+        // Guy Meets College background (right side)  
+        _buildFadeBackground(context, isLeft: false),
+      ],
+    );
+  }
+
+  Widget _buildFadeBackground(BuildContext context, {required bool isLeft}) {
     final screenSize = MediaQuery.of(context).size;
     final groupWidth = 124.0;
     final groupHeight = 128.0;
     
-    // Center the background group on screen
+    // Position on left or right side
+    final leftOffset = isLeft 
+        ? (screenSize.width / 2 - 100) - (groupWidth / 2)
+        : (screenSize.width / 2 + 100) - (groupWidth / 2);
+    
     return Positioned(
-      left: (screenSize.width - groupWidth) / 2,
+      left: leftOffset,
       top: (screenSize.height - groupHeight) / 2,
       child: SizedBox(
         width: groupWidth,
         height: groupHeight,
         child: Stack(
           children: [
-            // Circle 1: #F9D6D3 at (39,39)
+            // Circle 1
             Positioned(
               left: 39,
               top: 39,
@@ -115,12 +148,14 @@ class GeneralScreen extends StatelessWidget {
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFF9D6D3).withOpacity(0.83),
+                    color: isLeft 
+                        ? const Color(0xFFF9D6D3).withOpacity(0.83)
+                        : const Color(0xFF6B73FF).withOpacity(0.4),
                   ),
                 ),
               ),
             ),
-            // Circle 2: #FDBFC5 at (25,0)
+            // Circle 2
             Positioned(
               left: 25,
               top: 0,
@@ -131,12 +166,14 @@ class GeneralScreen extends StatelessWidget {
                   height: 76,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFFDBFC5).withOpacity(0.83),
+                    color: isLeft 
+                        ? const Color(0xFFFDBFC5).withOpacity(0.83)
+                        : const Color(0xFF9B8CFF).withOpacity(0.4),
                   ),
                 ),
               ),
             ),
-            // Circle 3: #FDC4A0 at (0,54)
+            // Circle 3
             Positioned(
               left: 0,
               top: 54,
@@ -147,7 +184,9 @@ class GeneralScreen extends StatelessWidget {
                   height: 74,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFFDC4A0).withOpacity(0.83),
+                    color: isLeft 
+                        ? const Color(0xFFFDC4A0).withOpacity(0.83)
+                        : const Color(0xFF7C6BFF).withOpacity(0.4),
                   ),
                 ),
               ),
@@ -158,91 +197,128 @@ class GeneralScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBox(BuildContext context) {
+  Widget _buildWorldTiles(BuildContext context) {
+    final girlWorld = _availableWorlds.firstWhere((world) => world.id == 'girl-meets-college');
+    final guyWorld = _availableWorlds.firstWhere((world) => world.id == 'guy-meets-college');
+    
+    return Stack(
+      children: [
+        // Girl Meets College tile (left)
+        _buildWorldTile(
+          context,
+          world: girlWorld,
+          isLeft: true,
+          stickerAsset: 'assets/sticker_image.png',
+        ),
+        // Guy Meets College tile (right)
+        _buildWorldTile(
+          context,
+          world: guyWorld,
+          isLeft: false,
+          stickerAsset: 'assets/Boy_sticker.png',
+        ),
+        // Tap indicators
+        _buildTapIndicators(context),
+      ],
+    );
+  }
+
+  Widget _buildWorldTile(BuildContext context, {
+    required WorldConfig world,
+    required bool isLeft,
+    required String stickerAsset,
+  }) {
     final screenSize = MediaQuery.of(context).size;
     final boxWidth = 122.0;
     final boxHeight = 126.0;
     
-    // Center the box on screen
-    return Positioned(
-      left: (screenSize.width - boxWidth) / 2,
-      top: (screenSize.height - boxHeight) / 2,
-      child: Container(
-        width: boxWidth,
-        height: boxHeight,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFefd),
-          border: Border.all(
-            color: const Color(0xFFEFEFEF),
-            width: 1,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color.fromRGBO(0, 0, 0, 0.07),
-              offset: const Offset(4, 6),
-              blurRadius: 8.9,
+    // Position on left or right side
+    final leftOffset = isLeft 
+        ? (screenSize.width / 2 - 100) - (boxWidth / 2)
+        : (screenSize.width / 2 + 100) - (boxWidth / 2);
+    
+    return Stack(
+      children: [
+        // Box
+        Positioned(
+          left: leftOffset,
+          top: (screenSize.height - boxHeight) / 2,
+          child: GestureDetector(
+            onTap: () => _checkAuthAndNavigate(context, world),
+            child: Container(
+              width: boxWidth,
+              height: boxHeight,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFefd),
+                border: Border.all(
+                  color: const Color(0xFFEFEFEF),
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color.fromRGBO(0, 0, 0, 0.07),
+                    offset: const Offset(4, 6),
+                    blurRadius: 8.9,
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStickerImage(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    
-    // Position the sticker image relative to the centered layout
-    // In Figma it's at (120, 373) relative to frame, overlapping with the centered box area
-    return Positioned(
-      left: (screenSize.width / 2) - 80, // Position to the left of center
-      top: (screenSize.height / 2) - 55, // Position even higher above center
-      child: Image.asset(
-        'assets/sticker_image.png',
-        width: 165.29,
-        height: 113.53,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-
-  Widget _buildTapImage(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    
-    // Position the tap image relative to the centered layout
-    // In Figma it's at (244, 267) relative to frame, which is to the right of the box
-    return Positioned(
-      left: (screenSize.width / 2) + 60, // Position slightly left of previous position
-      top: (screenSize.height / 2) - 150, // Position much higher above center
-      child: Image.asset(
-        'assets/tap.png',
-        width: 98,
-        height: 98,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-
-  Widget _buildTitle(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final boxHeight = 126.0;
-    
-    // Center the title horizontally and position it below the centered box
-    return Positioned(
-      left: 0,
-      right: 0,
-      top: (screenSize.height / 2) + (boxHeight / 2) + 15, // Position below centered box with padding
-      child: const Center(
-        child: Text(
-          'Girl Meets College',
-          style: TextStyle(
-            fontFamily: 'SF Pro Rounded',
-            fontWeight: FontWeight.w500,
-            fontSize: 12,
-            color: Color(0xFFB2B2B2),
           ),
         ),
-      ),
+        // Sticker image - centered on the box
+        Positioned(
+          left: leftOffset + (boxWidth / 2) - (stickerAsset.contains('Boy_sticker') ? 140.0 / 2 : 165.29 / 2),
+          top: (screenSize.height / 2) - (126.0 / 2) + (boxHeight / 2) - (stickerAsset.contains('Boy_sticker') ? 96.0 / 2 : 113.53 / 2),
+          child: GestureDetector(
+            onTap: () => _checkAuthAndNavigate(context, world),
+            child: Image.asset(
+              stickerAsset,
+              width: stickerAsset.contains('Boy_sticker') ? 140.0 : 165.29,
+              height: stickerAsset.contains('Boy_sticker') ? 96.0 : 113.53,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+        // Title
+        Positioned(
+          left: leftOffset - (boxWidth / 2),
+          right: screenSize.width - leftOffset - (boxWidth * 1.5),
+          top: (screenSize.height / 2) + (boxHeight / 2) + 15,
+          child: Center(
+            child: Text(
+              world.displayName,
+              style: const TextStyle(
+                fontFamily: 'SF Pro Rounded',
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+                color: Color(0xFFB2B2B2),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
+
+  Widget _buildTapIndicators(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    
+    return Stack(
+      children: [
+        // Only show tap indicator for Guy Meets College (right side)
+        Positioned(
+          left: (screenSize.width / 2 + 100) + 60,
+          top: (screenSize.height / 2) - 150,
+          child: Image.asset(
+            'assets/tap.png',
+            width: 98,
+            height: 98,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ],
+    );
+  }
+
 }

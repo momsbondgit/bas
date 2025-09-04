@@ -1,6 +1,9 @@
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/bot_user.dart';
-import '../config/bot_pool.dart';
+import '../config/world_config.dart';
+import '../services/world_service.dart';
+import '../services/local_storage_service.dart';
 
 class BotAssignmentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,9 +21,15 @@ class BotAssignmentService {
         return;
       }
 
+      // Get user's world configuration
+      final localStorageService = LocalStorageService();
+      final worldService = WorldService();
+      final userWorldName = await localStorageService.getWorldOrMigrateFromGender();
+      final worldConfig = worldService.getWorldByDisplayName(userWorldName) ?? worldService.defaultWorld;
+
       // Generate seed based on anonId for consistent randomization per user
       final seed = anonId.hashCode.abs();
-      final assignedBots = BotPool.getRandomBotSubset(6, seed: seed);
+      final assignedBots = _getRandomBotSubset(worldConfig.botPool, 6, seed: seed);
 
       // Store assignments in Firestore using batch write for efficiency
       final batch = _firestore.batch();
@@ -55,10 +64,16 @@ class BotAssignmentService {
         return [];
       }
 
+      // Get user's world configuration to find bots
+      final localStorageService = LocalStorageService();
+      final worldService = WorldService();
+      final userWorldName = await localStorageService.getWorldOrMigrateFromGender();
+      final worldConfig = worldService.getWorldByDisplayName(userWorldName) ?? worldService.defaultWorld;
+
       final List<BotUser> assignedBots = [];
       for (final doc in assignmentsSnapshot.docs) {
         final botId = doc.id;
-        final bot = BotPool.getBotById(botId);
+        final bot = _getBotById(worldConfig.botPool, botId);
         if (bot != null) {
           assignedBots.add(bot);
         }
@@ -119,9 +134,15 @@ class BotAssignmentService {
         await batch.commit();
       }
 
+      // Get user's world configuration
+      final localStorageService = LocalStorageService();
+      final worldService = WorldService();
+      final userWorldName = await localStorageService.getWorldOrMigrateFromGender();
+      final worldConfig = worldService.getWorldByDisplayName(userWorldName) ?? worldService.defaultWorld;
+
       // Generate new seed based on anonId + session count for fresh randomization
       final seed = (anonId.hashCode.abs() + sessionCount).abs();
-      final newAssignedBots = BotPool.getRandomBotSubset(6, seed: seed);
+      final newAssignedBots = _getRandomBotSubset(worldConfig.botPool, 6, seed: seed);
 
       // Store new assignments in Firestore
       final batch = _firestore.batch();
@@ -142,6 +163,31 @@ class BotAssignmentService {
       await batch.commit();
     } catch (e) {
       throw Exception('Failed to reassign bots for returning user: $e');
+    }
+  }
+
+  /// Helper method to get random subset from world-specific bot pool
+  List<BotUser> _getRandomBotSubset(List<BotUser> botPool, int count, {int? seed}) {
+    if (count > botPool.length) {
+      throw ArgumentError('Cannot select $count bots from pool of ${botPool.length}');
+    }
+
+    final List<BotUser> shuffled = List.from(botPool);
+    if (seed != null) {
+      shuffled.shuffle(Random(seed));
+    } else {
+      shuffled.shuffle();
+    }
+    
+    return shuffled.take(count).toList();
+  }
+
+  /// Helper method to get bot by ID from world-specific bot pool
+  BotUser? _getBotById(List<BotUser> botPool, String botId) {
+    try {
+      return botPool.firstWhere((bot) => bot.botId == botId);
+    } catch (e) {
+      return null;
     }
   }
 }

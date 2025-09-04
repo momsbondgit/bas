@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../config/world_config.dart';
 
 class WorldAccessModal extends StatefulWidget {
+  final WorldConfig? worldConfig;
   final Function(String accessCode, String nickname) onSubmit;
   final VoidCallback? onCancel;
   
   const WorldAccessModal({
     super.key,
+    this.worldConfig,
     required this.onSubmit,
     this.onCancel,
   });
@@ -97,10 +100,10 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Title
-              const Center(
+              Center(
                 child: Text(
-                  'join the world bestie ✨',
-                  style: TextStyle(
+                  widget.worldConfig?.modalTitle ?? 'join the world bestie ✨',
+                  style: const TextStyle(
                     fontFamily: 'SF Pro',
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -109,6 +112,24 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
                   ),
                 ),
               ),
+              
+              const SizedBox(height: 16),
+              
+              // Description
+              if (widget.worldConfig?.modalDescription != null)
+                Center(
+                  child: Text(
+                    widget.worldConfig!.modalDescription,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'SF Pro',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF6B7280),
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
               
               const SizedBox(height: 24),
               
