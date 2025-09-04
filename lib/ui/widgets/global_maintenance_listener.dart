@@ -43,8 +43,6 @@ class _GlobalMaintenanceListenerState extends State<GlobalMaintenanceListener> {
           _isInMaintenanceMode = isNowInMaintenance;
         });
         
-        print('[MAINTENANCE DEBUG] State changed - Was in maintenance: $wasInMaintenance, Now in maintenance: $isNowInMaintenance');
-
         // If maintenance was just enabled, navigate to maintenance screen
         if (!wasInMaintenance && isNowInMaintenance) {
           _handleMaintenanceEnabled();
@@ -59,51 +57,35 @@ class _GlobalMaintenanceListenerState extends State<GlobalMaintenanceListener> {
 
   void _handleMaintenanceEnabled() async {
     final isAdmin = await _adminService.isLoggedIn();
-    print('[MAINTENANCE DEBUG] Maintenance enabled - Admin status: $isAdmin');
     
     if (!isAdmin) {
-      print('[MAINTENANCE DEBUG] Non-admin user - navigating to maintenance screen');
       _navigateToMaintenanceScreen();
-    } else {
-      print('[MAINTENANCE DEBUG] Admin user - staying on current screen');
     }
   }
 
   void _handleMaintenanceDisabled() async {
     final isAdmin = await _adminService.isLoggedIn();
-    print('[MAINTENANCE DEBUG] Maintenance disabled - Admin status: $isAdmin');
     
     if (!isAdmin) {
-      print('[MAINTENANCE DEBUG] Non-admin user - returning to app');
       _returnToApp();
-    } else {
-      print('[MAINTENANCE DEBUG] Admin user - staying on current screen');
     }
   }
 
   void _navigateToMaintenanceScreen() {
-    print('[GLOBAL MAINTENANCE DEBUG] Navigating to maintenance screen');
     final navigator = MyApp.navigatorKey.currentState;
     if (navigator != null) {
       navigator.pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MaintenanceScreen()),
         (route) => false,
       );
-      print('[GLOBAL MAINTENANCE DEBUG] Navigation to maintenance screen completed');
-    } else {
-      print('[GLOBAL MAINTENANCE DEBUG] Navigator is null, cannot navigate to maintenance');
     }
   }
 
   void _returnToApp() {
-    print('[GLOBAL MAINTENANCE DEBUG] Returning to app from maintenance mode');
     final navigator = MyApp.navigatorKey.currentState;
     if (navigator != null) {
       // Clear all routes and go back to the initial app flow
       navigator.pushNamedAndRemoveUntil('/', (route) => false);
-      print('[GLOBAL MAINTENANCE DEBUG] Navigation completed');
-    } else {
-      print('[GLOBAL MAINTENANCE DEBUG] Navigator is null, cannot navigate');
     }
   }
 

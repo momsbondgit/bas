@@ -71,8 +71,6 @@ class ConfessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('DEBUG ConfessionCard.build: Rendering confession card without reactions - floor: $floor, gender: $gender');
-    
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     
@@ -175,7 +173,7 @@ class ConfessionCard extends StatelessWidget {
   }
   
   Widget _buildReactionRow(double fontSize) {
-    print('DEBUG ConfessionCard._buildReactionRow: Building local reaction UI with original SAMEE/DEAD/W format');
+    print('🎭 CONFESSION_CARD: Building reaction UI for post with ${reactions.length} reaction types');
     
     // Original reaction labels (matching the exact original format)
     final reactionLabels = {
@@ -209,7 +207,7 @@ class ConfessionCard extends StatelessWidget {
             padding: const EdgeInsets.only(right: _reactionSpacing),
             child: GestureDetector(
               onTap: () {
-                print('DEBUG ConfessionCard: Local reaction tap - $label $emoji (not saved to Firebase)');
+                print('🎭 CONFESSION_CARD: User manually tapped $label $emoji reaction');
                 onReaction?.call(emoji);
               },
               child: Container(

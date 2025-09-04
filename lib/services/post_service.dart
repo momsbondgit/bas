@@ -4,15 +4,11 @@ class PostService {
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   Future<void> addPost(String text, int floor, String gender) async {
-    print('DEBUG PostService.addPost: Starting post submission - text length: ${text.length}, floor: $floor, gender: $gender');
-    
     // Validate required parameters to prevent null Firebase errors
     if (text.isEmpty) {
-      print('DEBUG PostService.addPost: ERROR - Post text is empty');
       throw ArgumentError('Post text cannot be empty');
     }
     
-    print('DEBUG PostService.addPost: Writing to Firebase posts collection');
     await _firestore.collection('posts').add({
       'confession': text,
       'floor': floor,
@@ -21,7 +17,6 @@ class PostService {
       'isEdited': false,
       'editCount': 0,
     });
-    print('DEBUG PostService.addPost: Successfully added post to Firebase');
   }
 
   /// Admin post creation with unrestricted privileges
@@ -32,15 +27,11 @@ class PostService {
     String? customAuthor,
     bool? isAnnouncement,
   }) async {
-    print('DEBUG PostService.addAdminPost: Creating admin post - floor: $floor, gender: $gender, customAuthor: $customAuthor, isAnnouncement: $isAnnouncement');
-    
     // Validate required parameters to prevent null Firebase errors
     if (text.isEmpty) {
-      print('DEBUG PostService.addAdminPost: ERROR - Post text is empty');
       throw ArgumentError('Post text cannot be empty');
     }
     if (gender.isEmpty) {
-      print('DEBUG PostService.addAdminPost: ERROR - Gender is empty');
       throw ArgumentError('Gender cannot be empty');
     }
     
@@ -58,23 +49,18 @@ class PostService {
     // Optional custom author override
     if (customAuthor != null && customAuthor.isNotEmpty) {
       postData['customAuthor'] = customAuthor;
-      print('DEBUG PostService.addAdminPost: Added custom author: $customAuthor');
     }
 
     // Mark as announcement for special handling
     if (isAnnouncement == true) {
       postData['isAnnouncement'] = true;
       postData['priority'] = 'high';
-      print('DEBUG PostService.addAdminPost: Marked as announcement with high priority');
     }
 
-    print('DEBUG PostService.addAdminPost: Writing admin post to Firebase');
     await _firestore.collection('posts').add(postData);
-    print('DEBUG PostService.addAdminPost: Successfully added admin post to Firebase');
   }
 
   Stream<QuerySnapshot> getPostsStream() {
-    print('DEBUG PostService.getPostsStream: Starting posts stream listener');
     return _firestore
         .collection('posts')
         .orderBy('createdAt', descending: true)

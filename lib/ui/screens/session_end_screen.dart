@@ -37,7 +37,6 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
     if (_numberController.text.trim().isEmpty || _isSending) return;
     
     final phoneNumber = _numberController.text.trim();
-    print('DEBUG: Attempting to save phone number: $phoneNumber');
     
     setState(() {
       _isSending = true;
@@ -45,7 +44,6 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
     
     try {
       await _endingService.savePhoneNumber(phoneNumber);
-      print('DEBUG: Phone number saved successfully to Firestore');
       _numberController.clear();
       
       // Show success message
@@ -58,7 +56,6 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
         );
       }
     } catch (e) {
-      print('DEBUG: Error saving phone number: $e');
       // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

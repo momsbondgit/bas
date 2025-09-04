@@ -116,7 +116,6 @@ class _AdminScreenState extends State<AdminScreen> with TickerProviderStateMixin
     _maintenanceSubscription = _maintenanceService
         .getMaintenanceStatusStream()
         .listen((status) {
-      print('[ADMIN SCREEN DEBUG] Received maintenance status update: isEnabled=${status.isEnabled}');
       if (mounted) {
         setState(() {
           _maintenanceStatus = status;

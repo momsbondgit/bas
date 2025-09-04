@@ -31,7 +31,6 @@ class _PostInputState extends State<PostInput> {
       await Future.delayed(const Duration(milliseconds: 100));
       
       final preferences = await _viewModel.loadUserPreferences();
-      print('DEBUG: PostInput loaded floor: ${preferences['floor']}, gender: ${preferences['gender']}');
       
       if (mounted) {
         setState(() {
@@ -43,10 +42,8 @@ class _PostInputState extends State<PostInput> {
       
       // Retry mechanism if we got default values (indicating possible race condition)
       if (preferences['floor'] == 1 && preferences['gender'] == 'girl') {
-        print('DEBUG: Got default values, retrying in 500ms...');
         await Future.delayed(const Duration(milliseconds: 500));
         final retryPreferences = await _viewModel.loadUserPreferences();
-        print('DEBUG: Retry loaded floor: ${retryPreferences['floor']}, gender: ${retryPreferences['gender']}');
         
         if (mounted) {
           setState(() {
@@ -56,7 +53,6 @@ class _PostInputState extends State<PostInput> {
         }
       }
     } catch (e) {
-      print('DEBUG: Error loading preferences: $e');
       if (mounted) {
         setState(() {
           _preferencesLoaded = true; // Still mark as loaded to avoid blocking UI
@@ -82,11 +78,8 @@ class _PostInputState extends State<PostInput> {
   void _onPostPressed() async {
     // Don't allow posting until preferences are loaded
     if (!_preferencesLoaded) {
-      print('DEBUG: PostInput preferences not loaded yet, waiting...');
       return;
     }
-    
-    print('DEBUG: PostInput submitting with floor: $_selectedFloor, gender: $_selectedGender');
     await _viewModel.submitPost(
       _controller.text,
       _selectedFloor,

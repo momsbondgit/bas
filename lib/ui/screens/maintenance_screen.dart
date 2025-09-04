@@ -74,13 +74,9 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
         // If maintenance is disabled, check if user is admin before returning to app
         if (!status.isEnabled) {
           final isAdmin = await _adminService.isLoggedIn();
-          print('[MAINTENANCE SCREEN DEBUG] Maintenance disabled - Admin status: $isAdmin');
           
           if (!isAdmin) {
-            print('[MAINTENANCE SCREEN DEBUG] Non-admin user - returning to app');
             _returnToApp();
-          } else {
-            print('[MAINTENANCE SCREEN DEBUG] Admin user - staying on maintenance screen');
           }
         }
       }
@@ -93,13 +89,9 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
         final status = await _maintenanceService.getMaintenanceStatus();
         if (!status.isEnabled && mounted) {
           final isAdmin = await _adminService.isLoggedIn();
-          print('[MAINTENANCE SCREEN DEBUG] Periodic check - Maintenance disabled, Admin status: $isAdmin');
           
           if (!isAdmin) {
-            print('[MAINTENANCE SCREEN DEBUG] Non-admin user - periodic check returning to app');
             _returnToApp();
-          } else {
-            print('[MAINTENANCE SCREEN DEBUG] Admin user - periodic check staying on maintenance screen');
           }
         }
       } catch (e) {

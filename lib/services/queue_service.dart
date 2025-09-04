@@ -84,21 +84,16 @@ class QueueService extends ChangeNotifier {
 
   /// Initializes the queue service with users and starts all timers
   Future<void> initialize() async {
-    print('DEBUG QueueService.initialize: Starting initialization');
     if (_currentState.isInitialized) {
-      print('DEBUG QueueService.initialize: Already initialized, returning');
       return;
     }
 
     await _loadAssignedBots();
     await _createInitialQueue();
-    print('DEBUG QueueService.initialize: Initial queue created, activeUser=${_currentState.activeUser?.id}');
     _startAllTimers();
     
     _currentState = _currentState.copyWith(isInitialized: true);
-    print('DEBUG QueueService.initialize: Broadcasting state, isInitialized=true');
     _broadcastState();
-    print('DEBUG QueueService.initialize: Initialization complete');
   }
 
   /// Load user's assigned bots from Firebase (ensures assignments exist first)
@@ -110,9 +105,7 @@ class QueueService extends ChangeNotifier {
       await _botAssignmentService.ensureUserHasBots(anonId);
       
       _assignedBots = await _botAssignmentService.getAssignedBots(anonId);
-      print('DEBUG QueueService._loadAssignedBots: Loaded ${_assignedBots.length} assigned bots for user');
     } catch (e) {
-      print('DEBUG QueueService._loadAssignedBots: ERROR loading assigned bots - $e');
       _assignedBots = [];
     }
   }
@@ -199,27 +192,22 @@ class QueueService extends ChangeNotifier {
 
   /// Advances queue to the next user in line
   void _advanceToNextUser() {
-    print('DEBUG QueueService._advanceToNextUser: Advancing queue to next user');
     final queue = _currentState.queue;
     if (queue.isEmpty) return;
 
     final currentUser = _currentState.activeUser;
     final nextIndex = _calculateNextIndex();
     final nextUser = queue[nextIndex];
-    print('DEBUG QueueService._advanceToNextUser: Current user: ${currentUser?.displayName} -> Next user: ${nextUser.displayName}');
     
     final updatedQueue = List<QueueUser>.from(queue);
     
     if (_isStartingNewRound(nextIndex)) {
-      print('DEBUG QueueService._advanceToNextUser: Starting new round, resetting completed users');
       _resetCompletedUsers(updatedQueue);
     }
     
     _updateCurrentUserAsCompleted(updatedQueue);
     _activateNextUser(updatedQueue, nextIndex);
     _updateQueueState(updatedQueue, nextIndex);
-    
-    print('DEBUG QueueService._advanceToNextUser: Queue advanced successfully to ${nextUser.displayName}');
   }
 
   /// Calculates the next user index in the queue
@@ -287,20 +275,12 @@ class QueueService extends ChangeNotifier {
   /// Handles bot user actions - ensures consistent flow for all bots
   void _handleDummyUserAction() {
     final activeUser = _currentState.activeUser;
-    print('DEBUG QueueService._handleDummyUserAction: activeUser=${activeUser?.displayName} (${activeUser?.id})');
-    print('DEBUG QueueService._handleDummyUserAction: isBotUserActive=${_isBotUserActive(activeUser)}');
     
     if (!_isBotUserActive(activeUser)) return;
-
-    print('DEBUG QueueService._handleDummyUserAction: Bot user is active - checking if should start turn');
-    print('DEBUG QueueService._handleDummyUserAction: isTyping=${activeUser!.isTyping}, hasPosted=${activeUser.hasPosted}');
     
     // Every bot must go through the complete flow: typing → delay → post → reaction timer
-    if (!activeUser.isTyping && !activeUser.hasPosted) {
-      print('DEBUG QueueService._handleDummyUserAction: Starting bot turn sequence');
+    if (!activeUser!.isTyping && !activeUser.hasPosted) {
       _startBotTurnSequence(activeUser);
-    } else {
-      print('DEBUG QueueService._handleDummyUserAction: Bot already typing or has posted, skipping');
     }
   }
 
@@ -311,10 +291,8 @@ class QueueService extends ChangeNotifier {
 
   /// Starts the complete bot turn sequence
   void _startBotTurnSequence(QueueUser botUser) {
-    print('DEBUG QueueService._startBotTurnSequence: Starting bot turn for ${botUser.displayName} (${botUser.id})');
     final confession = _getBotResponse(botUser.id);
     final typingDelay = _calculateBotTypingDelay(confession);
-    print('DEBUG QueueService._startBotTurnSequence: Confession length: ${confession.length}, typing delay: ${typingDelay}s');
     
     // Start typing immediately
     _startTyping(botUser);
@@ -325,7 +303,6 @@ class QueueService extends ChangeNotifier {
       Duration(seconds: typingDelay),
       () => _simulateDummyPost(botUser)
     );
-    print('DEBUG QueueService._startBotTurnSequence: Bot typing started, post scheduled in ${typingDelay}s');
   }
 
   /// Calculates typing delay based on word count (10-15 seconds)
@@ -350,7 +327,6 @@ class QueueService extends ChangeNotifier {
         gender: dummyUser.gender,
       );
       
-      print('DEBUG QueueService._simulateDummyPost: Bot ${dummyUser.displayName} posted locally: ${confession.substring(0, 50)}...');
       
       _transitionToPostedState(dummyUser);
     } catch (e) {
@@ -360,26 +336,17 @@ class QueueService extends ChangeNotifier {
 
   /// Gets the specific response for a bot user
   String _getBotResponse(String botId) {
-    print('DEBUG QueueService._getBotResponse: Getting response for bot ID: $botId');
     final bot = _assignedBots.firstWhere(
       (bot) => bot.botId == botId,
       orElse: () => throw Exception('Bot with ID $botId not found in assigned bots'),
     );
-    print('DEBUG QueueService._getBotResponse: Found bot: ${bot.nickname}');
-    print('DEBUG QueueService._getBotResponse: Bot response: ${bot.quineResponse.substring(0, 50)}...');
     return bot.quineResponse;
   }
 
   /// Checks if the real user can post (is active and real)
   bool canRealUserPost() {
     final activeUser = _currentState.activeUser;
-    print('DEBUG canRealUserPost: activeUser=$activeUser');
-    print('DEBUG canRealUserPost: activeUser?.id=${activeUser?.id}');
-    print('DEBUG canRealUserPost: activeUser?.isReal=${activeUser?.isReal}');
-    print('DEBUG canRealUserPost: activeUser?.isActive=${activeUser?.isActive}');
-    print('DEBUG canRealUserPost: activeUser?.state=${activeUser?.state}');
     final result = activeUser != null && activeUser.isReal && activeUser.isActive;
-    print('DEBUG canRealUserPost: result=$result');
     return result;
   }
 
@@ -534,7 +501,6 @@ class QueueService extends ChangeNotifier {
 
   /// Public method for HomeViewModel to advance queue when timer expires
   void moveToNextUser() {
-    print('DEBUG QueueService.moveToNextUser: Moving to next user in queue');
     _advanceToNextUser();
   }
 

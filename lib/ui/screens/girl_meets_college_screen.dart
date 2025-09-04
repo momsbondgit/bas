@@ -5,6 +5,7 @@ import '../widgets/status_indicator.dart';
 import '../widgets/message_area_typing_indicator.dart';
 import '../../view_models/home_view_model.dart';
 import '../../config/ritual_config.dart';
+import '../../services/reaction_simulation_service.dart';
 import 'session_end_screen.dart';
 
 
@@ -39,6 +40,10 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   
   // Local reaction storage (not persisted to Firebase)
   final Map<String, Map<String, int>> _localReactions = {};
+  
+  // Reaction simulation
+  final ReactionSimulationService _reactionService = ReactionSimulationService();
+  final Set<String> _simulatedPosts = {};
 
   @override
   void initState() {
@@ -112,7 +117,9 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   }
 
   void _handleLocalReaction(String postId, String emoji) {
-    print('DEBUG GirlMeetsCollegeScreen._handleLocalReaction: Local reaction - postId: $postId, emoji: $emoji (not saved to Firebase)');
+    final previousCount = _localReactions[postId]?[emoji] ?? 0;
+    print('🎭 SCREEN: Local reaction received - postId: $postId, emoji: $emoji, count: ${previousCount} → ${previousCount + 1}');
+    
     setState(() {
       // Initialize reactions for this post if not exists
       _localReactions[postId] ??= {};
@@ -123,9 +130,34 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
   }
 
   Widget _buildConfessionCard(Map<String, dynamic> data, String postId, {bool isCurrentUser = false}) {
+    final content = data['confession'] ?? data['text'] ?? '';
+    
+    // Start reaction simulation for all new posts (bots will react to everyone including real user)
+    if (!_simulatedPosts.contains(postId)) {
+      print('🎭 SCREEN: New post detected for simulation - postId: $postId, isCurrentUser: $isCurrentUser, author: ${data['customAuthor'] ?? 'user'}');
+      _simulatedPosts.add(postId);
+      
+      // Start realistic reaction simulation after a short delay
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          print('🎭 SCREEN: Starting bot reactions for post $postId (${isCurrentUser ? 'real user' : 'bot'} post)');
+          _reactionService.simulateReactionsForPost(
+            postId: postId,
+            content: content,
+            onReaction: (emoji) => _handleLocalReaction(postId, emoji),
+            isRealUserPost: isCurrentUser,
+          );
+        } else {
+          print('🎭 SCREEN: Widget unmounted, skipping simulation for post $postId');
+        }
+      });
+    } else {
+      print('🎭 SCREEN: Post $postId already has simulation running, skipping');
+    }
+    
     return ConfessionCard(
       floor: data['floor'] ?? 0,
-      text: data['confession'] ?? data['text'] ?? '',
+      text: content,
       gender: data['gender'] ?? '',
       isBlurred: false,
       customAuthor: data['customAuthor'] as String?,
@@ -209,6 +241,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     _viewModel.dispose();
     _textController.dispose();
     _focusNode.dispose();
+    _reactionService.dispose();
     super.dispose();
   }
 
@@ -409,7 +442,6 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   Widget _buildBottomInput() {
     final canPost = _viewModel.canPost;
-    print('DEBUG build: canPost=$canPost');
     final activeUser = _viewModel.activeUser;
     
     String placeholderText;

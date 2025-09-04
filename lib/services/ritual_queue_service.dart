@@ -127,17 +127,13 @@ class RitualQueueService {
   }
 
   Future<void> submitMessage(String userId, String content) async {
-    print('DEBUG RitualQueueService.submitMessage: User $userId attempting to submit message');
     if (_currentState?.activeUserId != userId) {
-      print('DEBUG RitualQueueService.submitMessage: ERROR - User $userId is not active user');
       return;
     }
     if (content.trim().isEmpty) {
-      print('DEBUG RitualQueueService.submitMessage: ERROR - Message content is empty');
       return;
     }
 
-    print('DEBUG RitualQueueService.submitMessage: Creating message without reactions field');
     final message = Message(
       id: _generateMessageId(),
       userId: userId,
@@ -146,13 +142,10 @@ class RitualQueueService {
       timestamp: DateTime.now(),
     );
 
-    print('DEBUG RitualQueueService.submitMessage: Writing message to Firebase (no reaction writes)');
     await _messagesCollection.doc(message.id).set(message.toMap());
-    print('DEBUG RitualQueueService.submitMessage: Successfully wrote message to Firebase');
 
     final newState = _currentState!.submitMessage(message);
     await _saveState(newState);
-    print('DEBUG RitualQueueService.submitMessage: Updated queue state');
   }
 
   // DEBUG: addReaction() and removeReaction() methods were REMOVED during Firebase optimization
@@ -160,13 +153,11 @@ class RitualQueueService {
   // All message reactions are now client-only (no backend persistence)
   
   void addLocalReaction(String messageId, String emoji) {
-    print('DEBUG RitualQueueService.addLocalReaction: Local reaction added - messageId: $messageId, emoji: $emoji (not saved to Firebase)');
     // This method exists for API compatibility but doesn't write to Firebase
     // All reaction handling is now done locally in the UI components
   }
   
   void removeLocalReaction(String messageId, String emoji) {
-    print('DEBUG RitualQueueService.removeLocalReaction: Local reaction removed - messageId: $messageId, emoji: $emoji (not saved to Firebase)');
     // This method exists for API compatibility but doesn't write to Firebase
     // All reaction handling is now done locally in the UI components
   }

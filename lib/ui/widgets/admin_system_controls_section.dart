@@ -41,7 +41,6 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
 
   @override
   Widget build(BuildContext context) {
-    print('[ADMIN CONTROLS DEBUG] Building with maintenance status: isEnabled=${widget.maintenanceStatus?.isEnabled}, isUpdating=$_isUpdatingMaintenance');
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 1024;
     final isTablet = screenWidth >= 768;
@@ -398,7 +397,6 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
   void _toggleMaintenance(bool value) async {
     if (_isUpdatingMaintenance) return; // Prevent double-toggling
     
-    print('[ADMIN TOGGLE DEBUG] Toggling maintenance to: $value');
     setState(() => _isUpdatingMaintenance = true);
     
     try {
@@ -426,7 +424,6 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
         );
       }
     } catch (e) {
-      print('[ADMIN TOGGLE DEBUG] Error toggling maintenance: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

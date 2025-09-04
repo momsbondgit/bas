@@ -53,9 +53,7 @@ class HomeViewModel extends ChangeNotifier {
   }
   QueueState get queueState => _queueState;
   bool get canPost {
-    print('DEBUG HomeViewModel.canPost: Checking canPost');
     final result = _queueService.canRealUserPost();
-    print('DEBUG HomeViewModel.canPost: result=$result');
     return result;
   }
   QueueUser? get activeUser => _queueState.activeUser;
@@ -82,7 +80,6 @@ class HomeViewModel extends ChangeNotifier {
         _reactionTimeRemaining--;
         
         if (_reactionTimeRemaining <= 0) {
-          print('DEBUG HomeViewModel._startUniversalTimerUpdates: Reaction timer expired, moving to next user');
           _stopReactionTimer();
           // Move to next user in queue
           _queueService.moveToNextUser();
@@ -94,7 +91,6 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void _startReactionTimer() {
-    print('DEBUG HomeViewModel._startReactionTimer: Starting 20-second reaction timer');
     _reactionTimeRemaining = 20; // 20 seconds for reactions
     _isReactionTimerActive = true;
     notifyListeners();
@@ -127,21 +123,16 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> submitPost(String text) async {
-    print('DEBUG HomeViewModel.submitPost: Starting post submission');
     final floor = await _localStorageService.getFloor() ?? 1;
     final gender = await _localStorageService.getGender() ?? 'girl';
-    print('DEBUG HomeViewModel.submitPost: Using floor: $floor, gender: $gender');
     
     await _postService.addPost(text.trim(), floor, gender);
-    print('DEBUG HomeViewModel.submitPost: Post added via PostService');
     // Wait a moment for Firestore to update the stream
     await Future.delayed(const Duration(milliseconds: 1000));
     onPostSubmitted();
-    print('DEBUG HomeViewModel.submitPost: Post submission complete');
   }
 
   void addLocalReaction(String postId, String emoji) {
-    print('DEBUG HomeViewModel.addLocalReaction: Local reaction added - postId: $postId, emoji: $emoji (not saved to Firebase)');
     // This method exists for API compatibility but doesn't write to Firebase
     // All reaction handling is now done locally in the UI components
   }
@@ -157,8 +148,6 @@ class HomeViewModel extends ChangeNotifier {
   bool get isTimerExpired => false; // Don't auto-navigate on timer expiry
 
   void _initializeQueue() async {
-    print('DEBUG HomeViewModel._initializeQueue: Starting queue initialization');
-    
     // Set up callback for bot posts
     _queueService.onBotPost = addLocalBotPost;
     
@@ -166,9 +155,7 @@ class HomeViewModel extends ChangeNotifier {
     
     // Get the initial state immediately after initialization
     _queueState = _queueService.currentState;
-    print('DEBUG HomeViewModel._initializeQueue: Got initial state, activeUser=${_queueState.activeUser?.id}');
     notifyListeners();
-    print('DEBUG HomeViewModel._initializeQueue: notifyListeners called');
     
     _queueSubscription = _queueService.stateStream.listen((queueState) {
       final previousActiveUser = _queueState.activeUser;
@@ -176,17 +163,11 @@ class HomeViewModel extends ChangeNotifier {
       
       // Check if active user has posted and start reaction timer
       final currentActiveUser = _queueState.activeUser;
-      print('DEBUG HomeViewModel.queueSubscription: currentActiveUser?.hasPosted=${currentActiveUser?.hasPosted}');
-      print('DEBUG HomeViewModel.queueSubscription: _isReactionTimerActive=$_isReactionTimerActive');
-      print('DEBUG HomeViewModel.queueSubscription: previousActiveUser?.id=${previousActiveUser?.id}');
-      print('DEBUG HomeViewModel.queueSubscription: currentActiveUser?.id=${currentActiveUser?.id}');
-      print('DEBUG HomeViewModel.queueSubscription: previousActiveUser?.hasPosted=${previousActiveUser?.hasPosted}');
       
       if (currentActiveUser != null && 
           currentActiveUser.hasPosted && 
           !_isReactionTimerActive &&
           (previousActiveUser?.id != currentActiveUser.id || !previousActiveUser!.hasPosted)) {
-        print('DEBUG HomeViewModel.queueSubscription: Starting reaction timer');
         _startReactionTimer();
       }
       
@@ -212,7 +193,6 @@ class HomeViewModel extends ChangeNotifier {
     };
 
     _localBotPosts.add(botPost);
-    print('DEBUG HomeViewModel.addLocalBotPost: Added local bot post from $botNickname');
     notifyListeners();
   }
 
