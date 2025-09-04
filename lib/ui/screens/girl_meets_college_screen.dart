@@ -122,27 +122,42 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     });
   }
 
+  Widget _buildConfessionCard(Map<String, dynamic> data, String postId) {
+    return ConfessionCard(
+      floor: data['floor'] ?? 0,
+      text: data['confession'] ?? data['text'] ?? '',
+      gender: data['gender'] ?? '',
+      isBlurred: false,
+      customAuthor: data['customAuthor'] as String?,
+      reactions: _localReactions[postId] ?? {},
+      onReaction: (emoji) => _handleLocalReaction(postId, emoji),
+    );
+  }
+
+  Widget _buildPaddedPost(Widget child) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20.0),
+      child: child,
+    );
+  }
+
   List<Widget> _buildPostWidgets() {
-    return _viewModel.posts.asMap().entries.map((entry) {
-      final index = entry.key;
-      final doc = entry.value;
+    final allPosts = <Widget>[];
+    
+    // Add Firebase posts
+    for (final doc in _viewModel.posts) {
       final data = doc.data() as Map<String, dynamic>;
-      
       final postId = doc.id;
-      
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 20.0),
-        child: ConfessionCard(
-          floor: data['floor'] ?? 0,
-          text: data['text'] ?? '',
-          gender: data['gender'] ?? '',
-          isBlurred: false,
-          customAuthor: data['customAuthor'] as String?,
-          reactions: _localReactions[postId] ?? {},
-          onReaction: (emoji) => _handleLocalReaction(postId, emoji),
-        ),
-      );
-    }).toList();
+      allPosts.add(_buildPaddedPost(_buildConfessionCard(data, postId)));
+    }
+    
+    // Add local bot posts
+    for (final botPost in _viewModel.localBotPosts) {
+      final postId = botPost['id'] as String;
+      allPosts.add(_buildPaddedPost(_buildConfessionCard(botPost, postId)));
+    }
+    
+    return allPosts;
   }
 
   Widget _buildLockedContentOverlay() {
@@ -718,9 +733,32 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     final activeUser = _viewModel.activeUser;
     if (activeUser == null) return const SizedBox.shrink();
     
-    // Get the most recent post (should be the active user's post)
-    final posts = _viewModel.posts;
-    if (posts.isEmpty) {
+    Widget? activeUserPostWidget;
+    
+    if (activeUser.isReal) {
+      // For real user, find their post in Firebase posts (most recent)
+      final posts = _viewModel.posts;
+      if (posts.isNotEmpty) {
+        final recentPost = posts.first;
+        final data = recentPost.data() as Map<String, dynamic>;
+        final postId = recentPost.id;
+        activeUserPostWidget = _buildConfessionCard(data, postId);
+      }
+    } else {
+      // For bot user, find their post in local bot posts
+      final botPosts = _viewModel.localBotPosts;
+      for (final botPost in botPosts) {
+        final postAuthor = botPost['customAuthor'] as String?;
+        if (postAuthor == activeUser.displayName) {
+          final postId = botPost['id'] as String;
+          activeUserPostWidget = _buildConfessionCard(botPost, postId);
+          break;
+        }
+      }
+    }
+    
+    // If no post found, show loading
+    if (activeUserPostWidget == null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -739,37 +777,14 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
       );
     }
     
-    // Show only the most recent post (which should be the active user's)
-    final recentPost = posts.first;
+    // Show only the active user's specific post
     return SingleChildScrollView(
       child: Column(
-        children: [
-          _buildSinglePostWidget(recentPost),
-          const SizedBox(height: 20),
-        ],
+        children: [_buildPaddedPost(activeUserPostWidget)],
       ),
     );
   }
 
-  Widget _buildSinglePostWidget(dynamic post) {
-    // Extract post data
-    final data = post.data() as Map<String, dynamic>;
-    final postId = post.id;
-    final confession = data['confession'] as String? ?? '';
-    final floor = data['floor'] as int? ?? 1;
-    final gender = data['gender'] as String? ?? 'girl';
-    
-    print('DEBUG GirlMeetsCollegeScreen._buildSinglePostWidget: Building post widget with local reactions - postId: $postId');
-    
-    return ConfessionCard(
-      floor: floor,
-      text: confession,
-      gender: gender,
-      key: ValueKey(postId),
-      reactions: _localReactions[postId] ?? {},
-      onReaction: (emoji) => _handleLocalReaction(postId, emoji),
-    );
-  }
 
   Widget _buildAllPostsView() {
     return _viewModel.posts.isEmpty

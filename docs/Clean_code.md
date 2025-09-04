@@ -29,3 +29,5 @@ Open `<file>` and review its contents.
 * Only refactor when absolutely necessary.
 * Final output should be the **simplest possible version** of the file that maintains the same functionality.
 
+key note: 
+ if you dont have to refactor dont its only when we need to 

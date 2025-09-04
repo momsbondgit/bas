@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/queue_user.dart';
+import '../models/bot_user.dart';
 import '../services/local_storage_service.dart';
 import '../services/post_service.dart';
+import '../services/auth_service.dart';
+import '../services/bot_assignment_service.dart';
 
 class QueueState {
   final List<QueueUser> queue;
@@ -46,7 +49,14 @@ class QueueState {
 class QueueService extends ChangeNotifier {
   final LocalStorageService _localStorageService = LocalStorageService();
   final PostService _postService = PostService();
+  final AuthService _authService = AuthService();
+  final BotAssignmentService _botAssignmentService = BotAssignmentService();
   final Random _random = Random();
+  
+  List<BotUser> _assignedBots = [];
+  
+  // Callback for when a bot posts locally
+  Function({required String botNickname, required String confession, required int floor, required String gender})? onBotPost;
   
   Timer? _turnTimer;
   Timer? _dummyActionTimer;
@@ -70,27 +80,7 @@ class QueueService extends ChangeNotifier {
   static const int maxTurnTimeForBots = 10;
   static const int reactionTimerSeconds = 20;
   static const int unlimitedTimeForRealUsers = 999999;
-  static const List<String> dummyNames = [
-    'THATGIRL123',
-    'Who IS ShE', 
-    'Girlly',
-    '316 girlly',
-    'queenbee404',
-    'ur campus girl'
-  ];
 
-  static const List<String> dummyConfessions = [
-    'Okay so I literally pretended to drop my pencil in calc just to pick it up near his desk and he didn\'t even notice 😭',
-    'I joined the debate team just because he was in it and now I have to actually debate... what have I done',
-    'Asked him for his number saying it was for a group project that didn\'t exist. Got his number but now I have to make up a fake project 💀',
-    'Wore his favorite color every day for two weeks straight hoping he\'d notice... he complimented my friend instead',
-    'I learned to skateboard because he mentioned he liked skater girls. Fell flat on my face in front of him the first day',
-    'Signed up for the same electives as him three semesters in a row. My transcript looks so random now lol',
-    'Pretended to be into his favorite band and bought concert tickets just to \'accidentally\' run into him there',
-    'I started going to the library at the exact times he does his homework. Been there for 3 weeks, still no courage to say hi',
-    'Changed my major because he mentioned it was cool. Now I\'m stuck in engineering and I hate math 💀',
-    'Accidentally liked his Instagram post from 2019 while deep diving his profile. Immediately threw my phone across the room'
-  ];
 
   /// Initializes the queue service with users and starts all timers
   Future<void> initialize() async {
@@ -100,6 +90,7 @@ class QueueService extends ChangeNotifier {
       return;
     }
 
+    await _loadAssignedBots();
     await _createInitialQueue();
     print('DEBUG QueueService.initialize: Initial queue created, activeUser=${_currentState.activeUser?.id}');
     _startAllTimers();
@@ -108,6 +99,22 @@ class QueueService extends ChangeNotifier {
     print('DEBUG QueueService.initialize: Broadcasting state, isInitialized=true');
     _broadcastState();
     print('DEBUG QueueService.initialize: Initialization complete');
+  }
+
+  /// Load user's assigned bots from Firebase (ensures assignments exist first)
+  Future<void> _loadAssignedBots() async {
+    try {
+      final anonId = await _authService.getOrCreateAnonId();
+      
+      // Ensure user has bot assignments (creates them for existing users if missing)
+      await _botAssignmentService.ensureUserHasBots(anonId);
+      
+      _assignedBots = await _botAssignmentService.getAssignedBots(anonId);
+      print('DEBUG QueueService._loadAssignedBots: Loaded ${_assignedBots.length} assigned bots for user');
+    } catch (e) {
+      print('DEBUG QueueService._loadAssignedBots: ERROR loading assigned bots - $e');
+      _assignedBots = [];
+    }
   }
 
   /// Starts all timer-based services
@@ -131,7 +138,10 @@ class QueueService extends ChangeNotifier {
         floor: realUserFloor,
         gender: realUserGender,
       ),
-      ...List.generate(5, (index) => _createDummyUser(index)),
+      ...List.generate(
+        _assignedBots.length.clamp(0, 5), 
+        (index) => _createDummyUser(index)
+      ),
     ];
 
     _currentState = QueueState(
@@ -143,12 +153,17 @@ class QueueService extends ChangeNotifier {
   }
 
   QueueUser _createDummyUser(int index) {
+    if (_assignedBots.isEmpty || index >= _assignedBots.length) {
+      throw Exception('No assigned bots available or invalid index: $index');
+    }
+    
     final floors = [1, 2, 3, 4, 5];
     final genders = ['girl', 'boy'];
+    final bot = _assignedBots[index];
     
     return QueueUser(
-      id: 'dummy_${index + 1}',
-      displayName: dummyNames[index % dummyNames.length],
+      id: bot.botId,
+      displayName: bot.nickname,
       type: QueueUserType.dummy,
       state: QueueUserState.waiting,
       floor: floors[_random.nextInt(floors.length)],
@@ -178,19 +193,27 @@ class QueueService extends ChangeNotifier {
 
   /// Advances queue to the next user in line
   void _advanceToNextUser() {
+    print('DEBUG QueueService._advanceToNextUser: Advancing queue to next user');
     final queue = _currentState.queue;
     if (queue.isEmpty) return;
 
+    final currentUser = _currentState.activeUser;
     final nextIndex = _calculateNextIndex();
+    final nextUser = queue[nextIndex];
+    print('DEBUG QueueService._advanceToNextUser: Current user: ${currentUser?.displayName} -> Next user: ${nextUser.displayName}');
+    
     final updatedQueue = List<QueueUser>.from(queue);
     
     if (_isStartingNewRound(nextIndex)) {
+      print('DEBUG QueueService._advanceToNextUser: Starting new round, resetting completed users');
       _resetCompletedUsers(updatedQueue);
     }
     
     _updateCurrentUserAsCompleted(updatedQueue);
     _activateNextUser(updatedQueue, nextIndex);
     _updateQueueState(updatedQueue, nextIndex);
+    
+    print('DEBUG QueueService._advanceToNextUser: Queue advanced successfully to ${nextUser.displayName}');
   }
 
   /// Calculates the next user index in the queue
@@ -258,11 +281,20 @@ class QueueService extends ChangeNotifier {
   /// Handles bot user actions - ensures consistent flow for all bots
   void _handleDummyUserAction() {
     final activeUser = _currentState.activeUser;
+    print('DEBUG QueueService._handleDummyUserAction: activeUser=${activeUser?.displayName} (${activeUser?.id})');
+    print('DEBUG QueueService._handleDummyUserAction: isBotUserActive=${_isBotUserActive(activeUser)}');
+    
     if (!_isBotUserActive(activeUser)) return;
 
+    print('DEBUG QueueService._handleDummyUserAction: Bot user is active - checking if should start turn');
+    print('DEBUG QueueService._handleDummyUserAction: isTyping=${activeUser!.isTyping}, hasPosted=${activeUser.hasPosted}');
+    
     // Every bot must go through the complete flow: typing → delay → post → reaction timer
-    if (!activeUser!.isTyping && !activeUser.hasPosted) {
+    if (!activeUser.isTyping && !activeUser.hasPosted) {
+      print('DEBUG QueueService._handleDummyUserAction: Starting bot turn sequence');
       _startBotTurnSequence(activeUser);
+    } else {
+      print('DEBUG QueueService._handleDummyUserAction: Bot already typing or has posted, skipping');
     }
   }
 
@@ -273,8 +305,10 @@ class QueueService extends ChangeNotifier {
 
   /// Starts the complete bot turn sequence
   void _startBotTurnSequence(QueueUser botUser) {
-    final confession = _getRandomConfession();
+    print('DEBUG QueueService._startBotTurnSequence: Starting bot turn for ${botUser.displayName} (${botUser.id})');
+    final confession = _getBotResponse(botUser.id);
     final typingDelay = _calculateBotTypingDelay(confession);
+    print('DEBUG QueueService._startBotTurnSequence: Confession length: ${confession.length}, typing delay: ${typingDelay}s');
     
     // Start typing immediately
     _startTyping(botUser);
@@ -285,6 +319,7 @@ class QueueService extends ChangeNotifier {
       Duration(seconds: typingDelay),
       () => _simulateDummyPost(botUser)
     );
+    print('DEBUG QueueService._startBotTurnSequence: Bot typing started, post scheduled in ${typingDelay}s');
   }
 
   /// Calculates typing delay based on word count (10-15 seconds)
@@ -296,11 +331,20 @@ class QueueService extends ChangeNotifier {
   }
 
 
-  /// Simulates a bot user posting a confession
+  /// Simulates a bot user posting a confession (local-only, no Firebase write)
   Future<void> _simulateDummyPost(QueueUser dummyUser) async {
     try {
-      final confession = _getRandomConfession();
-      await _postService.addPost(confession, dummyUser.floor, dummyUser.gender);
+      final confession = _getBotResponse(dummyUser.id);
+      
+      // Add bot post locally via callback
+      onBotPost?.call(
+        botNickname: dummyUser.displayName,
+        confession: confession,
+        floor: dummyUser.floor,
+        gender: dummyUser.gender,
+      );
+      
+      print('DEBUG QueueService._simulateDummyPost: Bot ${dummyUser.displayName} posted locally: ${confession.substring(0, 50)}...');
       
       _transitionToPostedState(dummyUser);
     } catch (e) {
@@ -308,9 +352,16 @@ class QueueService extends ChangeNotifier {
     }
   }
 
-  /// Gets a random confession from the predefined list
-  String _getRandomConfession() {
-    return dummyConfessions[_random.nextInt(dummyConfessions.length)];
+  /// Gets the specific response for a bot user
+  String _getBotResponse(String botId) {
+    print('DEBUG QueueService._getBotResponse: Getting response for bot ID: $botId');
+    final bot = _assignedBots.firstWhere(
+      (bot) => bot.botId == botId,
+      orElse: () => throw Exception('Bot with ID $botId not found in assigned bots'),
+    );
+    print('DEBUG QueueService._getBotResponse: Found bot: ${bot.nickname}');
+    print('DEBUG QueueService._getBotResponse: Bot response: ${bot.quineResponse.substring(0, 50)}...');
+    return bot.quineResponse;
   }
 
   /// Checks if the real user can post (is active and real)
@@ -477,6 +528,7 @@ class QueueService extends ChangeNotifier {
 
   /// Public method for HomeViewModel to advance queue when timer expires
   void moveToNextUser() {
+    print('DEBUG QueueService.moveToNextUser: Moving to next user in queue');
     _advanceToNextUser();
   }
 

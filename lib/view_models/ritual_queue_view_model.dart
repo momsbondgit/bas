@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../models/ritual_queue_state.dart';
-import '../models/reaction_type.dart';
 import '../services/ritual_queue_service.dart';
-import '../services/typing_indicator_service.dart';
 import '../services/local_storage_service.dart';
 
 class RitualQueueViewModel extends ChangeNotifier {
   final RitualQueueService _ritualQueueService = RitualQueueService();
-  final TypingIndicatorService _typingService = TypingIndicatorService();
   final LocalStorageService _localStorage = LocalStorageService();
   
   // State
@@ -132,7 +129,7 @@ class RitualQueueViewModel extends ChangeNotifier {
       _clearError();
       
       _ritualQueueService.startTyping(_currentUserId!);
-      _typingService.setUserTyping(_currentUserId!, true);
+      // Typing indicator removed
       
       // Reset typing timer
       _resetTypingTimer();
@@ -149,7 +146,7 @@ class RitualQueueViewModel extends ChangeNotifier {
       _clearError();
       
       _ritualQueueService.stopTyping(_currentUserId!);
-      _typingService.setUserTyping(_currentUserId!, false);
+      // Typing indicator removed
       
       _cancelTypingTimer();
       
@@ -183,7 +180,7 @@ class RitualQueueViewModel extends ChangeNotifier {
       }
       
       // Stop typing indicator first
-      await _typingService.setUserTyping(_currentUserId!, false);
+      // Typing indicator removed
       _cancelTypingTimer();
       
       // Submit the message
@@ -196,37 +193,7 @@ class RitualQueueViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> addReaction(String messageId, ReactionType reaction) async {
-    try {
-      _clearError();
-      
-      if (_currentUserId == null) {
-        _setError('User not identified');
-        return;
-      }
-      
-      await _ritualQueueService.addReaction(messageId, _currentUserId!, reaction);
-      
-    } catch (e) {
-      _setError('Failed to add reaction: $e');
-    }
-  }
-
-  Future<void> removeReaction(String messageId) async {
-    try {
-      _clearError();
-      
-      if (_currentUserId == null) {
-        _setError('User not identified');
-        return;
-      }
-      
-      await _ritualQueueService.removeReaction(messageId, _currentUserId!);
-      
-    } catch (e) {
-      _setError('Failed to remove reaction: $e');
-    }
-  }
+  // Reaction methods removed - reactions are now local-only
 
   void dismissRotationBanner() {
     if (_queueState?.showRotationBanner == true) {
@@ -269,9 +236,7 @@ class RitualQueueViewModel extends ChangeNotifier {
     }
   }
 
-  void clearError() {
-    _clearError();
-  }
+  void clearError() => _clearError();
 
   // Helper methods for UI
   String getRemainingTimeText() {
@@ -290,7 +255,7 @@ class RitualQueueViewModel extends ChangeNotifier {
   int getQueuePosition() {
     if (_queueState?.userQueue == null || _currentUserId == null) return -1;
     
-    final userIndex = _queueState!.userQueue.indexWhere((user) => user.userId == _currentUserId);
+    final userIndex = _queueState!.userQueue.indexWhere((user) => user.id == _currentUserId);
     return userIndex >= 0 ? userIndex + 1 : -1;
   }
 
@@ -303,13 +268,7 @@ class RitualQueueViewModel extends ChangeNotifier {
     _cancelTypingTimer();
     _queueSubscription?.cancel();
     
-    // Stop typing if we were typing
-    if (_currentUserId != null) {
-      _typingService.setUserTyping(_currentUserId!, false);
-    }
-    
     _ritualQueueService.dispose();
-    _typingService.dispose();
     
     super.dispose();
   }

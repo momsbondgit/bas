@@ -536,4 +536,169 @@ Throughout these changes, we followed a consistent development approach:
 - **Scalability**: Pattern can be applied to other similar components
 - **Performance**: Layout changes use efficient Flutter widgets
 
+### 9. Bot Assignment System and Queue Management Implementation
+
+**Problem**: The app needed a dynamic bot system to simulate other users in the confession queue. Original code had hardcoded dummy users with static responses, but the requirement was for persistent, user-specific bot assignments with unique prewritten responses.
+
+**Changes Made**:
+- **Bot Pool Creation**: Created 20 unique bot personalities with realistic names and confession responses
+- **User-Specific Assignment**: Each user gets 6 randomly assigned bots that persist across sessions
+- **Queue Integration**: Bots participate in the turn-based queue system alongside real users
+- **Local-Only Bot Posts**: Bot responses are displayed in UI without Firebase writes
+
+**Implementation Details**:
+```dart
+// BotUser model - Simple bot definition
+class BotUser {
+  final String botId;
+  final String nickname;
+  final String quineResponse; // Unique prewritten confession
+}
+
+// Bot Pool - 20 unique bot personalities
+static const List<BotUser> _botPool = [
+  BotUser(
+    botId: 'bot_001',
+    nickname: 'liz',
+    quineResponse: 'Okay so I literally pretended to drop my pencil in calc just to pick it up near his desk and he didn\'t even notice 😭',
+  ),
+  BotUser(
+    botId: 'bot_002', 
+    nickname: 'emma',
+    quineResponse: 'I have been wearing the same hoodie for three days straight and I\'m not even sorry about it',
+  ),
+  // ... 18 more unique bots
+];
+
+// Queue Service - Bot integration
+List<QueueUser> queue = [
+  QueueUser(id: 'real_user', displayName: 'You', type: QueueUserType.real),
+  ...assignedBots.map((bot) => QueueUser(
+    id: bot.botId,
+    displayName: bot.nickname, 
+    type: QueueUserType.dummy
+  )),
+];
+```
+
+**Bot Assignment System**:
+- **Persistent Assignment**: Each user gets consistent bot assignments based on `anon_uid` hash
+- **Firebase Storage**: Bot assignments stored in Firestore for persistence
+- **Automatic Assignment**: New users get bots during account creation, existing users get them on first queue load
+- **6 Bot Limit**: Each user has exactly 6 assigned bots in their queue
+
+**Queue Turn Management**:
+- **20-Second Reaction Timer**: After any user posts, 20-second timer starts for reactions
+- **Automatic Progression**: Timer expiry advances queue to next user (real or bot)
+- **Bot Turn Behavior**: Bots start typing → post unique response → start reaction timer
+- **Circular Queue**: After last user, queue returns to first user for new round
+
+**Files Created**:
+- `lib/models/bot_user.dart` - Bot data model
+- `lib/config/bot_pool.dart` - 20 bot definitions with unique responses
+- `lib/services/bot_assignment_service.dart` - Bot assignment and retrieval logic
+
+**Files Modified**:
+- `lib/services/queue_service.dart` - Integrated bot loading, queue management, and bot posting
+- `lib/services/auth_service.dart` - Added bot assignment during account creation
+- `lib/view_models/home_view_model.dart` - Added local bot post storage and reaction timer
+
+**Bot Response Examples**:
+```
+liz: "Okay so I literally pretended to drop my pencil in calc just to pick it up near his desk and he didn't even notice 😭"
+
+emma: "I have been wearing the same hoodie for three days straight and I'm not even sorry about it"
+
+sophie: "My roommate thinks I'm studying but I've been watching TikToks for 2 hours straight"
+
+madison: "I told everyone I was sick but really I just didn't want to go to that party"
+```
+
+### 10. Bot Post Display System Fix
+
+**Problem**: Bot posts were being generated correctly with unique responses, but the UI wasn't displaying them. The `_buildActiveUserPostView()` method only looked for Firebase posts, completely ignoring local bot posts.
+
+**Root Cause Analysis**:
+- ✅ Queue system worked correctly (user posts → timer → advance to bot)
+- ✅ Bot assignment system worked correctly (6 unique bots per user)  
+- ✅ Bot response generation worked correctly (unique `quineResponse` per bot)
+- ✅ Bot posting system worked correctly (local posts created)
+- ❌ **UI display was broken** - only showed Firebase posts, not local bot posts
+
+**The Issue**:
+```dart
+// BEFORE (broken) - Only showed Firebase posts
+Widget _buildActiveUserPostView() {
+  final posts = _viewModel.posts; // Only Firebase posts!
+  if (posts.isEmpty) return loading;
+  
+  final recentPost = posts.first; // Only most recent Firebase post
+  return SingleChildScrollView(
+    child: Column(children: [_buildSinglePostWidget(recentPost)]),
+  );
+}
+```
+
+**The Fix**:
+```dart
+// AFTER (working) - Shows correct active user's specific post
+Widget _buildActiveUserPostView() {
+  final activeUser = _viewModel.activeUser;
+  Widget? activeUserPostWidget;
+  
+  if (activeUser.isReal) {
+    // Real user: find their post in Firebase posts
+    final recentPost = _viewModel.posts.first;
+    activeUserPostWidget = ConfessionCard(/* Firebase post data */);
+  } else {
+    // Bot user: find their specific post in local bot posts
+    for (final botPost in _viewModel.localBotPosts) {
+      if (botPost['customAuthor'] == activeUser.displayName) {
+        activeUserPostWidget = ConfessionCard(/* Bot post data */);
+        break;
+      }
+    }
+  }
+  
+  return SingleChildScrollView(
+    child: Column(children: [activeUserPostWidget]),
+  );
+}
+```
+
+**Why This Fix Works**:
+- **Single Responsibility**: Shows only the active user's specific post
+- **Data Source Integrity**: Real users from Firebase, bots from local storage
+- **Correct Matching**: Finds bot posts by matching author name with active user
+- **UI Consistency**: Same ConfessionCard component for both post types
+
+**Expected Behavior**:
+```
+Real User Turn:
+[Feed shows] "test" (from Firebase)
+
+Bot "emma" Turn:  
+[Feed shows] "I have been wearing the same hoodie for three days straight and I'm not even sorry about it" (from local storage)
+
+Bot "sophie" Turn:
+[Feed shows] "My roommate thinks I'm studying but I've been watching TikToks for 2 hours straight" (from local storage)
+```
+
+**Files Modified**:
+- `lib/ui/screens/girl_meets_college_screen.dart` - Fixed `_buildActiveUserPostView()` method
+
+**Testing Results**:
+- **Build Success**: No compilation errors
+- **Unique Bot Responses**: Each bot displays their specific prewritten response
+- **Correct Display Logic**: Real user posts from Firebase, bot posts from local storage
+- **Turn Progression**: Queue properly advances between real users and bots
+
+**Development Process**:
+- **Debug Investigation**: Added comprehensive logging to trace bot posting flow
+- **Root Cause Identification**: Found UI display issue through debug output analysis
+- **Targeted Fix**: Modified only the display method without changing data flow
+- **Verification**: Confirmed bot responses are unique and display correctly
+
+**Key Insight**: The original assumption was wrong - bots weren't reposting the same content. They were generating their unique responses correctly, but the UI wasn't designed to display local bot posts alongside Firebase posts.
+
 This documentation serves as a guide for future development and helps maintain consistency in code quality and architectural decisions.

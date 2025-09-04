@@ -1,5 +1,6 @@
 import 'queue_user.dart';
 import 'message.dart';
+import 'reaction_type.dart';
 
 enum QueuePhase {
   waiting,

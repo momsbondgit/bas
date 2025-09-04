@@ -18,6 +18,7 @@ class HomeViewModel extends ChangeNotifier {
   bool _hasPosted = false;
   int _viewerCount = 6;
   List<QueryDocumentSnapshot> _posts = [];
+  List<Map<String, dynamic>> _localBotPosts = [];
   QueueState _queueState = const QueueState(queue: [], currentIndex: 0, isInitialized: false);
   
   // Universal reaction timer state
@@ -36,6 +37,7 @@ class HomeViewModel extends ChangeNotifier {
   bool get hasPosted => _hasPosted;
   int get viewerCount => _viewerCount;
   List<QueryDocumentSnapshot> get posts => _posts;
+  List<Map<String, dynamic>> get localBotPosts => _localBotPosts;
   bool get shouldShowTimer {
     // Show timer only when the universal reaction timer is active
     return _isReactionTimerActive && _reactionTimeRemaining > 0;
@@ -80,6 +82,7 @@ class HomeViewModel extends ChangeNotifier {
         _reactionTimeRemaining--;
         
         if (_reactionTimeRemaining <= 0) {
+          print('DEBUG HomeViewModel._startUniversalTimerUpdates: Reaction timer expired, moving to next user');
           _stopReactionTimer();
           // Move to next user in queue
           _queueService.moveToNextUser();
@@ -91,6 +94,7 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void _startReactionTimer() {
+    print('DEBUG HomeViewModel._startReactionTimer: Starting 20-second reaction timer');
     _reactionTimeRemaining = 20; // 20 seconds for reactions
     _isReactionTimerActive = true;
     notifyListeners();
@@ -154,6 +158,10 @@ class HomeViewModel extends ChangeNotifier {
 
   void _initializeQueue() async {
     print('DEBUG HomeViewModel._initializeQueue: Starting queue initialization');
+    
+    // Set up callback for bot posts
+    _queueService.onBotPost = addLocalBotPost;
+    
     await _queueService.initialize();
     
     // Get the initial state immediately after initialization
@@ -168,15 +176,44 @@ class HomeViewModel extends ChangeNotifier {
       
       // Check if active user has posted and start reaction timer
       final currentActiveUser = _queueState.activeUser;
+      print('DEBUG HomeViewModel.queueSubscription: currentActiveUser?.hasPosted=${currentActiveUser?.hasPosted}');
+      print('DEBUG HomeViewModel.queueSubscription: _isReactionTimerActive=$_isReactionTimerActive');
+      print('DEBUG HomeViewModel.queueSubscription: previousActiveUser?.id=${previousActiveUser?.id}');
+      print('DEBUG HomeViewModel.queueSubscription: currentActiveUser?.id=${currentActiveUser?.id}');
+      print('DEBUG HomeViewModel.queueSubscription: previousActiveUser?.hasPosted=${previousActiveUser?.hasPosted}');
+      
       if (currentActiveUser != null && 
           currentActiveUser.hasPosted && 
           !_isReactionTimerActive &&
           (previousActiveUser?.id != currentActiveUser.id || !previousActiveUser!.hasPosted)) {
+        print('DEBUG HomeViewModel.queueSubscription: Starting reaction timer');
         _startReactionTimer();
       }
       
       notifyListeners();
     });
+  }
+
+  /// Add a local bot post (not saved to Firebase)
+  void addLocalBotPost({
+    required String botNickname,
+    required String confession,
+    required int floor,
+    required String gender,
+  }) {
+    final botPost = {
+      'id': 'local_bot_${DateTime.now().millisecondsSinceEpoch}',
+      'confession': confession,
+      'floor': floor,
+      'gender': gender,
+      'customAuthor': botNickname, // Use bot's actual nickname
+      'createdAt': DateTime.now(),
+      'isLocalBotPost': true,
+    };
+
+    _localBotPosts.add(botPost);
+    print('DEBUG HomeViewModel.addLocalBotPost: Added local bot post from $botNickname');
+    notifyListeners();
   }
 
 @override

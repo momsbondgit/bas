@@ -1,118 +1,74 @@
-
-# 🔧 Firebase Write Optimization — AI Agent Prompt
-
-You must implement these updates using the **development\_principles.md process**.
-Goal: **Reduce heavy writes to Firebase while preserving core ritual functionality.**
+Here’s a clean **Markdown spec** you can hand to your AI agent. It turns your notes into an actionable build prompt.
 
 ---
 
-## 1. Posts System (`PostService`)
+# **Bot Simulation Specification**
 
-**Collection:** `posts`
-
-### Rules
-
-* **Keep:**
-
-  * User posts (one write per confession/post).
-  * Admin posts (with special flags).
-  * Post edits (rare).
-  * Post deletions (admin only).
-
-* **Change:**
-
-  * **Reactions** → ❌ Do **not** store in Firebase.
-
-    * Reactions should be local-only (client state).
-    * No counters in Firestore.
+You must follow the **development\_principles.md** process when implementing this. Keep everything minimal, auditable, and simple.
 
 ---
 
-## 2. Authentication System (`AuthService`)
+## **Goal**
 
-**Collection:** `accounts`
-
-### Rules
-
-* ✅ Keep as is.
-* One write per account creation (`anon_uid + access code + nickname`).
-* No extra auth layers (lightweight only).
+Simulate human-like participation in rituals by assigning each user a **unique mix of pre-defined bots**. Bots must appear as normal users  and generate distinct responses so the experience doesn’t look scripted.
 
 ---
 
-## 3. Ritual Queue System (`RitualQueueService`)
+## **Requirements**
 
-**Collections:** `ritual_queue`, `ritual_messages`
+### 1. Bot Pool
 
-### Rules
+* Create **10 total bots**.
+* Each bot has:
 
-* **Queue positions:**
+  * **bot\_id** (static, unique)
+  * **nickname** (shown in UI)
+  * **quine\_responses\[]** (list of unique one-liners it can use).
 
-  * Created once at session start.
-  * ✅ Prefer local (client) creation instead of Firebase.
-  * Each client gets one write: queue assignment + turn info.
+### 2. Bot Assignment
 
-* **Turn management:**
+* When a **new user** joins a world for the first time:
 
-  * Delivered once to each client at ritual start.
-  * No mid-session writes needed (session ends when everyone finishes).
+  * Assign them a **subset of bots** (randomized mix).
+  * Store assignment in Firestore:
 
-* **Messages:**
+    ```
+    users/{user_id}/assigned_bots/{bot_id}:
+      nickname
+      assigned_at
+    ```
+  * Different users get different mixes → no two tables look identical.
 
-  * ✅ Only **user messages** get stored in Firebase.
-  * Bot messages and ephemeral events (like typing) → client-only.
+### 3. Bot Behavior in Ritual
 
-* **Message reactions:**
+* Bots must behave like users in the **turn queue**:
 
-  * ❌ Remove from Firebase.
-  * Use local UI state only.
+  * Each bot is inserted into the ritual queue along with real users.
+  * The bot’s nickname shows in the queue just like a real participant.
+  
 
-* **Message updates:**
+```
 
-  * Rare; keep only if absolutely needed.
+### 5. Turn Queue Logic
 
----
-
-## 4. Presence Tracking (`PresenceService`)
-
-**Collection:** `presence_home`
-
-### Rules
-
-* ❌ Delete this service completely.
-* No 20-second presence writes.
-* No session start/stop presence writes.
-* No cleanup operations.
-* Presence will not be tracked in MVP.
+* Queue is a mix of **real user\_ids + assigned bot\_ids**.
+* Bots always respect queue order.
+* Ensure only **one active speaker** at a time.
 
 ---
 
-## 5. Typing Indicators (`TypingIndicatorService`)
+## **Constraints**
 
-**Collection:** `typing_indicators`
-
-### Rules
-
-* ❌ Delete this service completely.
-* No typing indicator writes to Firebase.
-* Replace with static UI state:
-
-  * Bots → always display `<BotName> is typing…` (with dots).
-  * Users → display `"It’s your turn"` when active.
-* No animations, no backend writes.
+* No global randomness → each user’s assigned bots are persistent.
+* Bots must be indistinguishable from real users in **queue + typing indicator**.
+* Keep simple → no AI generation, only pre-written quine responses. also try to use areas where we are already using writes to firebase to set up which bots gets assigned to what users so we can save on reads and writes 
 
 ---
 
-# ✅ Summary of Changes
+## **Success Criteria**
 
-* Posts → keep posts, kill reactions.
-* Auth → keep.
-* Ritual Queue → one-time assignment, client-managed; only user messages stored.
-* Presence → delete.
-* Typing → delete; replace with static state.
-
----
-
-This is the **lean MVP design**. Every feature must justify its writes. If the ritual still works without it, delete it.
+* Two users logging in at the same time see **different bots** in their queue.
+* Bots type and post with delays, making them feel human.
+* Bots never repeat exact same responses across two users in the same ritual. at least not in the same order 
 
 ---

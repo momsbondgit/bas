@@ -1,10 +1,12 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'local_storage_service.dart';
+import 'bot_assignment_service.dart';
 
 class AuthService {
   final LocalStorageService _localStorage = LocalStorageService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final BotAssignmentService _botAssignmentService = BotAssignmentService();
   
   static const String _accountsCollection = 'accounts';
 
@@ -81,6 +83,11 @@ class AuthService {
       await _localStorage.setNickname(nickname);
       await _localStorage.setHasAccount(true);
       print('DEBUG AuthService.createAccount: Successfully saved account to localStorage');
+      
+      // Silently assign bots to user during account creation
+      print('DEBUG AuthService.createAccount: Starting bot assignment');
+      await _botAssignmentService.assignBotsToUser(anonId);
+      print('DEBUG AuthService.createAccount: Successfully assigned bots to user');
       
       return true;
     } catch (e) {
