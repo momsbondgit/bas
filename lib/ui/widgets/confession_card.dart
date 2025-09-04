@@ -23,18 +23,11 @@ class ConfessionCard extends StatelessWidget {
   static const double _messageBoxBorderRadius = 12.0;
   
   static const List<String> _nicknames = [
-    'THATGIRL123',
-    'Who IS ShE', 
-    'Girlly',
-    '316 girlly',
-    'queenbee',
-    'spicygirlll',
-    'ur fav girl',
-    'miss anonymous',
-    'girlie pop',
-    'that one girl',
-    'mysterious babe',
-    'campus queen'
+    'Emma', 'Olivia', 'Ava', 'Isabella', 'Sophia', 'Charlotte', 'Mia', 'Amelia',
+    'Harper', 'Evelyn', 'Abigail', 'Emily', 'Elizabeth', 'Mila', 'Ella', 'Avery',
+    'Sofia', 'Camila', 'Aria', 'Scarlett', 'Victoria', 'Madison', 'Luna', 'Grace',
+    'Chloe', 'Penelope', 'Layla', 'Riley', 'Zoey', 'Nora', 'Lily', 'Eleanor',
+    'Hannah', 'Lillian', 'Addison', 'Aubrey', 'Ellie', 'Stella', 'Natalie', 'Zoe'
   ];
   
   final int floor;
@@ -42,6 +35,7 @@ class ConfessionCard extends StatelessWidget {
   final String gender;
   final bool isBlurred;
   final String? customAuthor;
+  final bool isCurrentUser;
   final Map<String, int> reactions;
   final Function(String)? onReaction;
 
@@ -52,15 +46,27 @@ class ConfessionCard extends StatelessWidget {
     required this.gender,
     this.isBlurred = false,
     this.customAuthor,
+    this.isCurrentUser = false,
     this.reactions = const {},
     this.onReaction,
   });
 
   String _generateNickname() {
-    // Use the text content and floor to generate a consistent random index
     final seed = text.hashCode + floor;
     final random = Random(seed);
     return _nicknames[random.nextInt(_nicknames.length)];
+  }
+
+  String _getHeaderText() {
+    if (isCurrentUser) {
+      return 'From: You';
+    }
+    
+    if (customAuthor != null) {
+      return 'From: $customAuthor';
+    }
+    
+    return 'From: ${_generateNickname()}';
   }
 
   @override
@@ -87,9 +93,9 @@ class ConfessionCard extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-        // Floor and gender label
+        // Post header with "from:" prefix
         Text(
-          customAuthor ?? 'It\'s ya girl: ${_generateNickname()}',
+          _getHeaderText(),
           style: TextStyle(
             fontFamily: 'SF Compact Rounded',
             fontSize: labelFontSize,

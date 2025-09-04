@@ -122,13 +122,14 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     });
   }
 
-  Widget _buildConfessionCard(Map<String, dynamic> data, String postId) {
+  Widget _buildConfessionCard(Map<String, dynamic> data, String postId, {bool isCurrentUser = false}) {
     return ConfessionCard(
       floor: data['floor'] ?? 0,
       text: data['confession'] ?? data['text'] ?? '',
       gender: data['gender'] ?? '',
       isBlurred: false,
       customAuthor: data['customAuthor'] as String?,
+      isCurrentUser: isCurrentUser,
       reactions: _localReactions[postId] ?? {},
       onReaction: (emoji) => _handleLocalReaction(postId, emoji),
     );
@@ -143,15 +144,23 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   List<Widget> _buildPostWidgets() {
     final allPosts = <Widget>[];
+    final activeUser = _viewModel.activeUser;
     
     // Add Firebase posts
-    for (final doc in _viewModel.posts) {
+    for (int i = 0; i < _viewModel.posts.length; i++) {
+      final doc = _viewModel.posts[i];
       final data = doc.data() as Map<String, dynamic>;
       final postId = doc.id;
-      allPosts.add(_buildPaddedPost(_buildConfessionCard(data, postId)));
+      
+      // Check if this is the current user's post (first post from real user who has posted)
+      final isCurrentUserPost = activeUser?.isReal == true && 
+                               activeUser?.hasPosted == true && 
+                               i == 0; // Most recent post is first in the list
+      
+      allPosts.add(_buildPaddedPost(_buildConfessionCard(data, postId, isCurrentUser: isCurrentUserPost)));
     }
     
-    // Add local bot posts
+    // Add local bot posts (these are never current user posts since they're from bots)
     for (final botPost in _viewModel.localBotPosts) {
       final postId = botPost['id'] as String;
       allPosts.add(_buildPaddedPost(_buildConfessionCard(botPost, postId)));
@@ -742,7 +751,7 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
         final recentPost = posts.first;
         final data = recentPost.data() as Map<String, dynamic>;
         final postId = recentPost.id;
-        activeUserPostWidget = _buildConfessionCard(data, postId);
+        activeUserPostWidget = _buildConfessionCard(data, postId, isCurrentUser: true);
       }
     } else {
       // For bot user, find their post in local bot posts

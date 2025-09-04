@@ -128,20 +128,26 @@ class QueueService extends ChangeNotifier {
     final realUserFloor = await _localStorageService.getFloor() ?? 1;
     final realUserGender = await _localStorageService.getGender() ?? 'girl';
     
+    final realUser = QueueUser(
+      id: 'real_user',
+      displayName: 'You',
+      type: QueueUserType.real,
+      state: QueueUserState.waiting,
+      floor: realUserFloor,
+      gender: realUserGender,
+    );
+    
+    final botUsers = List.generate(
+      _assignedBots.length.clamp(0, 5), 
+      (index) => _createDummyUser(index)
+    );
+    
+    // Create queue with real user in third position
     final queue = <QueueUser>[
-      QueueUser(
-        id: 'real_user',
-        displayName: 'You',
-        type: QueueUserType.real,
-        state: QueueUserState.active,
-        turnStartTime: DateTime.now(),
-        floor: realUserFloor,
-        gender: realUserGender,
-      ),
-      ...List.generate(
-        _assignedBots.length.clamp(0, 5), 
-        (index) => _createDummyUser(index)
-      ),
+      if (botUsers.isNotEmpty) botUsers[0].copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()),
+      if (botUsers.length > 1) botUsers[1],
+      realUser,
+      ...botUsers.skip(2),
     ];
 
     _currentState = QueueState(
