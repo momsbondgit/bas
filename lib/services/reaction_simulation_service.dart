@@ -35,7 +35,6 @@ class ReactionSimulationService {
     bool isRealUserPost = false,
     bool quickMode = false,
   }) {
-    print('🎭 REACTION_SIM: Starting simulation for post $postId');
     
     // Stop any existing simulation for this post
     stopSimulationForPost(postId);
@@ -44,10 +43,8 @@ class ReactionSimulationService {
     final reactionCount = customReactionCount ?? _calculateReactionCount(isRealUserPost);
     
     final userType = isRealUserPost ? "REAL USER" : "bot";
-    print('🎭 REACTION_SIM: Post $postId ($userType) will receive $reactionCount reactions (${_totalSystemUsers} users in system)');
     
     if (reactionCount == 0) {
-      print('🎭 REACTION_SIM: Post $postId gets no reactions (natural variation)');
       return;
     }
 
@@ -74,11 +71,9 @@ class ReactionSimulationService {
         timingMode = reactionCount > 10 ? "HIGH-VOLUME-FAST" : "FAST";
       }
       
-      print('🎭 REACTION_SIM: Reaction ${i + 1} for post $postId scheduled in ${delaySeconds.toStringAsFixed(1)}s ($timingMode timing)');
       
       final timer = Timer(Duration(milliseconds: (delaySeconds * 1000).round()), () {
         final emoji = _selectWeightedReaction(content);
-        print('🎭 REACTION_SIM: Triggering reaction $emoji for post $postId (${i + 1}/$reactionCount)');
         onReaction(emoji);
       });
 
@@ -114,7 +109,6 @@ class ReactionSimulationService {
         engagementLevel = "VERY POPULAR (minimum VIP treatment!)";
       }
       
-      print('🎭 REACTION_SIM: REAL USER engagement level: $engagementLevel ($reactionCount reactions)');
       return reactionCount;
     } else {
       // Bot posts get good engagement - MINIMUM 5 reactions guaranteed!
@@ -141,13 +135,11 @@ class ReactionSimulationService {
         reactionCount = 10 + _random.nextInt(3); // 10-12 reactions
       }
       
-      print('🎭 REACTION_SIM: Bot engagement level: $engagementLevel ($reactionCount reactions, 5+ guaranteed)');
       return reactionCount;
     }
   }
 
   String _selectWeightedReaction(String content) {
-    print('🎭 REACTION_SIM: Analyzing sentiment for content: "${content.length > 50 ? content.substring(0, 50) + '...' : content}"');
     
     // Adjust weights slightly based on content sentiment
     Map<String, double> adjustedWeights = Map.from(_reactionWeights);
@@ -158,17 +150,14 @@ class ReactionSimulationService {
     
     if (lowerContent.contains(RegExp(r'\b(same|relatable|me too|this|yes|exactly|facts)\b'))) {
       adjustedWeights['🤭'] = adjustedWeights['🤭']! * 1.3;
-      print('🎭 REACTION_SIM: Detected relatable content - boosted 🤭 SAMEE reactions');
     }
     
     if (lowerContent.contains(RegExp(r'\b(dead|dying|lmao|lol|funny|hilarious|omg|wtf)\b'))) {
       adjustedWeights['☠️'] = adjustedWeights['☠️']! * 1.4;
-      print('🎭 REACTION_SIM: Detected funny content - boosted ☠️ DEAD reactions');
     }
     
     if (lowerContent.contains(RegExp(r'\b(wild|crazy|insane|no way|unbelievable|chaos)\b'))) {
       adjustedWeights['🤪'] = adjustedWeights['🤪']! * 1.5;
-      print('🎭 REACTION_SIM: Detected wild content - boosted 🤪 W reactions');
     }
 
     // Weighted random selection
@@ -182,20 +171,17 @@ class ReactionSimulationService {
         final selectedEmoji = entry.key;
         final originalChance = (originalWeights[selectedEmoji]! / 1.0 * 100).round();
         final adjustedChance = (entry.value / totalWeight * 100).round();
-        print('🎭 REACTION_SIM: Selected $selectedEmoji (${originalChance}% → ${adjustedChance}% chance)');
         return selectedEmoji;
       }
     }
     
     // Fallback
-    print('🎭 REACTION_SIM: Using fallback reaction 🤭');
     return '🤭';
   }
 
   void stopSimulationForPost(String postId) {
     final timers = _postTimers[postId];
     if (timers != null) {
-      print('🎭 REACTION_SIM: Stopping simulation for post $postId (${timers.length} pending reactions)');
       for (final timer in timers) {
         timer.cancel();
       }
@@ -205,7 +191,6 @@ class ReactionSimulationService {
 
   void stopAllSimulations() {
     final totalTimers = _postTimers.values.fold(0, (sum, timers) => sum + timers.length);
-    print('🎭 REACTION_SIM: Stopping all simulations (${_postTimers.length} posts, $totalTimers pending reactions)');
     
     for (final timers in _postTimers.values) {
       for (final timer in timers) {

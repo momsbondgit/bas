@@ -118,7 +118,6 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
 
   void _handleLocalReaction(String postId, String emoji) {
     final previousCount = _localReactions[postId]?[emoji] ?? 0;
-    print('🎭 SCREEN: Local reaction received - postId: $postId, emoji: $emoji, count: ${previousCount} → ${previousCount + 1}');
     
     setState(() {
       // Initialize reactions for this post if not exists
@@ -134,13 +133,11 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
     
     // Start reaction simulation for all new posts (bots will react to everyone including real user)
     if (!_simulatedPosts.contains(postId)) {
-      print('🎭 SCREEN: New post detected for simulation - postId: $postId, isCurrentUser: $isCurrentUser, author: ${data['customAuthor'] ?? 'user'}');
       _simulatedPosts.add(postId);
       
       // Start realistic reaction simulation after a short delay
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
-          print('🎭 SCREEN: Starting bot reactions for post $postId (${isCurrentUser ? 'real user' : 'bot'} post)');
           _reactionService.simulateReactionsForPost(
             postId: postId,
             content: content,
@@ -148,11 +145,9 @@ class _GirlMeetsCollegeScreenState extends State<GirlMeetsCollegeScreen> with Ti
             isRealUserPost: isCurrentUser,
           );
         } else {
-          print('🎭 SCREEN: Widget unmounted, skipping simulation for post $postId');
         }
       });
     } else {
-      print('🎭 SCREEN: Post $postId already has simulation running, skipping');
     }
     
     return ConfessionCard(

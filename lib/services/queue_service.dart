@@ -58,6 +58,7 @@ class QueueService extends ChangeNotifier {
   // Callback for when a bot posts locally
   Function({required String botNickname, required String confession, required int floor, required String gender})? onBotPost;
   
+  
   Timer? _turnTimer;
   Timer? _dummyActionTimer;
   Timer? _typingTimer;

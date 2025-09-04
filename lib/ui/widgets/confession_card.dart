@@ -173,7 +173,6 @@ class ConfessionCard extends StatelessWidget {
   }
   
   Widget _buildReactionRow(double fontSize) {
-    print('🎭 CONFESSION_CARD: Building reaction UI for post with ${reactions.length} reaction types');
     
     // Original reaction labels (matching the exact original format)
     final reactionLabels = {
@@ -207,7 +206,6 @@ class ConfessionCard extends StatelessWidget {
             padding: const EdgeInsets.only(right: _reactionSpacing),
             child: GestureDetector(
               onTap: () {
-                print('🎭 CONFESSION_CARD: User manually tapped $label $emoji reaction');
                 onReaction?.call(emoji);
               },
               child: Container(

@@ -137,6 +137,7 @@ class HomeViewModel extends ChangeNotifier {
     // All reaction handling is now done locally in the UI components
   }
 
+
   void startRealUserTyping() {
     _queueService.startRealUserTyping();
   }
@@ -145,7 +146,19 @@ class HomeViewModel extends ChangeNotifier {
     _queueService.stopRealUserTyping();
   }
 
-  bool get isTimerExpired => false; // Don't auto-navigate on timer expiry
+  bool get isTimerExpired {
+    // Navigate to session end when last user in queue is active
+    final queue = _queueState.queue;
+    final activeUser = _queueState.activeUser;
+    
+    if (queue.isEmpty || activeUser == null) return false;
+    
+    // Check if current active user is the last user in the queue
+    final lastUserIndex = queue.length - 1;
+    final currentIndex = _queueState.currentIndex;
+    
+    return currentIndex == lastUserIndex && activeUser.hasPosted;
+  }
 
   void _initializeQueue() async {
     // Set up callback for bot posts
