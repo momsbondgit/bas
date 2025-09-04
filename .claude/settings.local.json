@@ -7,7 +7,8 @@
       "Bash(dir:*)",
       "Bash(flutter build:*)",
       "Bash(dart run:*)",
-      "Bash(flutter:*)"
+      "Bash(flutter:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
