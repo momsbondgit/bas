@@ -32,15 +32,16 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
   final TextEditingController _numberController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final EndingService _endingService = EndingService();
-  bool _isSending = false;
+  bool _isPhoneSending = false;
+  bool _isInstagramSending = false;
 
   void _onPhoneSendPressed() async {
     final phoneNumber = _numberController.text.trim();
     
-    if (phoneNumber.isEmpty || _isSending) return;
+    if (phoneNumber.isEmpty || _isPhoneSending) return;
     
     setState(() {
-      _isSending = true;
+      _isPhoneSending = true;
     });
     
     try {
@@ -69,7 +70,7 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isSending = false;
+          _isPhoneSending = false;
         });
       }
     }
@@ -78,10 +79,10 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
   void _onInstagramSendPressed() async {
     final instagramHandle = _instagramController.text.trim();
     
-    if (instagramHandle.isEmpty || _isSending) return;
+    if (instagramHandle.isEmpty || _isInstagramSending) return;
     
     setState(() {
-      _isSending = true;
+      _isInstagramSending = true;
     });
     
     try {
@@ -110,10 +111,111 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isSending = false;
+          _isInstagramSending = false;
         });
       }
     }
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String hintText,
+    required VoidCallback onSendPressed,
+    required bool isSending,
+    required TextInputType keyboardType,
+    required double inputHeight,
+    required double inputFontSize,
+    required double buttonWidth,
+    required double buttonHeight,
+    required double buttonFontSize,
+    required bool isDesktop,
+    required bool isTablet,
+  }) {
+    return Container(
+      height: inputHeight,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1EDEA),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFB2B2B2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: isDesktop ? 24.0 : (isTablet ? 20.0 : 20.0),
+                right: isDesktop ? 16.0 : (isTablet ? 14.0 : 12.0),
+              ),
+              child: TextField(
+                controller: controller,
+                keyboardType: keyboardType,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  hintStyle: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: inputFontSize,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFFB2B2B2),
+                    letterSpacing: 0.4,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: TextStyle(
+                  fontFamily: 'SF Pro',
+                  fontSize: inputFontSize,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              right: isDesktop ? 20.0 : (isTablet ? 18.0 : 16.0),
+            ),
+            child: GestureDetector(
+              onTap: onSendPressed,
+              child: Container(
+                width: buttonWidth,
+                height: buttonHeight,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.black,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      offset: const Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    isSending ? 'sending...' : 'send',
+                    style: TextStyle(
+                      fontFamily: 'SF Pro',
+                      fontSize: buttonFontSize,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -197,93 +299,19 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
                 SizedBox(height: isDesktop ? 15.0 : (isTablet ? 12.0 : 10.0)),
                 
                 // Phone input field with send button
-                Container(
-                  height: inputHeight,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1EDEA),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: const Color(0xFFB2B2B2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      // Phone input
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            left: isDesktop ? 24.0 : (isTablet ? 20.0 : 20.0),
-                            right: isDesktop ? 16.0 : (isTablet ? 14.0 : 12.0),
-                          ),
-                          child: TextField(
-                            controller: _numberController,
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration(
-                              hintText: 'Number....',
-                              hintStyle: TextStyle(
-                                fontFamily: 'SF Pro',
-                                fontSize: inputFontSize,
-                                fontWeight: FontWeight.w400,
-                                color: const Color(0xFFB2B2B2),
-                                letterSpacing: 0.4,
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                            style: TextStyle(
-                              fontFamily: 'SF Pro',
-                              fontSize: inputFontSize,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.black,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ),
-                      ),
-                      
-                      // Send button for phone
-                      Padding(
-                        padding: EdgeInsets.only(
-                          right: isDesktop ? 20.0 : (isTablet ? 18.0 : 16.0),
-                        ),
-                        child: GestureDetector(
-                          onTap: _onPhoneSendPressed,
-                          child: Container(
-                            width: buttonWidth,
-                            height: buttonHeight,
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.black,
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  offset: const Offset(0, 2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                _isSending ? 'sending...' : 'send',
-                                style: TextStyle(
-                                  fontFamily: 'SF Pro',
-                                  fontSize: buttonFontSize,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                  letterSpacing: 0.4,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                _buildInputField(
+                  controller: _numberController,
+                  hintText: 'Number....',
+                  onSendPressed: _onPhoneSendPressed,
+                  isSending: _isPhoneSending,
+                  keyboardType: TextInputType.phone,
+                  inputHeight: inputHeight,
+                  inputFontSize: inputFontSize,
+                  buttonWidth: buttonWidth,
+                  buttonHeight: buttonHeight,
+                  buttonFontSize: buttonFontSize,
+                  isDesktop: isDesktop,
+                  isTablet: isTablet,
                 ),
 
                 SizedBox(height: isDesktop ? 35.0 : (isTablet ? 30.0 : 25.0)),
@@ -313,109 +341,23 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
                 SizedBox(height: isDesktop ? 15.0 : (isTablet ? 12.0 : 10.0)),
 
                 // Instagram input field
-                Container(
-                  height: inputHeight,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1EDEA),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: const Color(0xFFB2B2B2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      // Instagram input
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            left: isDesktop ? 24.0 : (isTablet ? 20.0 : 20.0),
-                            right: isDesktop ? 16.0 : (isTablet ? 14.0 : 12.0),
-                          ),
-                          child: TextField(
-                            controller: _instagramController,
-                            keyboardType: TextInputType.text,
-                            decoration: InputDecoration(
-                              hintText: 'Instagram....',
-                              hintStyle: TextStyle(
-                                fontFamily: 'SF Pro',
-                                fontSize: inputFontSize,
-                                fontWeight: FontWeight.w400,
-                                color: const Color(0xFFB2B2B2),
-                                letterSpacing: 0.4,
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                            style: TextStyle(
-                              fontFamily: 'SF Pro',
-                              fontSize: inputFontSize,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.black,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ),
-                      ),
-                      
-                      // Send button
-                      Padding(
-                        padding: EdgeInsets.only(
-                          right: isDesktop ? 20.0 : (isTablet ? 18.0 : 16.0),
-                        ),
-                        child: GestureDetector(
-                          onTap: _onInstagramSendPressed,
-                          child: Container(
-                            width: buttonWidth,
-                            height: buttonHeight,
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.black,
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  offset: const Offset(0, 2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                _isSending ? 'sending...' : 'send',
-                                style: TextStyle(
-                                  fontFamily: 'SF Pro',
-                                  fontSize: buttonFontSize,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black,
-                                  letterSpacing: 0.4,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                _buildInputField(
+                  controller: _instagramController,
+                  hintText: 'Instagram....',
+                  onSendPressed: _onInstagramSendPressed,
+                  isSending: _isInstagramSending,
+                  keyboardType: TextInputType.text,
+                  inputHeight: inputHeight,
+                  inputFontSize: inputFontSize,
+                  buttonWidth: buttonWidth,
+                  buttonHeight: buttonHeight,
+                  buttonFontSize: buttonFontSize,
+                  isDesktop: isDesktop,
+                  isTablet: isTablet,
                 ),
                 
                 SizedBox(height: isDesktop ? 30.0 : (isTablet ? 25.0 : (screenHeight * 0.025).clamp(18.0, 25.0))),
                 
-                // Bottom text
-                Text(
-                  'Don\'t snitch to the RAs.',
-                  style: TextStyle(
-                    fontFamily: 'SF Pro',
-                    fontSize: bodyFontSize,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black,
-                    letterSpacing: 0.4,
-                    height: 1.4,
-                  ),
-                ),
                 
                 // Add some bottom spacing
                 const SizedBox(height: 20),

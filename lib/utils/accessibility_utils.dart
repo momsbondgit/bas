@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
-import '../models/reaction_type.dart';
+import '../models/data/reaction_type.dart';
 import '../config/ritual_config.dart';
 
 class AccessibilityUtils {

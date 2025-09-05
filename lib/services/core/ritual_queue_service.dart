@@ -146,19 +146,6 @@ class RitualQueueService {
     await _saveState(newState);
   }
 
-  // DEBUG: addReaction() and removeReaction() methods were REMOVED during Firebase optimization
-  // This eliminates Firebase writes for message reactions
-  // All message reactions are now client-only (no backend persistence)
-  
-  void addLocalReaction(String messageId, String emoji) {
-    // This method exists for API compatibility but doesn't write to Firebase
-    // All reaction handling is now done locally in the UI components
-  }
-  
-  void removeLocalReaction(String messageId, String emoji) {
-    // This method exists for API compatibility but doesn't write to Firebase
-    // All reaction handling is now done locally in the UI components
-  }
 
   Future<void> rotateQueue() async {
     if (_currentState == null || _currentState!.userQueue.isEmpty) return;

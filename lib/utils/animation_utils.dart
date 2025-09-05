@@ -69,22 +69,6 @@ class AnimationUtils {
     );
   }
 
-  static Animation<double> createScaleAnimation(
-    AnimationController controller, {
-    double begin = 0.8,
-    double end = 1.0,
-  }) {
-    return Tween<double>(
-      begin: begin,
-      end: end,
-    ).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: Curves.elasticOut,
-      ),
-    );
-  }
-
   static bool shouldReduceMotion(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     return mediaQuery.disableAnimations;
@@ -100,10 +84,4 @@ class AnimationUtils {
     return originalDuration;
   }
 
-  static Curve getAnimationCurve(BuildContext context, Curve originalCurve) {
-    if (shouldReduceMotion(context)) {
-      return Curves.linear;
-    }
-    return originalCurve;
-  }
 }

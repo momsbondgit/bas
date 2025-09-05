@@ -249,9 +249,7 @@ class QueueService extends ChangeNotifier {
     final queue = _currentState.queue;
     if (queue.isEmpty) return;
 
-    final currentUser = _currentState.activeUser;
     final nextIndex = _calculateNextIndex();
-    final nextUser = queue[nextIndex];
     
     final updatedQueue = List<QueueUser>.from(queue);
     

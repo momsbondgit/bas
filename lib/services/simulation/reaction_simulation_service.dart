@@ -32,7 +32,6 @@ class ReactionSimulationService {
     // Calculate realistic reaction count based on 6-user system
     final reactionCount = customReactionCount ?? _calculateReactionCount(isRealUserPost);
     
-    final userType = isRealUserPost ? "REAL USER" : "bot";
     
     if (reactionCount == 0) {
       return;
@@ -42,13 +41,11 @@ class ReactionSimulationService {
 
     for (int i = 0; i < reactionCount; i++) {
       double delaySeconds;
-      String timingMode;
       
       if (quickMode) {
         // Ultra-fast reactions for time-sensitive posts - all within 3 seconds
         delaySeconds = 0.5 + (i * 0.15) + (_random.nextDouble() * 0.2);
         delaySeconds = delaySeconds.clamp(0.5, 3.0);
-        timingMode = "ULTRA-FAST";
       } else {
         // Smart timing based on reaction count
         // For high reaction counts (10+), use tighter timing to fit all reactions
@@ -58,7 +55,6 @@ class ReactionSimulationService {
         final baseDelay = 0.5 + (i * spacing) + (_random.nextDouble() * spacing * 0.3);
         final jitter = _random.nextDouble() * 0.2 - 0.1;
         delaySeconds = (baseDelay + jitter).clamp(0.5, maxTime);
-        timingMode = reactionCount > 10 ? "HIGH-VOLUME-FAST" : "FAST";
       }
       
       
