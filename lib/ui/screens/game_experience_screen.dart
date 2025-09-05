@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'dart:math';
 import '../widgets/cards/confession_card.dart';
 import '../widgets/indicators/status_indicator.dart';
 import '../widgets/indicators/message_area_typing_indicator.dart';
@@ -94,10 +95,28 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 
   void _onViewModelChanged() {
-    if (_viewModel.isTimerExpired) {
+    print('🔍 DEBUG _onViewModelChanged: called');
+    final isExpired = _viewModel.isTimerExpired;
+    print('🔍 DEBUG _onViewModelChanged: isTimerExpired=$isExpired');
+    
+    if (isExpired) {
+      print('🔍 DEBUG _onViewModelChanged: REDIRECTING TO SESSION END');
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => const SessionEndScreen(),
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const SessionEndScreen(),
+          transitionDuration: const Duration(milliseconds: 300),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.0, -1.0), // Start from top (off-screen)
+                end: Offset.zero, // End at current position
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              )),
+              child: child,
+            );
+          },
         ),
         (route) => false,
       );
@@ -127,8 +146,8 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   Color _getSecondaryBackgroundColor() {
     final isGuyWorld = _currentWorldConfig?.id == 'guy-meets-college';
     if (isGuyWorld) {
-      // Blue for guy world secondary color (240° hue)
-      final hslColor = HSLColor.fromAHSL(0.5, 240.0, 0.5, 0.8);
+      // Navy/slate for guy world secondary color (200° hue) - complements deep blue
+      final hslColor = HSLColor.fromAHSL(0.5, 200.0, 0.5, 0.8);
       return hslColor.toColor();
     } else {
       // Orange/peach for girl world secondary color
@@ -139,8 +158,8 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   Color _getTertiaryBackgroundColor() {
     final isGuyWorld = _currentWorldConfig?.id == 'guy-meets-college';
     if (isGuyWorld) {
-      // Teal/cyan for guy world tertiary color (180° hue) - complements green and blue
-      final hslColor = HSLColor.fromAHSL(0.5, 180.0, 0.5, 0.8);
+      // Steel/gray-blue for guy world tertiary color (240° hue) - complements blue family
+      final hslColor = HSLColor.fromAHSL(0.5, 240.0, 0.4, 0.8);
       return hslColor.toColor();
     } else {
       // Pink/rose for girl world tertiary color
@@ -174,15 +193,35 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 
   void _handleLocalReaction(String postId, String emoji) {
-    final previousCount = _localReactions[postId]?[emoji] ?? 0;
+    // Add natural delay to simulate reading time before reacting
+    // Random delay between 2000-4500ms to feel more human
+    final random = Random();
+    final delayMs = 2000 + random.nextInt(2500); // 2000-4500ms range
     
-    setState(() {
-      // Initialize reactions for this post if not exists
-      _localReactions[postId] ??= {};
-      
-      // Increment reaction count
-      _localReactions[postId]![emoji] = (_localReactions[postId]![emoji] ?? 0) + 1;
+    Future.delayed(Duration(milliseconds: delayMs), () {
+      if (mounted) {
+        setState(() {
+          // Initialize reactions for this post if not exists
+          _localReactions[postId] ??= {};
+          
+          // Increment reaction count
+          _localReactions[postId]![emoji] = (_localReactions[postId]![emoji] ?? 0) + 1;
+        });
+      }
     });
+  }
+
+  void _handleUserReaction(String postId, String emoji) {
+    // Real user reactions are immediate (no delay)
+    if (mounted) {
+      setState(() {
+        // Initialize reactions for this post if not exists
+        _localReactions[postId] ??= {};
+        
+        // Increment reaction count
+        _localReactions[postId]![emoji] = (_localReactions[postId]![emoji] ?? 0) + 1;
+      });
+    }
   }
 
   Widget _buildConfessionCard(Map<String, dynamic> data, String postId, {bool isCurrentUser = false}) {
@@ -215,7 +254,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       customAuthor: data['customAuthor'] as String?,
       isCurrentUser: isCurrentUser,
       reactions: _localReactions[postId] ?? {},
-      onReaction: (emoji) => _handleLocalReaction(postId, emoji),
+      onReaction: (emoji) => _handleUserReaction(postId, emoji),
     );
   }
 
@@ -307,11 +346,12 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
           SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 50),
+                const SizedBox(height: 25),
                 _buildTitle(),
-                const SizedBox(height: 35),
+                const SizedBox(height: 15),
                 _buildTeaTopicSection(),
-                const Spacer(),
+                const SizedBox(height: 25),
+                const Expanded(child: SizedBox.shrink()),
                 _buildVibeSection(),
                 const SizedBox(height: 20),
                 _buildBottomInput(),
@@ -418,7 +458,10 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 
   Widget _buildTeaTopicSection() {
-    final topicText = _currentWorldConfig?.topicOfDay ?? "What's the cringiest thing you've done to get a cute guys attention😩";
+    final rawTopicText = _currentWorldConfig?.topicOfDay ?? "What's the cringiest thing you've done to get a cute guys attention😩";
+    
+    // Ensure last word and emoji stay together by replacing last space with non-breaking space
+    final topicText = _fixLastWordEmojiWrapping(rawTopicText);
     
     return Column(
       children: [
@@ -436,21 +479,47 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
         ),
         const SizedBox(height: 8),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Text(
             topicText,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: 'Crafty Girls',
               fontWeight: FontWeight.w400,
-              fontSize: 14,
+              fontSize: 13,
               color: Colors.black,
               height: 1.45,
             ),
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],
     );
+  }
+
+  String _fixLastWordEmojiWrapping(String text) {
+    // Find the last space before emoji(s) and replace with non-breaking space
+    // Simple approach: replace last space before any emoji with non-breaking space
+    final emojiPattern = RegExp(r'[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}]+$', unicode: true);
+    final match = emojiPattern.firstMatch(text);
+    
+    if (match != null) {
+      final emojiStart = match.start;
+      final beforeEmoji = text.substring(0, emojiStart).trimRight();
+      final emoji = text.substring(emojiStart);
+      
+      // Replace the last space with non-breaking space
+      final lastSpaceIndex = beforeEmoji.lastIndexOf(' ');
+      if (lastSpaceIndex != -1) {
+        final beforeLastWord = beforeEmoji.substring(0, lastSpaceIndex);
+        final lastWord = beforeEmoji.substring(lastSpaceIndex + 1);
+        return '$beforeLastWord\u00A0$lastWord$emoji'; // \u00A0 is non-breaking space
+      }
+    }
+    
+    return text;
   }
 
   Widget _buildVibeSection() {
@@ -591,7 +660,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
 
   Widget _buildLiveStreamElements() {
     return Positioned(
-      top: 190,
+      top: 150,
       right: 50,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -687,7 +756,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       children: [
         // Main chat area
         Positioned(
-          top: 180,
+          top: 140,
           left: 40,
           right: 40,
           child: Container(
@@ -720,7 +789,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
         ),
         // Sketch lines - left side
         Positioned(
-          top: 160,
+          top: 120,
           left: 10,
           child: CustomPaint(
             size: const Size(28.29, 20.24),
@@ -729,7 +798,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
         ),
         // Timer button - left of comment section
         Positioned(
-          top: 190,
+          top: 150,
           left: 50,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
@@ -760,7 +829,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
         ),
         // Sketch lines - right side bottom
         Positioned(
-          top: 500,
+          top: 460,
           right: 5,
           child: CustomPaint(
             size: const Size(42, 61.24),

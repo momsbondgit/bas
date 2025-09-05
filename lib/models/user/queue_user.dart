@@ -24,7 +24,6 @@ class QueueUser {
   final DateTime? turnStartTime;
   final DateTime? lastActiveTime;
   final DateTime? typingStartTime;
-  final DateTime? reactionStartTime;
   final int floor;
   final String world;
 
@@ -37,7 +36,6 @@ class QueueUser {
     this.turnStartTime,
     this.lastActiveTime,
     this.typingStartTime,
-    this.reactionStartTime,
     required this.floor,
     required this.world,
   });
@@ -51,7 +49,6 @@ class QueueUser {
     DateTime? turnStartTime,
     DateTime? lastActiveTime,
     DateTime? typingStartTime,
-    DateTime? reactionStartTime,
     int? floor,
     String? world,
   }) {
@@ -64,7 +61,6 @@ class QueueUser {
       turnStartTime: turnStartTime ?? this.turnStartTime,
       lastActiveTime: lastActiveTime ?? this.lastActiveTime,
       typingStartTime: typingStartTime ?? this.typingStartTime,
-      reactionStartTime: reactionStartTime ?? this.reactionStartTime,
       floor: floor ?? this.floor,
       world: world ?? this.world,
     );
@@ -80,7 +76,6 @@ class QueueUser {
       'turnStartTime': turnStartTime?.millisecondsSinceEpoch,
       'lastActiveTime': lastActiveTime?.millisecondsSinceEpoch,
       'typingStartTime': typingStartTime?.millisecondsSinceEpoch,
-      'reactionStartTime': reactionStartTime?.millisecondsSinceEpoch,
       'floor': floor,
       'world': world,
     };
@@ -103,9 +98,6 @@ class QueueUser {
           : null,
       typingStartTime: map['typingStartTime'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['typingStartTime'] as int)
-          : null,
-      reactionStartTime: map['reactionStartTime'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['reactionStartTime'] as int)
           : null,
       floor: map['floor'] as int,
       world: map['world'] as String,
@@ -131,13 +123,6 @@ class QueueUser {
     return remaining > 0 ? remaining : 0;
   }
 
-  int get remainingReactionSeconds {
-    if (reactionStartTime == null) return 0;
-    const reactionDurationSeconds = 60;
-    final elapsed = DateTime.now().difference(reactionStartTime!).inSeconds;
-    final remaining = reactionDurationSeconds - elapsed;
-    return remaining > 0 ? remaining : 0;
-  }
 
   @override
   String toString() {

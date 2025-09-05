@@ -6,12 +6,12 @@ class GuyMeetsCollegeWorld {
     id: 'guy-meets-college',
     displayName: 'Guy Meets College',
     topicOfDay: "What's the dumbest thing you've done to impress a girl😅",
-    modalTitle: 'join the world bro ✨',
-    modalDescription: 'Share your college confession with other guys anonymously. Get access code from your community.',
+    modalTitle: 'No code, no access. Only members can invite.',
+    modalDescription: null,
     entryTileImage: 'assets/images/guy_meets_college.png', // TODO: Add actual asset path
-    vibeSection: 'The vibe is peak bro energy with a side of actual vulnerability. We\'re talking about those moments when you tried way too hard and it backfired spectacularly. No judgment here - just guys being real about their most questionable decisions.',
+    vibeSection: '1. One at a time — we\'re not all yelling over Warzone comms.\n2. Don\'t\u00A0hold\u00A0back\u00A0—\u00A0speak\u00A0up,\u00A0you\'re\u00A0not\u00A0chatting\u00A0with shorties.\n3. React to everyone — no sitting on mute like a NPC.',
     headingText: 'bro topic of the day',
-    backgroundColorHue: 120, // Green hue for guy energy
+    backgroundColorHue: 220, // Deep blue hue for guy energy
     botPool: [
       BotUser(
         botId: 'bot_m001',

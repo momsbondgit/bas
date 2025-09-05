@@ -33,11 +33,11 @@ class _GeneralScreenState extends State<GeneralScreen> {
     // Store the selected world
     await localStorageService.setWorld(world.displayName);
     
-    // Check if user already has an account
-    final isLoggedIn = await authService.isLoggedIn();
+    // Check if user is authenticated for this specific world
+    final isLoggedInForWorld = await authService.isLoggedInForWorld(world.id);
     
-    if (isLoggedIn) {
-      // User has account, navigate directly
+    if (isLoggedInForWorld) {
+      // User has account for this world, navigate directly
       if (context.mounted) {
         Navigator.push(
           context,
@@ -50,7 +50,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
         );
       }
     } else {
-      // User needs to create account, show modal
+      // User needs to create account for this world, show modal
       if (context.mounted) {
         _showWorldAccessModal(context, world);
       }
@@ -65,7 +65,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
         worldConfig: world,
         onSubmit: (accessCode, nickname) async {
           final authService = AuthService();
-          final success = await authService.createAccount(accessCode, nickname);
+          final success = await authService.createAccountForWorld(accessCode, nickname, world.id);
           
           if (success && context.mounted) {
             Navigator.of(context).pop(); // Close modal
@@ -78,14 +78,9 @@ class _GeneralScreenState extends State<GeneralScreen> {
                 ),
               ),
             );
-          } else if (context.mounted) {
-            // Show error - could enhance this with better error handling
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('something went wrong bestie, try again'),
-                backgroundColor: Colors.red,
-              ),
-            );
+          } else {
+            // Throw error to trigger inline validation error in modal
+            throw Exception('Invalid access code');
           }
         },
         onCancel: () {
@@ -308,8 +303,8 @@ class _GeneralScreenState extends State<GeneralScreen> {
       children: [
         // Only show tap indicator for Guy Meets College (right side)
         Positioned(
-          left: (screenSize.width / 2 + 100) + 60,
-          top: (screenSize.height / 2) - 150,
+          left: (screenSize.width / 2 + 100) + 10,
+          top: (screenSize.height / 2) - 200,
           child: Image.asset(
             'assets/tap.png',
             width: 98,

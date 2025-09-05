@@ -6,10 +6,10 @@ class GirlMeetsCollegeWorld {
     id: 'girl-meets-college',
     displayName: 'Girl Meets College',
     topicOfDay: "What's the cringiest thing you've done to get a cute guys attention😩",
-    modalTitle: 'join the world bestie ✨',
-    modalDescription: 'Share your college confession with other girls anonymously. Get access code from your community.',
+    modalTitle: 'No code, no access. Only members can invite.',
+    modalDescription: null,
     entryTileImage: 'assets/images/girl_meets_college.png', // TODO: Add actual asset path
-    vibeSection: 'The vibe is giving vulnerable girl energy mixed with a dash of chaos. We\'re here for authentic stories, messy moments, and that collective \'oh no\' feeling when you realize you\'ve all been there. It\'s judgment-free honesty with your digital besties.',
+    vibeSection: '1. One at a time — we\'re not tryna overlap like the dorm Wi-Fi.\n2. Don\'t\u00A0hold\u00A0back\u00A0—\u00A0spill\u00A0it\u00A0like\u00A0you\'re\u00A0dragging\u00A0him\u00A0in\u00A0the\u00A0group chat.\n3. React to everyone — no silent scrolling, you\'re in the circle.',
     headingText: 'tea topic of the day',
     backgroundColorHue: 340, // Pink/rose hue for girl energy
     botPool: [

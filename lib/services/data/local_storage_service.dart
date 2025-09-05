@@ -11,6 +11,7 @@ class LocalStorageService {
   static const String _accessCodeKey = 'auth.accessCode';
   static const String _nicknameKey = 'auth.nickname';
   static const String _hasAccountKey = 'auth.hasAccount';
+  static const String _authenticatedWorldKey = 'auth.worldId';
   
   // Ritual Queue keys
   static const String _ritualUserIdKey = 'ritual.userId';
@@ -143,6 +144,16 @@ class LocalStorageService {
   Future<bool> getHasAccount() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_hasAccountKey) ?? false;
+  }
+
+  Future<void> setAuthenticatedWorldId(String worldId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_authenticatedWorldKey, worldId);
+  }
+  
+  Future<String?> getAuthenticatedWorldId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_authenticatedWorldKey);
   }
 
   // Session tracking methods

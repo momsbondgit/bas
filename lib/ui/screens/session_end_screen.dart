@@ -30,20 +30,21 @@ class SessionEndScreen extends StatefulWidget {
 
 class _SessionEndScreenState extends State<SessionEndScreen> {
   final TextEditingController _numberController = TextEditingController();
+  final TextEditingController _instagramController = TextEditingController();
   final EndingService _endingService = EndingService();
   bool _isSending = false;
 
-  void _onSendPressed() async {
-    if (_numberController.text.trim().isEmpty || _isSending) return;
-    
+  void _onPhoneSendPressed() async {
     final phoneNumber = _numberController.text.trim();
+    
+    if (phoneNumber.isEmpty || _isSending) return;
     
     setState(() {
       _isSending = true;
     });
     
     try {
-      await _endingService.savePhoneNumber(phoneNumber);
+      await _endingService.saveContactInfo(phoneNumber, null);
       _numberController.clear();
       
       // Show success message
@@ -74,9 +75,51 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
     }
   }
 
+  void _onInstagramSendPressed() async {
+    final instagramHandle = _instagramController.text.trim();
+    
+    if (instagramHandle.isEmpty || _isSending) return;
+    
+    setState(() {
+      _isSending = true;
+    });
+    
+    try {
+      await _endingService.saveContactInfo(null, instagramHandle);
+      _instagramController.clear();
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Instagram handle saved successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving Instagram handle: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSending = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _numberController.dispose();
+    _instagramController.dispose();
     super.dispose();
   }
 
@@ -108,18 +151,24 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
       canPop: false,
       child: Scaffold(
         backgroundColor: const Color(0xFFF1EDEA),
+        resizeToAvoidBottomInset: true,
         body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: horizontalPadding,
-              vertical: verticalPadding,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Main text content
                 Text(
-                  'Alright...that\'s it. Go back to pretending you\'re normal.',
+                  'You\'re a member now — only members can invite, just don\'t give the code to lames.',
                   style: TextStyle(
                     fontFamily: 'SF Pro',
                     fontSize: bodyFontSize,
@@ -130,23 +179,24 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
                   ),
                 ),
                 
-                SizedBox(height: isDesktop ? 30.0 : (isTablet ? 25.0 : (screenHeight * 0.03).clamp(20.0, 30.0))),
+                SizedBox(height: isDesktop ? 40.0 : (isTablet ? 35.0 : (screenHeight * 0.04).clamp(30.0, 40.0))),
                 
+                // Phone number section
                 Text(
-                  'Next round: campus crushes. If you\'re in, drop your number and when it\'s time we\'ll send the link.',
+                  'Drop your number (fastest way we\'ll send the next code).',
                   style: TextStyle(
                     fontFamily: 'SF Pro',
                     fontSize: bodyFontSize,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
                     color: Colors.black,
                     letterSpacing: 0.4,
                     height: 1.4,
                   ),
                 ),
                 
-                SizedBox(height: isDesktop ? 50.0 : (isTablet ? 45.0 : (screenHeight * 0.055).clamp(35.0, 50.0))),
+                SizedBox(height: isDesktop ? 15.0 : (isTablet ? 12.0 : 10.0)),
                 
-                // Input field with send button
+                // Phone input field with send button
                 Container(
                   height: inputHeight,
                   decoration: BoxDecoration(
@@ -159,7 +209,7 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
                   ),
                   child: Row(
                     children: [
-                      // Text input
+                      // Phone input
                       Expanded(
                         child: Padding(
                           padding: EdgeInsets.only(
@@ -192,13 +242,13 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
                         ),
                       ),
                       
-                      // Send button
+                      // Send button for phone
                       Padding(
                         padding: EdgeInsets.only(
                           right: isDesktop ? 20.0 : (isTablet ? 18.0 : 16.0),
                         ),
                         child: GestureDetector(
-                          onTap: _onSendPressed,
+                          onTap: _onPhoneSendPressed,
                           child: Container(
                             width: buttonWidth,
                             height: buttonHeight,
@@ -209,10 +259,133 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
                                 color: Colors.black,
                                 width: 1,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 4,
+                                ),
+                              ],
                             ),
                             child: Center(
                               child: Text(
-_isSending ? 'sending...' : 'send',
+                                _isSending ? 'sending...' : 'send',
+                                style: TextStyle(
+                                  fontFamily: 'SF Pro',
+                                  fontSize: buttonFontSize,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: isDesktop ? 35.0 : (isTablet ? 30.0 : 25.0)),
+                
+                // Divider for visual separation
+                Container(
+                  width: double.infinity,
+                  height: 1,
+                  color: const Color(0xFFE0E0E0),
+                ),
+                
+                SizedBox(height: isDesktop ? 30.0 : (isTablet ? 25.0 : 20.0)),
+                
+                // Instagram section
+                Text(
+                  'If you\'re on that \'I don\'t give my number out\' headass vibe → drop your IG, we\'ll follow you from the private account.',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: bodyFontSize,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                    letterSpacing: 0.4,
+                    height: 1.4,
+                  ),
+                ),
+                
+                SizedBox(height: isDesktop ? 15.0 : (isTablet ? 12.0 : 10.0)),
+
+                // Instagram input field
+                Container(
+                  height: inputHeight,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1EDEA),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFFB2B2B2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      // Instagram input
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left: isDesktop ? 24.0 : (isTablet ? 20.0 : 20.0),
+                            right: isDesktop ? 16.0 : (isTablet ? 14.0 : 12.0),
+                          ),
+                          child: TextField(
+                            controller: _instagramController,
+                            keyboardType: TextInputType.text,
+                            decoration: InputDecoration(
+                              hintText: 'Instagram....',
+                              hintStyle: TextStyle(
+                                fontFamily: 'SF Pro',
+                                fontSize: inputFontSize,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xFFB2B2B2),
+                                letterSpacing: 0.4,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            style: TextStyle(
+                              fontFamily: 'SF Pro',
+                              fontSize: inputFontSize,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      // Send button
+                      Padding(
+                        padding: EdgeInsets.only(
+                          right: isDesktop ? 20.0 : (isTablet ? 18.0 : 16.0),
+                        ),
+                        child: GestureDetector(
+                          onTap: _onInstagramSendPressed,
+                          child: Container(
+                            width: buttonWidth,
+                            height: buttonHeight,
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.black,
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Text(
+                                _isSending ? 'sending...' : 'send',
                                 style: TextStyle(
                                   fontFamily: 'SF Pro',
                                   fontSize: buttonFontSize,
@@ -244,9 +417,10 @@ _isSending ? 'sending...' : 'send',
                   ),
                 ),
                 
-                // Spacer to push content up slightly
-                const Spacer(),
+                // Add some bottom spacing
+                const SizedBox(height: 20),
               ],
+              ),
             ),
           ),
         ),

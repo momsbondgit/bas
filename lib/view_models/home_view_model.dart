@@ -147,17 +147,41 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   bool get isTimerExpired {
-    // Navigate to session end when last user in queue is active
+    // Navigate to session end when all users have posted AND reaction time is complete
     final queue = _queueState.queue;
-    final activeUser = _queueState.activeUser;
     
-    if (queue.isEmpty || activeUser == null) return false;
+    print('🔍 DEBUG isTimerExpired: queue.length=${queue.length}');
     
-    // Check if current active user is the last user in the queue
-    final lastUserIndex = queue.length - 1;
-    final currentIndex = _queueState.currentIndex;
+    if (queue.isEmpty) {
+      print('🔍 DEBUG isTimerExpired: queue is empty, returning false');
+      return false;
+    }
     
-    return currentIndex == lastUserIndex && activeUser.hasPosted;
+    // Check if all users have completed their posts (state == posted OR completed)
+    final allUsersPosted = queue.every((user) => user.hasPosted || user.state == QueueUserState.completed);
+    final postedCount = queue.where((user) => user.hasPosted || user.state == QueueUserState.completed).length;
+    
+    print('🔍 DEBUG isTimerExpired: allUsersPosted=$allUsersPosted, postedCount=$postedCount/${queue.length}');
+    
+    if (!allUsersPosted) {
+      // Debug who hasn't posted yet
+      final notPosted = queue.where((user) => !user.hasPosted && user.state != QueueUserState.completed).map((u) => '${u.displayName}(${u.state})').toList();
+      print('🔍 DEBUG isTimerExpired: waiting for users: $notPosted');
+      return false;
+    }
+    
+    // Check if 6th user (queue.last) has posted and universal reaction timer expired
+    if (queue.length == 6) {
+      final lastUser = queue[5]; // 6th user (0-indexed)
+      final lastUserHasPosted = lastUser.hasPosted || lastUser.state == QueueUserState.completed;
+      final reactionTimerExpired = !_isReactionTimerActive && _reactionTimeRemaining <= 0;
+      
+      print('🔍 DEBUG isTimerExpired: 6th user=${lastUser.displayName}, hasPosted=$lastUserHasPosted, timerExpired=$reactionTimerExpired');
+      
+      return lastUserHasPosted && reactionTimerExpired;
+    }
+    
+    return false;
   }
 
   void _initializeQueue() async {
@@ -174,6 +198,8 @@ class HomeViewModel extends ChangeNotifier {
       final previousActiveUser = _queueState.activeUser;
       _queueState = queueState;
       
+      print('🔍 DEBUG queue state changed: activeUser=${_queueState.activeUser?.displayName}, queue.length=${_queueState.queue.length}');
+      
       // Check if active user has posted and start reaction timer
       final currentActiveUser = _queueState.activeUser;
       
@@ -184,6 +210,7 @@ class HomeViewModel extends ChangeNotifier {
         _startReactionTimer();
       }
       
+      print('🔍 DEBUG calling notifyListeners() - this should trigger _onViewModelChanged');
       notifyListeners();
     });
   }

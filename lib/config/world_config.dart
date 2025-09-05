@@ -5,7 +5,7 @@ class WorldConfig {
   final String displayName;          // "Girl Meets College"
   final String topicOfDay;          // "confess your college experiences"
   final String modalTitle;          // "join the world bestie ✨"
-  final String modalDescription;    // world-specific copy
+  final String? modalDescription;    // world-specific copy
   final String entryTileImage;      // path to world image
   final List<BotUser> botPool;      // world-specific bots
   final String vibeSection;         // "The vibe" section content
@@ -17,7 +17,7 @@ class WorldConfig {
     required this.displayName,
     required this.topicOfDay,
     required this.modalTitle,
-    required this.modalDescription,
+    this.modalDescription,
     required this.entryTileImage,
     required this.botPool,
     required this.vibeSection,
@@ -46,7 +46,7 @@ class WorldConfig {
       displayName: map['displayName'] as String,
       topicOfDay: map['topicOfDay'] as String,
       modalTitle: map['modalTitle'] as String,
-      modalDescription: map['modalDescription'] as String,
+      modalDescription: map['modalDescription'] as String?,
       entryTileImage: map['entryTileImage'] as String,
       botPool: (map['botPool'] as List<dynamic>)
           .map((botMap) => BotUser.fromMap(botMap as Map<String, dynamic>))

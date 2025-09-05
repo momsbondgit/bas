@@ -143,54 +143,40 @@ class QueueService extends ChangeNotifier {
       (index) => _createDummyUser(index)
     );
     
-    // Determine user's queue position (random for returning users, third for new users)
-    final sessionCount = await _localStorageService.getSessionCount();
-    final isReturningUser = sessionCount > 1;
+    // All users (new and returning) get random position (3rd-6th, never first or second)
+    final availablePositions = List.generate(botUsers.length, (i) => i + 1)
+        .where((pos) => pos > 1) // Never position 0 (first) or 1 (second)
+        .toList();
     
-    List<QueueUser> queue;
+    if (availablePositions.isEmpty) availablePositions.add(2); // Fallback to 3rd position (index 2)
     
-    if (isReturningUser) {
-      // Returning users get random position (2-6, never first)
-      final availablePositions = List.generate(botUsers.length, (i) => i + 1)
-          .where((pos) => pos > 0) // Never position 0 (first)
-          .toList();
-      
-      if (availablePositions.isEmpty) availablePositions.add(1); // Fallback
-      
-      final userPosition = availablePositions[_random.nextInt(availablePositions.length)];
-      
-      // Build queue with user at random position
-      queue = <QueueUser>[];
-      
-      // Add first bot as active
-      if (botUsers.isNotEmpty) {
-        queue.add(botUsers[0].copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()));
-      }
-      
-      // Add remaining bots and user at specified position
-      for (int i = 1; i < botUsers.length + 1; i++) {
-        if (i == userPosition) {
-          queue.add(realUser);
-        } else {
-          final botIndex = i > userPosition ? i - 1 : i;
-          if (botIndex < botUsers.length && botIndex > 0) {
-            queue.add(botUsers[botIndex]);
-          }
+    final userPosition = availablePositions[_random.nextInt(availablePositions.length)];
+    
+    // Build queue with user at random position
+    List<QueueUser> queue = <QueueUser>[];
+    
+    // Add first bot as active
+    if (botUsers.isNotEmpty) {
+      queue.add(botUsers[0].copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()));
+    }
+    
+    // Add remaining bots and user at specified position
+    bool userAdded = false;
+    for (int i = 1; i < botUsers.length + 1; i++) {
+      if (i == userPosition && !userAdded) {
+        queue.add(realUser);
+        userAdded = true;
+      } else {
+        final botIndex = i > userPosition ? i - 1 : i;
+        if (botIndex < botUsers.length && botIndex > 0) {
+          queue.add(botUsers[botIndex]);
         }
       }
-      
-      // Ensure user is added if position is at end
-      if (userPosition >= botUsers.length) {
-        queue.add(realUser);
-      }
-    } else {
-      // New users get third position (existing behavior)
-      queue = <QueueUser>[
-        if (botUsers.isNotEmpty) botUsers[0].copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()),
-        if (botUsers.length > 1) botUsers[1],
-        realUser,
-        ...botUsers.skip(2),
-      ];
+    }
+    
+    // Ensure user is added if position is at end (only if not already added)
+    if (userPosition >= botUsers.length && !userAdded) {
+      queue.add(realUser);
     }
 
     _currentState = QueueState(
@@ -295,7 +281,6 @@ class QueueService extends ChangeNotifier {
         queue[i] = queue[i].copyWith(
           state: QueueUserState.waiting,
           turnStartTime: null,
-          reactionStartTime: null,
         );
       }
     }
@@ -540,7 +525,6 @@ class QueueService extends ChangeNotifier {
       state: QueueUserState.posted,
       typingState: TypingState.idle,
       typingStartTime: null,
-      reactionStartTime: DateTime.now(),
     );
   }
 

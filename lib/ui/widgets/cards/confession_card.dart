@@ -181,50 +181,53 @@ class ConfessionCard extends StatelessWidget {
       '🤪': 'W',
     };
     
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // REACT: label (matching original styling)
-        Text(
-          'REACT: ',
-          style: TextStyle(
-            fontFamily: 'SF Compact Rounded',
-            fontSize: fontSize * _fontSizeMultiplier,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFFB2B2B2),
-            letterSpacing: 0.4,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // REACT: label (matching original styling)
+          Text(
+            'REACT: ',
+            style: TextStyle(
+              fontFamily: 'SF Compact Rounded',
+              fontSize: fontSize * _fontSizeMultiplier,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xFFB2B2B2),
+              letterSpacing: 0.4,
+            ),
           ),
-        ),
-        // Original reaction format
-        ...reactionLabels.entries.map((entry) {
-          final emoji = entry.key;
-          final label = entry.value;
-          final count = reactions[emoji] ?? 0;
-          final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
-          
-          return Padding(
-            padding: const EdgeInsets.only(right: _reactionSpacing),
-            child: GestureDetector(
-              onTap: () {
-                onReaction?.call(emoji);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
-                child: Text(
-                  displayText,
-                  style: TextStyle(
-                    fontFamily: 'SF Compact Rounded',
-                    fontSize: fontSize * _fontSizeMultiplier,
-                    fontWeight: FontWeight.w400,
-                    color: const Color(0xFFB2B2B2),
-                    letterSpacing: 0.4,
+          // Original reaction format
+          ...reactionLabels.entries.map((entry) {
+            final emoji = entry.key;
+            final label = entry.value;
+            final count = reactions[emoji] ?? 0;
+            final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
+            
+            return Padding(
+              padding: const EdgeInsets.only(right: _reactionSpacing),
+              child: GestureDetector(
+                onTap: () {
+                  onReaction?.call(emoji);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
+                  child: Text(
+                    displayText,
+                    style: TextStyle(
+                      fontFamily: 'SF Compact Rounded',
+                      fontSize: fontSize * _fontSizeMultiplier,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFFB2B2B2),
+                      letterSpacing: 0.4,
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
-      ],
+            );
+          }).toList(),
+        ],
+      ),
     );
   }
 

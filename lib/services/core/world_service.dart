@@ -53,7 +53,6 @@ class WorldService {
         config.displayName.isEmpty ||
         config.topicOfDay.isEmpty ||
         config.modalTitle.isEmpty ||
-        config.modalDescription.isEmpty ||
         config.entryTileImage.isEmpty ||
         config.botPool.isEmpty) {
       return false;

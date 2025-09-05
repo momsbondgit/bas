@@ -9,6 +9,12 @@ class AuthService {
   final BotAssignmentService _botAssignmentService = BotAssignmentService();
   
   static const String _accountsCollection = 'accounts';
+  
+  // World-specific access codes
+  static const Map<String, String> _worldAccessCodes = {
+    'girl-meets-college': '789',
+    'guy-meets-college': '456',
+  };
 
   /// Get existing anon ID or create a new one
   Future<String> getOrCreateAnonId() async {
@@ -32,6 +38,15 @@ class AuthService {
   Future<bool> isLoggedIn() async {
     final hasAccount = await _localStorage.getHasAccount();
     return hasAccount;
+  }
+
+  /// Check if user is authenticated for a specific world
+  Future<bool> isLoggedInForWorld(String worldId) async {
+    final hasAccount = await _localStorage.getHasAccount();
+    if (!hasAccount) return false;
+    
+    final authenticatedWorldId = await _localStorage.getAuthenticatedWorldId();
+    return authenticatedWorldId == worldId;
   }
 
   /// Get stored account data from localStorage
@@ -82,10 +97,47 @@ class AuthService {
     }
   }
 
+  /// Create account with world-specific access code and nickname
+  Future<bool> createAccountForWorld(String accessCode, String nickname, String worldId) async {
+    try {
+      // Validate access code for the specific world
+      final correctCode = _worldAccessCodes[worldId];
+      if (correctCode == null || accessCode != correctCode) {
+        return false; // Invalid access code for this world
+      }
+      
+      final anonId = await getOrCreateAnonId();
+      
+      // Store in Firebase with world ID
+      await _firestore.collection(_accountsCollection).doc(anonId).set({
+        'anonId': anonId,
+        'accessCode': accessCode,
+        'nickname': nickname,
+        'worldId': worldId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      
+      // Store locally with authenticated world
+      await _localStorage.setAccessCode(accessCode);
+      await _localStorage.setNickname(nickname);
+      await _localStorage.setHasAccount(true);
+      await _localStorage.setAuthenticatedWorldId(worldId);
+      
+      // Silently assign bots to user during account creation
+      await _botAssignmentService.assignBotsToUser(anonId);
+      
+      return true;
+    } catch (e) {
+      // Handle error - return false on failure
+      return false;
+    }
+  }
+
   /// Clear local account data (logout)
   Future<void> clearAccount() async {
     await _localStorage.setAccessCode('');
     await _localStorage.setNickname('');
     await _localStorage.setHasAccount(false);
+    await _localStorage.setAuthenticatedWorldId('');
   }
 }

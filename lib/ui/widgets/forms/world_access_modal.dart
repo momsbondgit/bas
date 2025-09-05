@@ -23,6 +23,7 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
   final TextEditingController _nicknameController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
+  String? _accessCodeError;
 
   @override
   void dispose() {
@@ -32,6 +33,11 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
   }
 
   void _handleSubmit() async {
+    // Clear previous access code error
+    setState(() {
+      _accessCodeError = null;
+    });
+    
     if (!_formKey.currentState!.validate()) return;
     
     setState(() {
@@ -43,6 +49,15 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
         _accessCodeController.text.trim(),
         _nicknameController.text.trim(),
       );
+    } catch (e) {
+      // If onSubmit throws an error or returns false, show inline error
+      if (mounted) {
+        setState(() {
+          _accessCodeError = 'wrong code, try again';
+        });
+        // Trigger form validation to show the error
+        _formKey.currentState!.validate();
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -53,6 +68,11 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
   }
 
   String? _validateAccessCode(String? value) {
+    // Show access code validation error if present
+    if (_accessCodeError != null) {
+      return _accessCodeError;
+    }
+    
     if (value == null || value.trim().isEmpty) {
       return 'ur access code is required bestie';
     }
@@ -119,7 +139,7 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
               if (widget.worldConfig?.modalDescription != null)
                 Center(
                   child: Text(
-                    widget.worldConfig!.modalDescription,
+                    widget.worldConfig!.modalDescription!,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: 'SF Pro',
