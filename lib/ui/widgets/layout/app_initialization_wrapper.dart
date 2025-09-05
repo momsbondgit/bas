@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/admin/maintenance_service.dart';
+import '../../../services/analytics/returning_user_service.dart';
 import '../../screens/maintenance_screen.dart';
 import '../../screens/general_screen.dart';
 import 'dart:async';
@@ -13,6 +14,7 @@ class AppInitializationWrapper extends StatefulWidget {
 
 class _AppInitializationWrapperState extends State<AppInitializationWrapper> {
   final MaintenanceService _maintenanceService = MaintenanceService();
+  final ReturningUserService _returningUserService = ReturningUserService();
   
   bool _isLoading = true;
   bool _isMaintenanceMode = false;
@@ -27,6 +29,9 @@ class _AppInitializationWrapperState extends State<AppInitializationWrapper> {
 
   Future<void> _initializeApp() async {
     try {
+      // Initialize user tracking (runs silently in background)
+      _returningUserService.initializeUserTracking();
+      
       // TESTING: Hard code maintenance mode to false to bypass Firebase checks
       // TODO: Uncomment these lines when ready to use live maintenance mode
       // final status = await _maintenanceService.getMaintenanceStatus();

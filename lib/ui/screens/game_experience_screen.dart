@@ -728,7 +728,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'Assets/eye.png',
+                  'assets/eye.png',
                   width: 21,
                   height: 21,
                 ),

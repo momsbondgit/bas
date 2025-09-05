@@ -8,6 +8,9 @@ import '../widgets/admin/admin_posts_section.dart';
 import '../widgets/admin/admin_add_post_section.dart';
 import '../widgets/admin/admin_system_controls_section.dart';
 import '../widgets/indicators/home_presence_counter.dart';
+import '../widgets/indicators/returning_users_counter.dart';
+import '../widgets/indicators/instagram_counter.dart';
+import '../widgets/indicators/phone_numbers_counter.dart';
 import 'admin_login_screen.dart';
 import 'dart:async';
 
@@ -314,9 +317,11 @@ class _AdminScreenState extends State<AdminScreen> with TickerProviderStateMixin
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildQuickStat('Posts', _posts.length, Icons.article, const Color(0xFF6366F1)),
+                const ReturningUsersCounter(),
                 const SizedBox(width: 12),
-                _buildQuickStat('Numbers', _endings.length, Icons.phone, const Color(0xFF059669)),
+                const InstagramCounter(),
+                const SizedBox(width: 12),
+                const PhoneNumbersCounter(),
                 const SizedBox(width: 12),
                 const HomePresenceCounter(),
                 if (_maintenanceStatus != null) ...[
