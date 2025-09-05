@@ -338,30 +338,72 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
 
   @override
   Widget build(BuildContext context) {
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFFFFCF9),
-      body: Stack(
-        children: [
-          _buildFadeBackground(context),
-          SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 25),
-                _buildTitle(),
-                const SizedBox(height: 15),
-                _buildTeaTopicSection(),
-                const SizedBox(height: 25),
-                const Expanded(child: SizedBox.shrink()),
-                _buildVibeSection(),
-                const SizedBox(height: 20),
-                _buildBottomInput(),
-                const SizedBox(height: 20),
-              ],
+      resizeToAvoidBottomInset: false,
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, -keyboardHeight, 0),
+        child: Stack(
+          children: [
+            // Background
+            Positioned.fill(
+              child: _buildFadeBackground(context),
             ),
-          ),
-          _buildLiveStreamElements(),
-          _buildChatArea(),
-        ],
+            // Top content - fixed position
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 25),
+                    _buildTitle(),
+                  ],
+                ),
+              ),
+            ),
+            // Topic section - positioned between top and comment section
+            Positioned(
+              top: screenHeight * 0.12,
+              left: 0,
+              right: 0,
+              child: _buildTeaTopicSection(),
+            ),
+            // Chat area - fixed position
+            Positioned(
+              top: screenHeight * 0.28,
+              left: 10,
+              right: 10,
+              height: 324,
+              child: _buildChatContent(),
+            ),
+            // LIVE button - fixed position
+            Positioned(
+              top: screenHeight * 0.28 + 10,
+              right: 25,
+              child: _buildLiveButton(),
+            ),
+            // Timer button - fixed position
+            Positioned(
+              top: screenHeight * 0.28 + 10,
+              left: 25,
+              child: _buildTimerButton(),
+            ),
+            // Fixed bottom input
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 20,
+              child: _buildBottomInput(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -472,7 +514,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             style: const TextStyle(
               fontFamily: 'SF Pro Rounded',
               fontWeight: FontWeight.w600,
-              fontSize: 15,
+              fontSize: 18,
               color: Colors.black,
             ),
           ),
@@ -486,13 +528,12 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             style: const TextStyle(
               fontFamily: 'Crafty Girls',
               fontWeight: FontWeight.w400,
-              fontSize: 13,
+              fontSize: 16,
               color: Colors.black,
               height: 1.45,
             ),
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
+            softWrap: true,
+            maxLines: 3,
           ),
         ),
       ],
@@ -522,42 +563,6 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     return text;
   }
 
-  Widget _buildVibeSection() {
-    final vibeText = _currentWorldConfig?.vibeSection ?? 
-        'The vibe is giving vulnerable girl energy mixed with a dash of chaos. We\'re here for authentic stories, messy moments, and that collective \'oh no\' feeling when you realize you\'ve all been there. It\'s judgment-free honesty with your digital besties.';
-        
-    return Container(
-      width: double.infinity,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 40, right: 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-          const Text(
-            'The Vibe',
-            style: TextStyle(
-              fontFamily: 'SF Compact Rounded',
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              color: Color(0xFFABABAB),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            vibeText,
-            style: const TextStyle(
-              fontFamily: 'SF Compact Rounded',
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              color: Color(0xFFABABAB),
-              height: 1.2,
-            ),
-          ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildBottomInput() {
     final canPost = _viewModel.canPost;
@@ -580,40 +585,52 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Container(
-            height: 47,
-            decoration: BoxDecoration(
-              color: canPost ? const Color(0xFFE8E8E8) : const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(37),
-              border: canPost ? null : Border.all(color: const Color(0xFFDDDDDD), width: 1),
-            ),
+        constraints: BoxConstraints(
+          minHeight: 47,
+          maxHeight: canPost ? 120 : 47,
+        ),
+        decoration: BoxDecoration(
+          color: canPost ? const Color(0xFFE8E8E8) : const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(canPost ? 25 : 37),
+          border: canPost ? null : Border.all(color: const Color(0xFFDDDDDD), width: 1),
+        ),
         child: Row(
+          crossAxisAlignment: canPost ? CrossAxisAlignment.end : CrossAxisAlignment.center,
           children: [
             Expanded(
               child: canPost
                 ? TextField(
-                    controller: _textController,
-                    focusNode: _focusNode,
-                    enabled: canPost,
-                    decoration: InputDecoration(
-                      hintText: placeholderText,
-                      hintStyle: const TextStyle(
+                      controller: _textController,
+                      focusNode: _focusNode,
+                      enabled: canPost,
+                      decoration: InputDecoration(
+                        hintText: placeholderText,
+                        hintStyle: const TextStyle(
+                          fontFamily: 'SF Pro Rounded',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 11,
+                          color: Color(0xFF8F8F8F),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.only(left: 21, right: 50, top: 8, bottom: 8),
+                        isDense: true,
+                      ),
+                      style: const TextStyle(
                         fontFamily: 'SF Pro Rounded',
                         fontWeight: FontWeight.w500,
                         fontSize: 11,
-                        color: Color(0xFF8F8F8F),
+                        color: Colors.black,
+                        height: 1.2,
                       ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.only(left: 21, right: 12),
-                    ),
-                    style: const TextStyle(
-                      fontFamily: 'SF Pro Rounded',
-                      fontWeight: FontWeight.w500,
-                      fontSize: 11,
-                      color: Colors.black,
-                    ),
-                    maxLines: 1,
-                    onSubmitted: _handlePostSubmission,
-                  )
+                      maxLines: null,
+                      minLines: 1,
+                      expands: false,
+                      scrollController: null,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      textAlignVertical: TextAlignVertical.top,
+                      onSubmitted: null,
+                    )
                 : Padding(
                     padding: const EdgeInsets.only(left: 21),
                     child: Align(
@@ -631,23 +648,28 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
                   ),
             ),
             if (canPost)
-              GestureDetector(
-                onTap: () => _handlePostSubmission(_textController.text),
-                child: Container(
-                  margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF6262),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'POST',
-                    style: TextStyle(
-                      fontFamily: 'SF Compact Rounded',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 9,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
+              Padding(
+                padding: const EdgeInsets.only(right: 8, bottom: 8),
+                child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: GestureDetector(
+                    onTap: () => _handlePostSubmission(_textController.text),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF6262),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Text(
+                        'POST',
+                        style: TextStyle(
+                          fontFamily: 'SF Compact Rounded',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 9,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -658,11 +680,8 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     );
   }
 
-  Widget _buildLiveStreamElements() {
-    return Positioned(
-      top: 150,
-      right: 50,
-      child: Row(
+  Widget _buildLiveButton() {
+    return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           // LIVE button with pulse animation
@@ -747,98 +766,67 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             ),
           ),
         ],
+      );
+  }
+
+  Widget _buildTimerButton() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color.fromRGBO(255, 252, 252, 0.54),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromRGBO(83, 83, 83, 0.04),
+            offset: const Offset(1, 2),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: _viewModel.shouldShowTimer
+        ? Text(
+            _viewModel.timerDisplay,
+            style: const TextStyle(
+              fontFamily: 'SF Compact Rounded',
+              fontWeight: FontWeight.w400,
+              fontSize: 15,
+              color: Colors.black,
+              letterSpacing: 1.65,
+            ),
+          )
+        : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildChatContent() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: const Color(0xFFD8D8D8),
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 60), // Space to move content down under LIVE button
+            // Message content area
+            Flexible(
+              child: _buildMessageAreaContent(),
+            ),
+            // Static divider above Turn Queue
+            _buildStaticDivider(),
+            // Queue section
+            _buildQueueContent(),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildChatArea() {
-    return Stack(
-      children: [
-        // Main chat area
-        Positioned(
-          top: 140,
-          left: 40,
-          right: 40,
-          child: Container(
-            height: 324,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: const Color(0xFFD8D8D8),
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(17),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 60), // Space to move content down under LIVE button
-                  // Message content area
-                  Flexible(
-                    child: _buildMessageAreaContent(),
-                  ),
-                  // Static divider above Turn Queue
-                  _buildStaticDivider(),
-                  // Queue section
-                  _buildQueueContent(),
-                ],
-              ),
-            ),
-          ),
-        ),
-        // Sketch lines - left side
-        Positioned(
-          top: 120,
-          left: 10,
-          child: CustomPaint(
-            size: const Size(28.29, 20.24),
-            painter: SketchLinesPainter1(),
-          ),
-        ),
-        // Timer button - left of comment section
-        Positioned(
-          top: 150,
-          left: 50,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-            decoration: BoxDecoration(
-              color: const Color.fromRGBO(255, 252, 252, 0.54),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color.fromRGBO(83, 83, 83, 0.04),
-                  offset: const Offset(1, 2),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: _viewModel.shouldShowTimer
-              ? Text(
-                  _viewModel.timerDisplay,
-                  style: const TextStyle(
-                    fontFamily: 'SF Compact Rounded',
-                    fontWeight: FontWeight.w400,
-                    fontSize: 15,
-                    color: Colors.black,
-                    letterSpacing: 1.65,
-                  ),
-                )
-              : const SizedBox.shrink(),
-          ),
-        ),
-        // Sketch lines - right side bottom
-        Positioned(
-          top: 460,
-          right: 5,
-          child: CustomPaint(
-            size: const Size(42, 61.24),
-            painter: SketchLinesPainter2(),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildMessageAreaContent() {
     final activeUser = _viewModel.activeUser;
@@ -983,6 +971,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
           );
   }
 
+
   Widget _buildStaticDivider() {
     return Column(
       children: [
@@ -1048,7 +1037,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
           style: TextStyle(
             fontFamily: 'SF Compact Rounded',
             fontWeight: isCurrentUser ? FontWeight.w700 : FontWeight.w500,
-            fontSize: 12,
+            fontSize: 14,
             color: isCurrentUser ? const Color(0xFFFF6262) : const Color(0xFFABABAB),
           ),
         ),
@@ -1062,7 +1051,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             style: TextStyle(
               fontFamily: 'SF Compact Rounded',
               fontWeight: FontWeight.w500,
-              fontSize: 12,
+              fontSize: 14,
               color: Color(0xFFABABAB),
             ),
           ),
@@ -1074,64 +1063,4 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 }
 
-class SketchLinesPainter1 extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-    
-    // First line
-    canvas.drawLine(
-      const Offset(21, 0),
-      const Offset(28.29, 15.24),
-      paint,
-    );
-    
-    // Second line
-    canvas.drawLine(
-      const Offset(0, 4),
-      const Offset(23.29, 20.24),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class SketchLinesPainter2 extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-    
-    // First line
-    canvas.drawLine(
-      const Offset(0, 9),
-      const Offset(21.29, 61.24),
-      paint,
-    );
-    
-    // Second line
-    canvas.drawLine(
-      const Offset(7, 4),
-      const Offset(15, 13),
-      paint,
-    );
-    
-    // Third line
-    canvas.drawLine(
-      const Offset(11, 0),
-      const Offset(42, 9),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 

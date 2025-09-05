@@ -9,109 +9,139 @@ class GuyMeetsCollegeWorld {
     modalTitle: 'No code, no access. Only members can invite.',
     modalDescription: null,
     entryTileImage: 'assets/images/guy_meets_college.png', // TODO: Add actual asset path
-    vibeSection: '1. One at a time — we\'re not all yelling over Warzone comms.\n2. Don\'t\u00A0hold\u00A0back\u00A0—\u00A0speak\u00A0up,\u00A0you\'re\u00A0not\u00A0chatting\u00A0with shorties.\n3. React to everyone — no sitting on mute like a NPC.',
+    vibeSection: '',
     headingText: 'bro topic of the day',
     backgroundColorHue: 220, // Deep blue hue for guy energy
     botPool: [
-      BotUser(
-        botId: 'bot_m001',
-        nickname: 'alex',
-        quineResponse: 'I spent my entire paycheck on a gym membership just because my crush said she likes fit guys, haven\'t been once 💀',
-      ),
-      BotUser(
-        botId: 'bot_m002', 
-        nickname: 'jake',
-        quineResponse: 'I\'ve been wearing the same lucky shirt to every party for three weeks because I think it makes me look cool',
-      ),
-      BotUser(
-        botId: 'bot_m003',
-        nickname: 'tyler',
-        quineResponse: 'My roommate thinks I\'m studying but I\'ve been playing FIFA for 6 hours straight',
-      ),
-      BotUser(
-        botId: 'bot_m004',
-        nickname: 'connor',
-        quineResponse: 'I told everyone I was busy but really I just wanted to stay in and watch Netflix',
-      ),
-      BotUser(
-        botId: 'bot_m005',
-        nickname: 'mason',
-        quineResponse: 'I have a crush on the girl from my econ class and I sit in the same spot hoping she\'ll notice me',
-      ),
-      BotUser(
-        botId: 'bot_m006',
-        nickname: 'noah',
-        quineResponse: 'I accidentally said \'love you\' instead of \'thank you\' to the cashier at the dining hall',
-      ),
-      BotUser(
-        botId: 'bot_m007',
-        nickname: 'ethan',
-        quineResponse: 'I\'ve been eating ramen every night because I spent all my food money on concert tickets',
-      ),
-      BotUser(
-        botId: 'bot_m008',
-        nickname: 'lucas',
-        quineResponse: 'I pretend to know about sports when talking to girls but I literally only watch highlights on Instagram',
-      ),
-      BotUser(
-        botId: 'bot_m009',
-        nickname: 'ryan',
-        quineResponse: 'I still call my mom to ask her how to do laundry and I\'m a junior',
-      ),
-      BotUser(
-        botId: 'bot_m010',
-        nickname: 'carter',
-        quineResponse: 'I\'ve been avoiding this girl for two weeks because I sent her a text meant for my mom',
-      ),
-      BotUser(
-        botId: 'bot_m011',
-        nickname: 'owen',
-        quineResponse: 'I told my parents I\'m getting straight A\'s but I\'m actually failing calc and haven\'t told anyone',
-      ),
-      BotUser(
-        botId: 'bot_m012',
-        nickname: 'hunter',
-        quineResponse: 'I\'ve been using the same towel for three weeks because I keep forgetting to do laundry',
-      ),
-      BotUser(
-        botId: 'bot_m013',
-        nickname: 'blake',
-        quineResponse: 'I cried watching a Disney movie last night and I\'m not telling my roommates which one',
-      ),
-      BotUser(
-        botId: 'bot_m014',
-        nickname: 'jordan',
-        quineResponse: 'I have no idea how to cook anything except mac and cheese and I eat it every day',
-      ),
-      BotUser(
-        botId: 'bot_m015',
-        nickname: 'austin',
-        quineResponse: 'I screenshot texts from girls and send them to the group chat asking what they mean',
-      ),
-      BotUser(
-        botId: 'bot_m016',
-        nickname: 'logan',
-        quineResponse: 'I\'ve been wearing the same pair of jeans for a week because they\'re my only clean ones',
-      ),
-      BotUser(
-        botId: 'bot_m017',
-        nickname: 'cole',
-        quineResponse: 'I laugh at everything my professor says even when it\'s not funny because I need the grade',
-      ),
-      BotUser(
-        botId: 'bot_m018',
-        nickname: 'drew',
-        quineResponse: 'I still have my mom schedule all my appointments because adulting is scary',
-      ),
-      BotUser(
-        botId: 'bot_m019',
-        nickname: 'kyle',
-        quineResponse: 'I\'ve been lying about knowing how to change a tire because I thought it would impress people',
-      ),
-      BotUser(
-        botId: 'bot_m020',
-        nickname: 'chase',
-        quineResponse: 'I eat in my dorm room instead of the dining hall because social anxiety is real',
+        BotUser(
+          botId: 'bot_m021',
+          nickname: 'softly',
+          quineResponse: 'did 50 pushups before lecture so i\'d look pumped. walked in shaking like a chihuahua',
+        ),
+        BotUser(
+          botId: 'bot_m022',
+          nickname: 'willow_17',
+          quineResponse: 'wrote a poem that rhymed heart with apart eight times and thought it was bars',
+        ),
+        BotUser(
+          botId: 'bot_m023',
+          nickname: 'lofi',
+          quineResponse: 'made a playlist called "for us" then she asked who "us" was',
+        ),
+        BotUser(
+          botId: 'bot_m024',
+          nickname: 'eastside3',
+          quineResponse: 'asked her fav coffee then ordered it black and almost met god',
+        ),
+        BotUser(
+          botId: 'bot_m025',
+          nickname: 'oddjob',
+          quineResponse: 'wore rings for one day. fingers turned green. aria said i looked like loki on a budget',
+        ),
+        BotUser(
+          botId: 'bot_m026',
+          nickname: 'midterm04',
+          quineResponse: 'posted a gym selfie caption "locked in." forgot leg day for 3 months',
+        ),
+        BotUser(
+          botId: 'bot_m027',
+          nickname: 'pebble',
+          quineResponse: 'learned three chords and tried to freestyle her name. name has five syllables',
+        ),
+        BotUser(
+          botId: 'bot_m028',
+          nickname: 'afterhours',
+          quineResponse: 'told the barber "give me riz." he handed me a beanie',
+        ),
+        BotUser(
+          botId: 'bot_m029',
+          nickname: 'sidestep',
+          quineResponse: 'stood outside her dorm "accidentally" four times. RA knows my schedule now',
+        ),
+        BotUser(
+          botId: 'bot_m030',
+          nickname: 'tman97',
+          quineResponse: 'invited her to a party i wasn\'t actually invited to',
+        ),
+        BotUser(
+          botId: 'bot_m031',
+          nickname: 'blink',
+          quineResponse: 'asked to study then stared at the same google doc for 90 minutes',
+        ),
+        BotUser(
+          botId: 'bot_m032',
+          nickname: 'gluestick',
+          quineResponse: 'bought a candle called moss & teak. room smelled like home depot',
+        ),
+        BotUser(
+          botId: 'bot_m033',
+          nickname: 'jaykay',
+          quineResponse: 'tried a wink. both eyes closed. looked like i passed out',
+        ),
+        BotUser(
+          botId: 'bot_m034',
+          nickname: 'overcast',
+          quineResponse: 'learned a british accent for two days. sounded australian, got booed',
+        ),
+        BotUser(
+          botId: 'bot_m035',
+          nickname: 'solo',
+          quineResponse: 'saved her contact as future wife then airplayed my screen in class',
+        ),
+        BotUser(
+          botId: 'bot_m036',
+          nickname: 'murmur',
+          quineResponse: 'asked her sign then mixed up libra with libra... somehow wrong both times',
+        ),
+        BotUser(
+          botId: 'bot_m037',
+          nickname: 'plainbagel',
+          quineResponse: 'bought matching bracelets for "us." i was the only one wearing one',
+        ),
+        BotUser(
+          botId: 'bot_m038',
+          nickname: 'quiet_mode',
+          quineResponse: 'sent a voice note. played it back. deleted my personality for 24 hours',
+        ),
+        BotUser(
+          botId: 'bot_m039',
+          nickname: 'sevenways',
+          quineResponse: 'made latte art to impress her. it looked like ohio',
+        ),
+        BotUser(
+          botId: 'bot_m040',
+          nickname: 'detour',
+          quineResponse: 'wore a turtleneck to a house party. sweated out my dignity',
+        ),
+        BotUser(
+          botId: 'bot_m061',
+          nickname: 'clover',
+          quineResponse: 'practiced my smile on front cam, looked like i bit a lemon, posted it anyway',
+        ),
+        BotUser(
+          botId: 'bot_m062',
+          nickname: 'apt_3b',
+          quineResponse: 'opened with a knock knock joke, she said wrong door, i\'m cooked',
+        ),
+        BotUser(
+          botId: 'bot_m063',
+          nickname: 'neon',
+          quineResponse: 'played spikeball to impress her, spiked it into my own face',
+        ),
+        BotUser(
+          botId: 'bot_m064',
+          nickname: 'couchshift',
+          quineResponse: 'told her to come thru, roommate had six dudes screaming at fifa, vibes dead',
+        ),
+        BotUser(
+          botId: 'bot_m065',
+          nickname: 'pocket',
+          quineResponse: 'bought a thrifted leather jacket, smelled like a basement, still wore it',
+        ),
+        BotUser(
+          botId: 'bot_m066',
+          nickname: 'thursday11',
+          quineResponse: 'took her to a hidden gem taco spot, closed on monday, stood there like an npc',
       ),
     ],
   );

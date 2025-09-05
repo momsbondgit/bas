@@ -251,7 +251,7 @@ class _WorldExperienceScreenState extends State<WorldExperienceScreen> with Tick
       children: [
         // Left tap indicator
         Positioned(
-          left: (screenSize.width / 4) + 10,
+          left: (screenSize.width / 4) - 20,
           top: (screenSize.height / 2) - 200,
           child: Image.asset(
             'assets/tap.png',

@@ -12,10 +12,10 @@ class ConfessionCard extends StatelessWidget {
   static const double _lineHeight = 1.3;
   static const double _blurSigma = 3.0;
   static const double _fontSizeMultiplier = 1.1;
-  static const double _reactionSpacing = 8.0;
+  static const double _reactionSpacing = 6.0;
   static const double _reactionRunSpacing = 4.0;
-  static const double _reactionPadding = 6.0;
-  static const double _reactionVerticalPadding = 3.0;
+  static const double _reactionPadding = 4.0;
+  static const double _reactionVerticalPadding = 2.0;
   static const double _blurOverlayOpacity = 0.1;
   static const double _messageBoxOpacity = 0.9;
   static const double _messageBoxHorizontalPadding = 20.0;
@@ -181,54 +181,49 @@ class ConfessionCard extends StatelessWidget {
       '🤪': 'W',
     };
     
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // REACT: label (matching original styling)
-          Text(
-            'REACT: ',
-            style: TextStyle(
-              fontFamily: 'SF Compact Rounded',
-              fontSize: fontSize * _fontSizeMultiplier,
-              fontWeight: FontWeight.w400,
-              color: const Color(0xFFB2B2B2),
-              letterSpacing: 0.4,
-            ),
+    return Wrap(
+      spacing: _reactionSpacing,
+      runSpacing: _reactionRunSpacing,
+      children: [
+        // REACT: label (matching original styling)
+        Text(
+          'REACT: ',
+          style: TextStyle(
+            fontFamily: 'SF Compact Rounded',
+            fontSize: fontSize * _fontSizeMultiplier,
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFFB2B2B2),
+            letterSpacing: 0.4,
           ),
-          // Original reaction format
-          ...reactionLabels.entries.map((entry) {
+        ),
+        // Original reaction format
+        ...reactionLabels.entries.map((entry) {
             final emoji = entry.key;
             final label = entry.value;
             final count = reactions[emoji] ?? 0;
             final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
             
-            return Padding(
-              padding: const EdgeInsets.only(right: _reactionSpacing),
-              child: GestureDetector(
-                onTap: () {
-                  onReaction?.call(emoji);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
-                  child: Text(
-                    displayText,
-                    style: TextStyle(
-                      fontFamily: 'SF Compact Rounded',
-                      fontSize: fontSize * _fontSizeMultiplier,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFFB2B2B2),
-                      letterSpacing: 0.4,
-                    ),
+            return GestureDetector(
+              onTap: () {
+                onReaction?.call(emoji);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
+                child: Text(
+                  displayText,
+                  style: TextStyle(
+                    fontFamily: 'SF Compact Rounded',
+                    fontSize: fontSize * _fontSizeMultiplier,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFFB2B2B2),
+                    letterSpacing: 0.4,
                   ),
                 ),
               ),
             );
           }).toList(),
         ],
-      ),
-    );
+      );
   }
 
 }

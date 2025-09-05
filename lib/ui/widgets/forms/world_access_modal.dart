@@ -104,7 +104,9 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
       backgroundColor: Colors.transparent,
       child: Container(
         width: screenWidth > 400 ? 350 : screenWidth * 0.85,
-        padding: const EdgeInsets.all(24),
+        constraints: BoxConstraints(
+          maxHeight: screenHeight * 0.8,
+        ),
         decoration: BoxDecoration(
           color: const Color(0xFFF1EDEA),
           borderRadius: BorderRadius.circular(20),
@@ -115,10 +117,12 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
         ),
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // Title
               Center(
                 child: Text(
@@ -380,6 +384,7 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
                 ],
               ),
             ],
+            ),
           ),
         ),
       ),

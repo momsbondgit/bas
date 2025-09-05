@@ -11,10 +11,10 @@ class RitualMessageCard extends StatelessWidget {
   static const double _screenHeightSpacingFactor = 0.008;
   static const double _lineHeight = 1.3;
   static const double _fontSizeMultiplier = 1.1;
-  static const double _reactionSpacing = 8.0;
+  static const double _reactionSpacing = 6.0;
   static const double _reactionRunSpacing = 4.0;
-  static const double _reactionPadding = 6.0;
-  static const double _reactionVerticalPadding = 3.0;
+  static const double _reactionPadding = 4.0;
+  static const double _reactionVerticalPadding = 2.0;
   
   static const List<ReactionType> _ritualReactions = [
     ReactionType.heart,
@@ -100,8 +100,9 @@ class RitualMessageCard extends StatelessWidget {
   Widget _buildReactionRow(double fontSize) {
     return AccessibilityUtils.wrapWithSemantics(
       label: 'Reaction buttons',
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Wrap(
+        spacing: _reactionSpacing,
+        runSpacing: _reactionRunSpacing,
         children: [
           Text(
             'REACT: ',
@@ -117,29 +118,26 @@ class RitualMessageCard extends StatelessWidget {
                 final count = message.getReactionCount(reaction);
                 final isSelected = message.getUserReaction(currentUserId) == reaction;
                 
-                return Padding(
-                  padding: const EdgeInsets.only(right: _reactionSpacing),
-                  child: AccessibilityUtils.wrapWithSemantics(
-                    label: AccessibilityUtils.getReactionButtonLabel(reaction, isSelected),
-                    button: true,
+                return AccessibilityUtils.wrapWithSemantics(
+                  label: AccessibilityUtils.getReactionButtonLabel(reaction, isSelected),
+                  button: true,
+                  onTap: () => onReaction?.call(reaction),
+                  child: GestureDetector(
                     onTap: () => onReaction?.call(reaction),
-                    child: GestureDetector(
-                      onTap: () => onReaction?.call(reaction),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
-                        decoration: isSelected ? BoxDecoration(
-                          color: Colors.black.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4.0),
-                        ) : null,
-                        child: Text(
-                          count > 0 ? '[${reaction.displayName.toUpperCase()}${reaction.emoji}]$count' : '[${reaction.displayName.toUpperCase()}${reaction.emoji}]',
-                          style: TextStyle(
-                            fontFamily: 'SF Compact Rounded',
-                            fontSize: fontSize * _fontSizeMultiplier,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                            color: isSelected ? Colors.black : const Color(0xFFB2B2B2),
-                            letterSpacing: 0.4,
-                          ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
+                      decoration: isSelected ? BoxDecoration(
+                        color: Colors.black.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4.0),
+                      ) : null,
+                      child: Text(
+                        count > 0 ? '[${reaction.displayName.toUpperCase()}${reaction.emoji}]$count' : '[${reaction.displayName.toUpperCase()}${reaction.emoji}]',
+                        style: TextStyle(
+                          fontFamily: 'SF Compact Rounded',
+                          fontSize: fontSize * _fontSizeMultiplier,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          color: isSelected ? Colors.black : const Color(0xFFB2B2B2),
+                          letterSpacing: 0.4,
                         ),
                       ),
                     ),
