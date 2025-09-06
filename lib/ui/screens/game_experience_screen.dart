@@ -174,6 +174,17 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     if (text.trim().isEmpty || !_viewModel.canPost) {
       return;
     }
+
+    // Check character limit
+    if (text.trim().length > 90) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Post is too long. Please keep it under 90 characters.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     
     try {
       await _viewModel.submitPost(text);
@@ -585,17 +596,17 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Container(
-        constraints: BoxConstraints(
+        constraints: const BoxConstraints(
           minHeight: 47,
-          maxHeight: canPost ? 120 : 47,
+          maxHeight: 47, // Fixed height to match waiting state
         ),
         decoration: BoxDecoration(
-          color: canPost ? const Color(0xFFE8E8E8) : const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(canPost ? 25 : 37),
-          border: canPost ? null : Border.all(color: const Color(0xFFDDDDDD), width: 1),
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(37),
+          border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
         ),
         child: Row(
-          crossAxisAlignment: canPost ? CrossAxisAlignment.end : CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: canPost
@@ -603,6 +614,12 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
                       controller: _textController,
                       focusNode: _focusNode,
                       enabled: canPost,
+                      cursorColor: const Color(0xFF8F8F8F),
+                      maxLength: 90, // Character limit to prevent scrolling
+                      buildCounter: (context, {required int currentLength, required bool isFocused, int? maxLength}) {
+                        // Hide counter to match waiting state size
+                        return const SizedBox.shrink();
+                      },
                       decoration: InputDecoration(
                         hintText: placeholderText,
                         hintStyle: const TextStyle(
@@ -611,6 +628,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
                           fontSize: 11,
                           color: Color(0xFF8F8F8F),
                         ),
+                        hintTextDirection: TextDirection.ltr,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.only(left: 21, right: 50, top: 8, bottom: 8),
                         isDense: true,
@@ -624,6 +642,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
                       ),
                       maxLines: null,
                       minLines: 1,
+                      textAlign: TextAlign.left,
                       expands: false,
                       scrollController: null,
                       keyboardType: TextInputType.multiline,

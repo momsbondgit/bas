@@ -31,12 +31,22 @@ class _AdminSidebarState extends State<AdminSidebar> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final isDesktop = screenWidth >= 1024;
+    final isTablet = screenWidth >= 768;
+    final isMobile = screenWidth < 768;
+    
+    // Don't render sidebar on mobile - it's handled by drawer
+    if (isMobile) {
+      return const SizedBox.shrink();
+    }
     
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeInOut,
-      width: widget.isExpanded ? (isDesktop ? 280 : 260) : 80,
+      width: widget.isExpanded 
+          ? (isDesktop ? 280 : (isTablet ? 260 : 240)) 
+          : (isDesktop ? 80 : 70),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
@@ -50,8 +60,8 @@ class _AdminSidebarState extends State<AdminSidebar> {
         children: [
           // Header
           Container(
-            height: 80,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            height: isDesktop ? 80 : (isTablet ? 70 : 60),
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 20 : (isTablet ? 16 : 12)),
             decoration: const BoxDecoration(
               color: Color(0xFFFAFAFA),
               border: Border(
@@ -65,16 +75,16 @@ class _AdminSidebarState extends State<AdminSidebar> {
               children: [
                 // Admin icon
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: isDesktop ? 40 : (isTablet ? 36 : 32),
+                  height: isDesktop ? 40 : (isTablet ? 36 : 32),
                   decoration: BoxDecoration(
                     color: const Color(0xFF6366F1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(isDesktop ? 12 : (isTablet ? 10 : 8)),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.admin_panel_settings,
                     color: Colors.white,
-                    size: 20,
+                    size: isDesktop ? 20 : (isTablet ? 18 : 16),
                   ),
                 ),
                 if (widget.isExpanded) ...[

@@ -110,35 +110,69 @@ class _PostInputState extends State<PostInput> {
     final isTablet = screenWidth >= 768;
     final isDesktop = screenWidth >= 1024;
     
-    // Responsive dimensions
-    final horizontalPadding = isDesktop ? 24.0 : (isTablet ? 20.0 : screenWidth * 0.05);
-    final verticalPadding = isDesktop ? 20.0 : (isTablet ? 18.0 : screenHeight * 0.015);
-    final containerHeight = isDesktop ? 120.0 : (isTablet ? 110.0 : (screenHeight * 0.12).clamp(90.0, 110.0));
+    // Fixed minimal dimensions to match waiting state
+    final horizontalPadding = 16.0; // Fixed padding
+    final verticalPadding = 8.0; // Minimal padding
+    final containerHeight = 60.0; // Fixed height to match waiting state exactly
     
-    // Text input area dimensions
-    final inputLeftPadding = isDesktop ? 24.0 : (isTablet ? 20.0 : screenWidth * 0.05);
-    final inputTopPadding = isDesktop ? 20.0 : (isTablet ? 18.0 : screenHeight * 0.015);
-    final inputBottomPadding = isDesktop ? 20.0 : (isTablet ? 18.0 : screenHeight * 0.015);
+    // Text input area dimensions - fixed to match waiting state
+    final inputLeftPadding = 16.0;
+    final inputTopPadding = 12.0;
+    final inputBottomPadding = 12.0;
     
-    // Post button dimensions
-    final buttonWidth = isDesktop ? 80.0 : (isTablet ? 70.0 : (screenWidth * 0.15).clamp(55.0, 65.0));
-    final buttonHeight = isDesktop ? 40.0 : (isTablet ? 36.0 : (screenHeight * 0.038).clamp(30.0, 35.0));
-    final buttonRightPadding = isDesktop ? 24.0 : (isTablet ? 20.0 : screenWidth * 0.03);
+    // Post button dimensions - fixed to fit within waiting state height
+    final buttonWidth = 60.0;
+    final buttonHeight = 32.0;
+    final buttonRightPadding = 12.0;
     
-    // Font sizes
-    final fontSize = isDesktop ? 14.0 : (isTablet ? 13.0 : (screenWidth * 0.033).clamp(12.0, 14.0));
+    // Font sizes - fixed to match waiting state
+    final fontSize = 14.0;
 
-    return Container(
-      margin: const EdgeInsets.all(0),
-      padding: EdgeInsets.only(
-        left: horizontalPadding,
-        right: horizontalPadding,
-        top: verticalPadding * 0.5, // Reduced top padding
-        bottom: verticalPadding,
-      ),
-      decoration: const BoxDecoration(),
-      child: Container(
-        height: containerHeight,
+    // DEBUG: Print all dimensions to console
+    print('=== POST INPUT DEBUG ===');
+    print('Screen Width: $screenWidth');
+    print('Screen Height: $screenHeight');
+    print('Horizontal Padding: $horizontalPadding');
+    print('Vertical Padding: $verticalPadding');
+    print('Container Height: $containerHeight');
+    print('Input Left Padding: $inputLeftPadding');
+    print('Input Top Padding: $inputTopPadding');
+    print('Input Bottom Padding: $inputBottomPadding');
+    print('Button Width: $buttonWidth');
+    print('Button Height: $buttonHeight');
+    print('Button Right Padding: $buttonRightPadding');
+    print('Font Size: $fontSize');
+    
+    // Calculate total widget height
+    final totalHeight = containerHeight + (verticalPadding * 2);
+    print('TOTAL WIDGET HEIGHT: $totalHeight');
+    print('========================');
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        print('=== LAYOUT BUILDER DEBUG ===');
+        print('Available Width: ${constraints.maxWidth}');
+        print('Available Height: ${constraints.maxHeight}');
+        print('============================');
+        
+        return Container(
+          margin: const EdgeInsets.all(0),
+          padding: EdgeInsets.only(
+            left: horizontalPadding,
+            right: horizontalPadding,
+            top: verticalPadding, // Minimal top padding
+            bottom: verticalPadding,
+          ),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.red, width: 2), // DEBUG: Red border to see boundaries
+          ),
+          child: Builder(
+            builder: (context) {
+              print('=== INNER CONTAINER DEBUG ===');
+              print('Inner Container Height: $containerHeight');
+              print('============================');
+              return Container(
+                height: containerHeight,
         decoration: BoxDecoration(
           color: const Color(0xFFF1EDEA),
           borderRadius: BorderRadius.circular(20),
@@ -154,13 +188,18 @@ class _PostInputState extends State<PostInput> {
               left: inputLeftPadding,
               top: inputTopPadding,
               right: buttonWidth + buttonRightPadding + 10, // Leave space for post button with padding
-              bottom: inputBottomPadding,
+              bottom: inputBottomPadding, // No extra space needed
               child: TextField(
                 controller: _controller,
                 maxLines: null,
                 expands: true,
+                maxLength: 200, // Character limit to prevent scrolling
+                buildCounter: (context, {currentLength, isFocused, maxLength}) {
+                  // Hide counter to match waiting state size exactly
+                  return const SizedBox.shrink();
+                },
                 decoration: InputDecoration(
-                  hintText: 'Type your confessions here.....',
+                  hintText: 'Type your confessions here..... (max 200 characters)',
                   hintStyle: TextStyle(
                     fontFamily: 'SF Pro',
                     fontSize: fontSize,
@@ -215,8 +254,11 @@ _viewModel.isSubmitting ? 'Posting...' : 'Post',
               ),
             ),
           ],
-        ),
-      ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

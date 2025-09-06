@@ -100,7 +100,7 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(_getResponsivePadding(context)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -155,11 +155,10 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
                         const SizedBox(height: 16),
                         
                         // Floor and Gender Selection
-                        Row(
-                          children: [
-                            // Floor Selection
-                            Expanded(
-                              child: Column(
+                        _getResponsiveFormRow(context, [
+                          // Floor Selection
+                          Expanded(
+                            child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
@@ -201,7 +200,7 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
                               ),
                             ),
                             
-                            const SizedBox(width: 16),
+                            SizedBox(width: _isMobile(context) ? 0 : 16, height: _isMobile(context) ? 16 : 0),
                             
                             // Gender Selection
                             Expanded(
@@ -246,8 +245,7 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                        ]),
                         
                         const SizedBox(height: 20),
                         
@@ -530,5 +528,31 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  double _getResponsivePadding(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth >= 1024) return 24;
+    if (screenWidth >= 768) return 20;
+    return 16;
+  }
+
+  bool _isMobile(BuildContext context) {
+    return MediaQuery.of(context).size.width < 768;
+  }
+
+  Widget _getResponsiveFormRow(BuildContext context, List<Widget> children) {
+    final isMobile = _isMobile(context);
+    
+    if (isMobile) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      );
+    }
+    
+    return Row(
+      children: children,
+    );
   }
 }

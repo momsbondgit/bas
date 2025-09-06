@@ -144,8 +144,13 @@ class _AdminPostsSectionState extends State<AdminPostsSection> {
   }
 
   Widget _buildPostCard(QueryDocumentSnapshot post, Map<String, dynamic> data, bool isEditing) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 1024;
+    final isTablet = screenWidth >= 768;
+    final isMobile = screenWidth < 768;
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isDesktop ? 20 : (isTablet ? 16 : 12)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -162,37 +167,110 @@ class _AdminPostsSectionState extends State<AdminPostsSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Post header
-          Row(
+          isMobile ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Floor and gender info row
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: isDesktop ? 8 : 6, vertical: isDesktop ? 4 : 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Floor ${data['floor']}',
+                      style: TextStyle(
+                        fontSize: isDesktop ? 11 : 10,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF6366F1),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: isDesktop ? 8 : 6, vertical: isDesktop ? 4 : 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF059669).withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      data['gender'] ?? 'Unknown',
+                      style: TextStyle(
+                        fontSize: isDesktop ? 11 : 10,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF059669),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (!isEditing) ...[
+                const SizedBox(height: 8),
+                // Action buttons row
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _startEditing(post.id, data['text'] ?? ''),
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text('Edit'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF6366F1),
+                          side: BorderSide(color: const Color(0xFF6366F1).withOpacity(0.3)),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _deletePost(post.id),
+                        icon: const Icon(Icons.delete_outline, size: 16),
+                        label: const Text('Delete'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFEF4444),
+                          side: BorderSide(color: const Color(0xFFEF4444).withOpacity(0.3)),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ) : Row(
             children: [
               // Floor and gender info
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 8 : 6, vertical: isDesktop ? 4 : 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFF6366F1).withOpacity(0.08),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   'Floor ${data['floor']}',
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TextStyle(
+                    fontSize: isDesktop ? 11 : 10,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF6366F1),
+                    color: const Color(0xFF6366F1),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 8 : 6, vertical: isDesktop ? 4 : 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFF059669).withOpacity(0.08),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   data['gender'] ?? 'Unknown',
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TextStyle(
+                    fontSize: isDesktop ? 11 : 10,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF059669),
+                    color: const Color(0xFF059669),
                   ),
                 ),
               ),
@@ -200,21 +278,21 @@ class _AdminPostsSectionState extends State<AdminPostsSection> {
               if (!isEditing) ...[
                 IconButton(
                   onPressed: () => _startEditing(post.id, data['text'] ?? ''),
-                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  icon: Icon(Icons.edit_outlined, size: isDesktop ? 18 : 16),
                   style: IconButton.styleFrom(
                     backgroundColor: const Color(0xFF6366F1).withOpacity(0.08),
                     foregroundColor: const Color(0xFF6366F1),
-                    minimumSize: const Size(36, 36),
+                    minimumSize: Size(isDesktop ? 36 : 32, isDesktop ? 36 : 32),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: isDesktop ? 8 : 4),
                 IconButton(
                   onPressed: () => _deletePost(post.id),
-                  icon: const Icon(Icons.delete_outline, size: 18),
+                  icon: Icon(Icons.delete_outline, size: isDesktop ? 18 : 16),
                   style: IconButton.styleFrom(
                     backgroundColor: const Color(0xFFEF4444).withOpacity(0.08),
                     foregroundColor: const Color(0xFFEF4444),
-                    minimumSize: const Size(36, 36),
+                    minimumSize: Size(isDesktop ? 36 : 32, isDesktop ? 36 : 32),
                   ),
                 ),
               ],

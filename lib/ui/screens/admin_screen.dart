@@ -8,6 +8,9 @@ import '../widgets/admin/admin_posts_section.dart';
 import '../widgets/admin/admin_add_post_section.dart';
 import '../widgets/admin/admin_system_controls_section.dart';
 import '../widgets/indicators/home_presence_counter.dart';
+import '../widgets/indicators/returning_users_counter.dart';
+import '../widgets/indicators/instagram_counter.dart';
+import '../widgets/indicators/phone_numbers_counter.dart';
 import 'admin_login_screen.dart';
 import 'dart:async';
 
@@ -203,44 +206,266 @@ class _AdminScreenState extends State<AdminScreen> with TickerProviderStateMixin
     }
 
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final isDesktop = screenWidth >= 1024;
     final isTablet = screenWidth >= 768;
+    final isMobile = screenWidth < 768;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1EDEA),
+      drawer: isMobile ? _buildMobileDrawer() : null,
       body: SafeArea(
-        child: Row(
-          children: [
-            // Sidebar
-            AdminSidebar(
-              currentSection: _currentSection,
-              isExpanded: _isSidebarExpanded,
-              animationController: _sidebarAnimationController,
-              onSectionChanged: _onSectionChanged,
-              onToggleSidebar: _toggleSidebar,
-              remainingSessionMinutes: _remainingSessionMinutes,
-              onLogout: _logout,
-              onExtendSession: _extendSession,
+        child: isMobile 
+          ? _buildMobileLayout(screenWidth, screenHeight)
+          : _buildDesktopLayout(screenWidth, screenHeight, isDesktop, isTablet),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(double screenWidth, double screenHeight) {
+    return Column(
+      children: [
+        // Mobile app bar
+        Container(
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(color: Color(0xFFE5E7EB)),
             ),
-            
-            // Main content area
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.all(isDesktop ? 24 : (isTablet ? 20 : 16)),
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => Scaffold.of(context).openDrawer(),
+                icon: const Icon(Icons.menu, color: Color(0xFF374151)),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.admin_panel_settings,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
-                    _buildHeader(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Main content
-                    Expanded(
-                      child: _buildMainContent(),
+                    Text(
+                      _getSectionTitle(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    Text(
+                      '${_remainingSessionMinutes}m left',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6B7280),
+                      ),
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                onPressed: _extendSession,
+                icon: const Icon(Icons.timer, color: Color(0xFF059669), size: 20),
+              ),
+              IconButton(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout, color: Color(0xFFDC2626), size: 20),
+              ),
+            ],
+          ),
+        ),
+        
+        // Mobile content
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Mobile stats chips
+                _buildMobileStatsChips(),
+                const SizedBox(height: 16),
+                
+                // Main content
+                Expanded(
+                  child: _buildMainContent(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(double screenWidth, double screenHeight, bool isDesktop, bool isTablet) {
+    return Row(
+      children: [
+        // Sidebar for desktop/tablet
+        AdminSidebar(
+          currentSection: _currentSection,
+          isExpanded: _isSidebarExpanded,
+          animationController: _sidebarAnimationController,
+          onSectionChanged: _onSectionChanged,
+          onToggleSidebar: _toggleSidebar,
+          remainingSessionMinutes: _remainingSessionMinutes,
+          onLogout: _logout,
+          onExtendSession: _extendSession,
+        ),
+        
+        // Main content area
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.all(isDesktop ? 24 : (isTablet ? 20 : 16)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                _buildHeader(),
+                
+                SizedBox(height: isDesktop ? 24 : 16),
+                
+                // Main content
+                Expanded(
+                  child: _buildMainContent(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileDrawer() {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Drawer header
+            Container(
+              height: 80,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFAFAFA),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.admin_panel_settings,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Admin Panel',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
+                        Text(
+                          '${_remainingSessionMinutes}m left',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Navigation items
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _buildMobileNavItem(
+                      icon: Icons.article_outlined,
+                      activeIcon: Icons.article,
+                      label: 'Posts Management',
+                      section: AdminSection.postsManagement,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildMobileNavItem(
+                      icon: Icons.add_circle_outline,
+                      activeIcon: Icons.add_circle,
+                      label: 'Add Post',
+                      section: AdminSection.addPost,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildMobileNavItem(
+                      icon: Icons.settings_outlined,
+                      activeIcon: Icons.settings,
+                      label: 'System Controls',
+                      section: AdminSection.systemControls,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Footer actions
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildMobileActionButton(
+                    icon: Icons.timer_outlined,
+                    label: 'Extend Session',
+                    color: const Color(0xFF059669),
+                    onPressed: _extendSession,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMobileActionButton(
+                    icon: Icons.logout_outlined,
+                    label: 'Logout',
+                    color: const Color(0xFFDC2626),
+                    onPressed: _logout,
+                  ),
+                ],
               ),
             ),
           ],
@@ -276,47 +501,61 @@ class _AdminScreenState extends State<AdminScreen> with TickerProviderStateMixin
   }
 
   Widget _buildHeader() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 1024;
+    final isTablet = screenWidth >= 768;
+    
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isDesktop ? 24 : (isTablet ? 20 : 16)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getSectionTitle(),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF111827),
-                  ),
+          // Header title section
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getSectionTitle(),
+                      style: TextStyle(
+                        fontSize: isDesktop ? 24 : (isTablet ? 22 : 20),
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF111827),
+                      ),
+                    ),
+                    SizedBox(height: isDesktop ? 4 : 2),
+                    Text(
+                      _getSectionSubtitle(),
+                      style: TextStyle(
+                        fontSize: isDesktop ? 14 : (isTablet ? 13 : 12),
+                        color: const Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  _getSectionSubtitle(),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          
+          SizedBox(height: isDesktop ? 16 : 12),
           
           // Quick stats
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildQuickStat('Posts', _posts.length, Icons.article, const Color(0xFF6366F1)),
+                const ReturningUsersCounter(),
                 const SizedBox(width: 12),
-                _buildQuickStat('Numbers', _endings.length, Icons.phone, const Color(0xFF059669)),
+                const InstagramCounter(),
+                const SizedBox(width: 12),
+                const PhoneNumbersCounter(),
                 const SizedBox(width: 12),
                 const HomePresenceCounter(),
                 if (_maintenanceStatus != null) ...[
@@ -453,5 +692,123 @@ class _AdminScreenState extends State<AdminScreen> with TickerProviderStateMixin
       case AdminSection.systemControls:
         return 'Maintenance and system settings';
     }
+  }
+
+  Widget _buildMobileStatsChips() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          const ReturningUsersCounter(),
+          const SizedBox(width: 8),
+          const InstagramCounter(),
+          const SizedBox(width: 8),
+          const PhoneNumbersCounter(),
+          const SizedBox(width: 8),
+          const HomePresenceCounter(),
+          if (_maintenanceStatus != null) ...[
+            const SizedBox(width: 8),
+            _buildMaintenanceIndicator(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileNavItem({
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required AdminSection section,
+  }) {
+    final isActive = _currentSection == section;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          _onSectionChanged(section);
+          Navigator.of(context).pop(); // Close drawer
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isActive ? const Color(0xFF6366F1).withOpacity(0.1) : null,
+            borderRadius: BorderRadius.circular(12),
+            border: isActive 
+                ? Border.all(color: const Color(0xFF6366F1).withOpacity(0.2))
+                : null,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isActive ? activeIcon : icon,
+                size: 20,
+                color: isActive ? const Color(0xFF6366F1) : const Color(0xFF6B7280),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                    color: isActive ? const Color(0xFF6366F1) : const Color(0xFF374151),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onPressed,
+        child: Container(
+          width: double.infinity,
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withOpacity(0.2)),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: color,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

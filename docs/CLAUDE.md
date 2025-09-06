@@ -77,6 +77,9 @@ lib/
 - Simplified timer system by removing 60-second individual reaction timers
 - Updated session end logic to use single 20-second universal reaction timer
 - Fixed session end detection for 6th user completion
+- Fixed input widget sizing consistency: Both posting and waiting states now use same 47px height
+- Added 200-character limit to prevent scrolling in comment sections
+- Implemented character limit validation with user feedback
 
 ### Development Principles
 

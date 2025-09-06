@@ -21,6 +21,12 @@ class PostInputViewModel extends ChangeNotifier {
       return false;
     }
 
+    if (text.trim().length > 200) {
+      _errorMessage = 'Post is too long. Please keep it under 200 characters.';
+      notifyListeners();
+      return false;
+    }
+
     _isSubmitting = true;
     _errorMessage = null;
     notifyListeners();

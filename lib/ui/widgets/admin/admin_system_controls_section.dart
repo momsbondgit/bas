@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../services/admin/maintenance_service.dart';
+import '../../../services/analytics/returning_user_service.dart';
 
 class AdminSystemControlsSection extends StatefulWidget {
   final MaintenanceStatus? maintenanceStatus;
@@ -20,7 +21,9 @@ class AdminSystemControlsSection extends StatefulWidget {
 
 class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection> {
   final MaintenanceService _maintenanceService = MaintenanceService();
+  final ReturningUserService _returningUserService = ReturningUserService();
   bool _isUpdatingMaintenance = false;
+  bool _isResettingReturningUsers = false;
   
   final TextEditingController _timerMinutesController = TextEditingController();
   final TextEditingController _extendMinutesController = TextEditingController();
@@ -44,6 +47,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 1024;
     final isTablet = screenWidth >= 768;
+    final isMobile = screenWidth < 768;
 
     return Container(
       decoration: BoxDecoration(
@@ -55,7 +59,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
         ),
       ),
       child: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isDesktop ? 24 : (isTablet ? 20 : 16)),
         children: [
           // Maintenance Mode
           _buildSectionCard(
@@ -213,6 +217,145 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
               ],
             ),
           ),
+          
+          const SizedBox(height: 24),
+          
+          // View Instagram Submissions
+          _buildSectionCard(
+            title: 'Instagram Submissions',
+            icon: Icons.camera_alt,
+            iconColor: const Color(0xFFE4405F),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Total Instagram IDs: ${_getInstagramCount()}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFE4405F),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  height: 250,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: _getInstagramSubmissions().isEmpty 
+                      ? const Center(
+                          child: Text(
+                            'No Instagram IDs submitted yet',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _getInstagramSubmissions().length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final doc = _getInstagramSubmissions()[index];
+                            final data = doc.data() as Map<String, dynamic>;
+                            return _buildInstagramItem(
+                              instagramId: data['instagram'] ?? '',
+                              gender: data['gender'] ?? 'N/A',
+                              floor: data['floor']?.toString() ?? 'N/A',
+                              isDesktop: isDesktop,
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Returning User Analytics
+          _buildSectionCard(
+            title: 'Returning User Analytics',
+            icon: Icons.repeat,
+            iconColor: const Color(0xFFEF4444),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Track users who visit multiple times',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF6B7280),
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          FutureBuilder<int>(
+                            future: _returningUserService.getTotalReturningUsersCount(),
+                            builder: (context, snapshot) {
+                              final count = snapshot.data ?? 0;
+                              return Text(
+                                'Returning Users: $count',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFEF4444),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _isResettingReturningUsers ? null : _resetReturningUserData,
+                        icon: _isResettingReturningUsers 
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Icon(Icons.refresh, size: 16),
+                        label: Text(_isResettingReturningUsers ? 'Resetting...' : 'Reset Analytics'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEF4444),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -290,10 +433,11 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
           ),
         ),
         const SizedBox(height: 12),
-        Row(
+        Flex(
+          direction: isDesktop ? Axis.horizontal : Axis.vertical,
           children: [
             Expanded(
-              flex: 2,
+              flex: isDesktop ? 2 : 1,
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
@@ -322,9 +466,9 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: isDesktop ? 12 : 0, height: isDesktop ? 0 : 12),
             Expanded(
-              flex: 3,
+              flex: isDesktop ? 3 : 1,
               child: ElevatedButton(
                 onPressed: onPressed,
                 style: ElevatedButton.styleFrom(
@@ -523,5 +667,173 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
+  }
+
+  Widget _buildInstagramItem({
+    required String instagramId,
+    required String gender,
+    required String floor,
+    required bool isDesktop,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE4405F).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: const Icon(Icons.camera_alt, color: Color(0xFFE4405F), size: 14),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '@$instagramId',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
+              ),
+              Text(
+                'Gender: $gender • Floor: $floor',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF6B7280),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper method to get count of endings with Instagram
+  int _getInstagramCount() {
+    return widget.endings
+        .where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return data.containsKey('instagram') && 
+                 data['instagram'] != null && 
+                 data['instagram'].toString().trim().isNotEmpty;
+        })
+        .length;
+  }
+
+  // Helper method to get endings with Instagram only
+  List<QueryDocumentSnapshot> _getInstagramSubmissions() {
+    return widget.endings
+        .where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return data.containsKey('instagram') && 
+                 data['instagram'] != null && 
+                 data['instagram'].toString().trim().isNotEmpty;
+        })
+        .toList();
+  }
+
+  void _resetReturningUserData() async {
+    if (_isResettingReturningUsers) return;
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFF1EDEA),
+          title: const Text(
+            'Reset Returning User Analytics',
+            style: TextStyle(
+              fontFamily: 'SF Pro',
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          content: const Text(
+            'This will permanently delete all returning user analytics data. This action cannot be undone.',
+            style: TextStyle(
+              fontFamily: 'SF Pro',
+              color: Colors.black,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  fontFamily: 'SF Pro',
+                  color: Color(0xFF666666),
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text(
+                'Reset Data',
+                style: TextStyle(
+                  fontFamily: 'SF Pro',
+                  color: Color(0xFFEF4444),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isResettingReturningUsers = true);
+    
+    try {
+      await _returningUserService.resetReturningUserData();
+      
+      if (mounted) {
+        setState(() {}); // Refresh UI
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Returning user analytics data has been reset',
+              style: TextStyle(
+                fontFamily: 'SF Pro',
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Color(0xFF059669),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error resetting analytics: $e',
+              style: const TextStyle(
+                fontFamily: 'SF Pro',
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isResettingReturningUsers = false);
+      }
+    }
   }
 }
