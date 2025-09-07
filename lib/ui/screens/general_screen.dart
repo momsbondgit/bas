@@ -27,6 +27,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
   }
 
   Future<void> _checkAuthAndNavigate(BuildContext context, WorldConfig world) async {
+    
     final authService = AuthService();
     final localStorageService = LocalStorageService();
     
@@ -37,6 +38,10 @@ class _GeneralScreenState extends State<GeneralScreen> {
     final isLoggedInForWorld = await authService.isLoggedInForWorld(world.id);
     
     if (isLoggedInForWorld) {
+      // Track world visit for returning users
+      final anonId = await authService.getOrCreateAnonId();
+      await authService.trackWorldVisit(anonId, world.id);
+      
       // User has account for this world, navigate directly
       if (context.mounted) {
         Navigator.push(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../../config/world_config.dart';
 import '../../services/world_service.dart';
+import '../../services/auth/auth_service.dart';
 import 'game_experience_screen.dart';
 
 class WorldExperienceScreen extends StatefulWidget {
@@ -275,11 +276,16 @@ class _WorldExperienceScreenState extends State<WorldExperienceScreen> with Tick
     );
   }
 
-  void _onWorldTileTap(String worldId) {
+  void _onWorldTileTap(String worldId) async {
     final worldService = WorldService();
+    final authService = AuthService();
     final world = worldService.getWorldById(worldId);
     
     if (world != null) {
+      // Track world visit for returning users
+      final anonId = await authService.getOrCreateAnonId();
+      await authService.trackWorldVisit(anonId, worldId);
+      
       // Navigate to the actual game experience
       Navigator.pushReplacement(
         context,

@@ -79,6 +79,7 @@ class AuthService {
         'anonId': anonId,
         'accessCode': accessCode,
         'nickname': nickname,
+        'worldVisitCount': 1,
         'createdAt': FieldValue.serverTimestamp(),
       });
       
@@ -108,12 +109,13 @@ class AuthService {
       
       final anonId = await getOrCreateAnonId();
       
-      // Store in Firebase with world ID
+      // Store in Firebase with world ID (including initial visit count)
       await _firestore.collection(_accountsCollection).doc(anonId).set({
         'anonId': anonId,
         'accessCode': accessCode,
         'nickname': nickname,
         'worldId': worldId,
+        'worldVisitCount': 1,
         'createdAt': FieldValue.serverTimestamp(),
       });
       
@@ -139,5 +141,40 @@ class AuthService {
     await _localStorage.setNickname('');
     await _localStorage.setHasAccount(false);
     await _localStorage.setAuthenticatedWorldId('');
+  }
+  
+  /// Track when a user visits a world and increment their return count
+  Future<void> trackWorldVisit(String anonId, String worldId) async {
+    try {
+      final docRef = _firestore.collection(_accountsCollection).doc(anonId);
+      
+      // Simply increment the worldVisitCount field
+      await docRef.update({
+        'worldVisitCount': FieldValue.increment(1),
+      });
+    } catch (e) {
+      // If document doesn't exist or field doesn't exist, create/set it
+      try {
+        await _firestore.collection(_accountsCollection).doc(anonId).set({
+          'worldVisitCount': 1,
+        }, SetOptions(merge: true));
+      } catch (e2) {
+        // Silently fail if unable to track
+      }
+    }
+  }
+  
+  /// Get user's world visit count
+  Future<int> getUserWorldVisitCount(String anonId) async {
+    try {
+      final doc = await _firestore.collection(_accountsCollection).doc(anonId).get();
+      if (doc.exists) {
+        final data = doc.data();
+        return (data?['worldVisitCount'] ?? 0) as int;
+      }
+      return 0;
+    } catch (e) {
+      return 0;
+    }
   }
 }

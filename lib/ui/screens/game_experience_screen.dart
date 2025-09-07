@@ -95,12 +95,9 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 
   void _onViewModelChanged() {
-    print('🔍 DEBUG _onViewModelChanged: called');
     final isExpired = _viewModel.isTimerExpired;
-    print('🔍 DEBUG _onViewModelChanged: isTimerExpired=$isExpired');
     
     if (isExpired) {
-      print('🔍 DEBUG _onViewModelChanged: REDIRECTING TO SESSION END');
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => const SessionEndScreen(),
@@ -176,10 +173,10 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     }
 
     // Check character limit
-    if (text.trim().length > 96) {
+    if (text.trim().length > 90) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Post is too long. Please keep it under 96 characters.'),
+          content: Text('Post is too long. Please keep it under 90 characters.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -283,8 +280,8 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     // Add Firebase posts
     for (int i = 0; i < _viewModel.posts.length; i++) {
       final doc = _viewModel.posts[i];
-      final data = doc.data() as Map<String, dynamic>;
-      final postId = doc.id;
+      final data = doc;
+      final postId = doc['id'] ?? 'unknown_${i}';
       
       // Check if this is the current user's post (first post from real user who has posted)
       final isCurrentUserPost = activeUser?.isReal == true && 
@@ -615,7 +612,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
                       focusNode: _focusNode,
                       enabled: canPost,
                       cursorColor: const Color(0xFF8F8F8F),
-                      maxLength: 96, // Character limit for two full lines
+                      maxLength: 90, // Character limit for two full lines
                       buildCounter: (context, {required int currentLength, required bool isFocused, int? maxLength}) {
                         // Hide counter to match waiting state size
                         return const SizedBox.shrink();
@@ -910,8 +907,8 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       final posts = _viewModel.posts;
       if (posts.isNotEmpty) {
         final recentPost = posts.first;
-        final data = recentPost.data() as Map<String, dynamic>;
-        final postId = recentPost.id;
+        final data = recentPost;
+        final postId = recentPost['id'] ?? 'unknown';
         activeUserPostWidget = _buildConfessionCard(data, postId, isCurrentUser: true);
       }
     } else {

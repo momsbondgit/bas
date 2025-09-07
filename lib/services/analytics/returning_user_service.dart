@@ -60,7 +60,7 @@ class ReturningUserService {
         });
       }
     } catch (e) {
-      print('Error tracking returning user: $e');
+      // Silently fail if unable to track
     }
   }
   
@@ -70,7 +70,6 @@ class ReturningUserService {
       final snapshot = await _firestore.collection(_collectionName).get();
       return snapshot.size;
     } catch (e) {
-      print('Error getting returning users count: $e');
       return 0;
     }
   }
@@ -101,7 +100,6 @@ class ReturningUserService {
         };
       }).toList();
     } catch (e) {
-      print('Error getting returning users data: $e');
       return [];
     }
   }
@@ -120,7 +118,6 @@ class ReturningUserService {
       
       await batch.commit();
     } catch (e) {
-      print('Error resetting returning user data: $e');
       throw e;
     }
   }
@@ -159,7 +156,6 @@ class ReturningUserService {
         'mostRecentVisit': mostRecentVisit,
       };
     } catch (e) {
-      print('Error getting returning users stats: $e');
       return {
         'totalReturningUsers': 0,
         'averageVisits': 0,

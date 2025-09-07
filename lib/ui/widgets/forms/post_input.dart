@@ -128,33 +128,8 @@ class _PostInputState extends State<PostInput> {
     // Font sizes - fixed to match waiting state
     final fontSize = 14.0;
 
-    // DEBUG: Print all dimensions to console
-    print('=== POST INPUT DEBUG ===');
-    print('Screen Width: $screenWidth');
-    print('Screen Height: $screenHeight');
-    print('Horizontal Padding: $horizontalPadding');
-    print('Vertical Padding: $verticalPadding');
-    print('Container Height: $containerHeight');
-    print('Input Left Padding: $inputLeftPadding');
-    print('Input Top Padding: $inputTopPadding');
-    print('Input Bottom Padding: $inputBottomPadding');
-    print('Button Width: $buttonWidth');
-    print('Button Height: $buttonHeight');
-    print('Button Right Padding: $buttonRightPadding');
-    print('Font Size: $fontSize');
-    
-    // Calculate total widget height
-    final totalHeight = containerHeight + (verticalPadding * 2);
-    print('TOTAL WIDGET HEIGHT: $totalHeight');
-    print('========================');
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        print('=== LAYOUT BUILDER DEBUG ===');
-        print('Available Width: ${constraints.maxWidth}');
-        print('Available Height: ${constraints.maxHeight}');
-        print('============================');
-        
         return Container(
           margin: const EdgeInsets.all(0),
           padding: EdgeInsets.only(
@@ -163,14 +138,8 @@ class _PostInputState extends State<PostInput> {
             top: verticalPadding, // Minimal top padding
             bottom: verticalPadding,
           ),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.red, width: 2), // DEBUG: Red border to see boundaries
-          ),
           child: Builder(
             builder: (context) {
-              print('=== INNER CONTAINER DEBUG ===');
-              print('Inner Container Height: $containerHeight');
-              print('============================');
               return Container(
                 height: containerHeight,
         decoration: BoxDecoration(

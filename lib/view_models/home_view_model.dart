@@ -17,7 +17,7 @@ class HomeViewModel extends ChangeNotifier {
   // State
   bool _hasPosted = false;
   int _viewerCount = 6;
-  List<QueryDocumentSnapshot> _posts = [];
+  List<Map<String, dynamic>> _userPosts = []; // User's own posts only
   List<Map<String, dynamic>> _localBotPosts = [];
   QueueState _queueState = const QueueState(queue: [], currentIndex: 0, isInitialized: false);
   
@@ -28,7 +28,6 @@ class HomeViewModel extends ChangeNotifier {
   // Private
   Timer? _timer;
   Timer? _viewerTimer;
-  StreamSubscription<QuerySnapshot>? _postsSubscription;
   StreamSubscription<QueueState>? _queueSubscription;
   StreamSubscription<MaintenanceStatus>? _maintenanceSubscription;
   final Random _random = Random();
@@ -36,7 +35,7 @@ class HomeViewModel extends ChangeNotifier {
   // Getters
   bool get hasPosted => _hasPosted;
   int get viewerCount => _viewerCount;
-  List<QueryDocumentSnapshot> get posts => _posts;
+  List<Map<String, dynamic>> get posts => [..._userPosts, ..._localBotPosts];
   List<Map<String, dynamic>> get localBotPosts => _localBotPosts;
   bool get shouldShowTimer {
     // Show timer only when the universal reaction timer is active
@@ -63,7 +62,6 @@ class HomeViewModel extends ChangeNotifier {
   void initialize() {
     _loadHasPostedStatus();
     _startViewerUpdates();
-    _listenToPosts();
     _initializeQueue();
     _startUniversalTimerUpdates();
   }
@@ -109,12 +107,6 @@ class HomeViewModel extends ChangeNotifier {
     });
   }
 
-  void _listenToPosts() {
-    _postsSubscription = _postService.getPostsStream().listen((snapshot) {
-      _posts = snapshot.docs;
-      notifyListeners();
-    });
-  }
 
   void onPostSubmitted() {
     _hasPosted = true;
@@ -123,12 +115,24 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> submitPost(String text) async {
-    final floor = await _localStorageService.getFloor() ?? 1;
     final world = await _localStorageService.getWorldOrMigrateFromGender();
+    final userId = await _localStorageService.getAnonId() ?? 'unknown';
     
-    await _postService.addPost(text.trim(), floor, world);
-    // Wait a moment for Firestore to update the stream
-    await Future.delayed(const Duration(milliseconds: 1000));
+    // Add to local user posts immediately
+    final userPost = {
+      'id': 'user_${DateTime.now().millisecondsSinceEpoch}',
+      'confession': text.trim(),
+      'world': world,
+      'userId': userId,
+      'createdAt': DateTime.now(),
+      'isUserPost': true,
+    };
+    
+    _userPosts.add(userPost);
+    
+    // Save to Firebase in background
+    await _postService.addPost(text.trim(), world, userId);
+    
     onPostSubmitted();
   }
 
@@ -150,10 +154,7 @@ class HomeViewModel extends ChangeNotifier {
     // Navigate to session end when all users have posted AND reaction time is complete
     final queue = _queueState.queue;
     
-    print('🔍 DEBUG isTimerExpired: queue.length=${queue.length}');
-    
     if (queue.isEmpty) {
-      print('🔍 DEBUG isTimerExpired: queue is empty, returning false');
       return false;
     }
     
@@ -161,12 +162,7 @@ class HomeViewModel extends ChangeNotifier {
     final allUsersPosted = queue.every((user) => user.hasPosted || user.state == QueueUserState.completed);
     final postedCount = queue.where((user) => user.hasPosted || user.state == QueueUserState.completed).length;
     
-    print('🔍 DEBUG isTimerExpired: allUsersPosted=$allUsersPosted, postedCount=$postedCount/${queue.length}');
-    
     if (!allUsersPosted) {
-      // Debug who hasn't posted yet
-      final notPosted = queue.where((user) => !user.hasPosted && user.state != QueueUserState.completed).map((u) => '${u.displayName}(${u.state})').toList();
-      print('🔍 DEBUG isTimerExpired: waiting for users: $notPosted');
       return false;
     }
     
@@ -176,7 +172,6 @@ class HomeViewModel extends ChangeNotifier {
       final lastUserHasPosted = lastUser.hasPosted || lastUser.state == QueueUserState.completed;
       final reactionTimerExpired = !_isReactionTimerActive && _reactionTimeRemaining <= 0;
       
-      print('🔍 DEBUG isTimerExpired: 6th user=${lastUser.displayName}, hasPosted=$lastUserHasPosted, timerExpired=$reactionTimerExpired');
       
       return lastUserHasPosted && reactionTimerExpired;
     }
@@ -198,8 +193,6 @@ class HomeViewModel extends ChangeNotifier {
       final previousActiveUser = _queueState.activeUser;
       _queueState = queueState;
       
-      print('🔍 DEBUG queue state changed: activeUser=${_queueState.activeUser?.displayName}, queue.length=${_queueState.queue.length}');
-      
       // Check if active user has posted and start reaction timer
       final currentActiveUser = _queueState.activeUser;
       
@@ -210,7 +203,6 @@ class HomeViewModel extends ChangeNotifier {
         _startReactionTimer();
       }
       
-      print('🔍 DEBUG calling notifyListeners() - this should trigger _onViewModelChanged');
       notifyListeners();
     });
   }
@@ -219,13 +211,11 @@ class HomeViewModel extends ChangeNotifier {
   void addLocalBotPost({
     required String botNickname,
     required String confession,
-    required int floor,
     required String world,
   }) {
     final botPost = {
       'id': 'local_bot_${DateTime.now().millisecondsSinceEpoch}',
       'confession': confession,
-      'floor': floor,
       'world': world,
       'customAuthor': botNickname, // Use bot's actual nickname
       'createdAt': DateTime.now(),
@@ -240,7 +230,6 @@ class HomeViewModel extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     _viewerTimer?.cancel();
-    _postsSubscription?.cancel();
     _maintenanceSubscription?.cancel();
     _queueSubscription?.cancel();
     _queueService.dispose();

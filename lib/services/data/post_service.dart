@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class PostService {
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
-  Future<void> addPost(String text, int floor, String world) async {
+  Future<void> addPost(String text, String world, String userId) async {
     // Validate required parameters to prevent null Firebase errors
     if (text.isEmpty) {
       throw ArgumentError('Post text cannot be empty');
@@ -11,8 +11,8 @@ class PostService {
     
     await _firestore.collection('posts').add({
       'confession': text,
-      'floor': floor,
       'world': world,
+      'userId': userId,
       'createdAt': FieldValue.serverTimestamp(),
       'isEdited': false,
       'editCount': 0,
@@ -22,7 +22,6 @@ class PostService {
   /// Admin post creation with unrestricted privileges
   Future<void> addAdminPost({
     required String text,
-    required int floor,
     required String world,
     String? customAuthor,
     bool? isAnnouncement,
@@ -37,7 +36,6 @@ class PostService {
     
     final postData = <String, dynamic>{
       'confession': text,
-      'floor': floor,
       'world': world,
       'createdAt': FieldValue.serverTimestamp(),
       'isEdited': false,

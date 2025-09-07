@@ -36,8 +36,11 @@ class PostInputViewModel extends ChangeNotifier {
       await _localStorageService.setFloor(selectedFloor);
       await _localStorageService.setGender(selectedGender);
       
+      // Get user ID for tracking
+      final userId = await _localStorageService.getAnonId() ?? 'unknown';
+      
       // Submit post
-      await _postService.addPost(text.trim(), selectedFloor, selectedGender);
+      await _postService.addPost(text.trim(), selectedFloor, selectedGender, userId);
       
       // Mark as posted
       await _localStorageService.setHasPosted(true);

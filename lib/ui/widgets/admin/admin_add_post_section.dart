@@ -473,7 +473,6 @@ class _AdminAddPostSectionState extends State<AdminAddPostSection> {
           
       await _postService.addAdminPost(
         text: _textController.text.trim(),
-        floor: _selectedFloor,
         world: _selectedWorld,
         customAuthor: customAuthor,
         isAnnouncement: _isAnnouncement,

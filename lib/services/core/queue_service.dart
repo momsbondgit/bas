@@ -54,7 +54,7 @@ class QueueService extends ChangeNotifier {
   List<BotUser> _assignedBots = [];
   
   // Callback for when a bot posts locally
-  Function({required String botNickname, required String confession, required int floor, required String world})? onBotPost;
+  Function({required String botNickname, required String confession, required String world})? onBotPost;
   
   
   Timer? _turnTimer;
@@ -374,7 +374,6 @@ class QueueService extends ChangeNotifier {
       onBotPost?.call(
         botNickname: dummyUser.displayName,
         confession: confession,
-        floor: dummyUser.floor,
         world: dummyUser.world,
       );
       

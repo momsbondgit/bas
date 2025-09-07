@@ -78,8 +78,14 @@ lib/
 - Updated session end logic to use single 20-second universal reaction timer
 - Fixed session end detection for 6th user completion
 - Fixed input widget sizing consistency: Both posting and waiting states now use same 47px height
-- Added 200-character limit to prevent scrolling in comment sections
+- Added 90-character limit to prevent scrolling in comment sections
 - Implemented character limit validation with user feedback
+- Added world visit tracking: worldVisitCount field increments in accounts collection
+- Made admin UI fully responsive across all screen sizes
+- Fixed text alignment and cursor positioning in input widget
+- Removed floor field from posts - no longer stored in Firebase or used in posting logic
+- Isolated posts per user session - users only see their own posts + bot posts from their session
+- Fixed post sharing issue where multiple active users would see each other's posts during reaction time
 
 ### Development Principles
 
