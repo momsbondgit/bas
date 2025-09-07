@@ -176,10 +176,10 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     }
 
     // Check character limit
-    if (text.trim().length > 90) {
+    if (text.trim().length > 96) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Post is too long. Please keep it under 90 characters.'),
+          content: Text('Post is too long. Please keep it under 96 characters.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -615,7 +615,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
                       focusNode: _focusNode,
                       enabled: canPost,
                       cursorColor: const Color(0xFF8F8F8F),
-                      maxLength: 90, // Character limit to prevent scrolling
+                      maxLength: 96, // Character limit for two full lines
                       buildCounter: (context, {required int currentLength, required bool isFocused, int? maxLength}) {
                         // Hide counter to match waiting state size
                         return const SizedBox.shrink();
