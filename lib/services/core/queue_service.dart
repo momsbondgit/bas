@@ -99,21 +99,27 @@ class QueueService extends ChangeNotifier {
   Future<void> _loadAssignedBots() async {
     try {
       final anonId = await _authService.getOrCreateAnonId();
+      print('[QueueService] Loading bots for user: $anonId');
       
       // Check if this is a returning user
       final isReturningUser = await _localStorageService.recordSessionAndCheckIfReturning();
+      print('[QueueService] Is returning user: $isReturningUser');
       
       if (isReturningUser) {
         // Returning users get fresh bot assignments for new experience
         final sessionCount = await _localStorageService.getSessionCount();
+        print('[QueueService] Reassigning bots for returning user (session $sessionCount)');
         await _botAssignmentService.reassignBotsForReturningUser(anonId, sessionCount);
       } else {
         // First-time users get initial bot assignments
+        print('[QueueService] Ensuring first-time user has bots');
         await _botAssignmentService.ensureUserHasBots(anonId);
       }
       
       _assignedBots = await _botAssignmentService.getAssignedBots(anonId);
+      print('[QueueService] Loaded ${_assignedBots.length} assigned bots');
     } catch (e) {
+      print('[QueueService] ERROR loading assigned bots: $e');
       _assignedBots = [];
     }
   }

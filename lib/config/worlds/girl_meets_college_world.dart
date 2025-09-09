@@ -106,7 +106,7 @@ class GirlMeetsCollegeWorld {
       BotUser(
         botId: 'bot_019',
         nickname: 'nora_63',
-        quineResponse: 'tried walking next to him after lecture, tripped on the stairs… he just kept going 🫠',
+        quineResponse: 'tried walking next to him after lecture, tripped on the stairs. he just kept going 🫠',
       ),
       BotUser(
         botId: 'bot_020',
