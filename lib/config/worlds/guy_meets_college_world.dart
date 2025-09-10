@@ -5,13 +5,14 @@ class GuyMeetsCollegeWorld {
   static const WorldConfig config = WorldConfig(
     id: 'guy-meets-college',
     displayName: 'Guy Meets College',
-    topicOfDay: "Whats ur most embarrassing hookup story",
+    topicOfDay: "funniest L u or them took during sex 😭😭",
     modalTitle: 'No code, no access. Only members can invite.',
     modalDescription: null,
     entryTileImage: 'assets/images/guy_meets_college.png', // TODO: Add actual asset path
     vibeSection: '',
     headingText: 'bro topic of the day',
     backgroundColorHue: 220, // Deep blue hue for guy energy
+    characterLimit: 180, // Reduced limit
       botPool: [
         BotUser(
           botId: 'bot_m021',
@@ -135,7 +136,7 @@ class GuyMeetsCollegeWorld {
         ),
         BotUser(
           botId: 'bot_m065',
-          nickname: 'room305',
+          nickname: 'roomthesenuts',
           quineResponse: 'asked her count she said 14 mine 3 she patted my shoulder said aww cute 😞',
         ),
         BotUser(

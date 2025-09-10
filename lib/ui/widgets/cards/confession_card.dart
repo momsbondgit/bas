@@ -11,7 +11,7 @@ class ConfessionCard extends StatelessWidget {
   static const double _screenWidthFactor = 0.6;
   static const double _lineHeight = 1.3;
   static const double _blurSigma = 3.0;
-  static const double _fontSizeMultiplier = 0.95;  // Slightly smaller to fit numbers
+  static const double _fontSizeMultiplier = 1.05;  // Make reaction section bigger
   static const double _reactionSpacing = 2.5;  // Small spacing
   static const double _reactionRunSpacing = 4.0;
   static const double _reactionPadding = 2.0;  // Small padding for numbers
@@ -192,45 +192,82 @@ class ConfessionCard extends StatelessWidget {
     print('[ConfessionCard] Current reactions: $reactions');
     print('[ConfessionCard] Expected emojis: ${reactionLabels.keys.toList()}');
     
-    return Row(
+    final reactionEntries = reactionLabels.entries.toList();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // REACT: label (matching original styling)
-        Text(
-          'REACT: ',
-          style: TextStyle(
-            fontFamily: 'SF Compact Rounded',
-            fontSize: fontSize * _fontSizeMultiplier,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFFB2B2B2),
-            letterSpacing: 0.4,
-          ),
-        ),
-        // Original reaction format - all on one line
-        ...reactionLabels.entries.map((entry) {
-            final emoji = entry.key;
-            final label = entry.value;
-            final count = reactions[emoji] ?? 0;
-            final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
-            
-              return GestureDetector(
-                  onTap: () {
-                    onReaction?.call(emoji);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
-                    child: Text(
-                      displayText,
-                      style: TextStyle(
-                        fontFamily: 'SF Compact Rounded',
-                        fontSize: fontSize * _fontSizeMultiplier,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFFB2B2B2),
-                        letterSpacing: 0.4,
+        // First row with REACT label and first two reactions
+        Row(
+          children: [
+            // REACT: label (matching original styling)
+            Text(
+              'REACT: ',
+              style: TextStyle(
+                fontFamily: 'SF Compact Rounded',
+                fontSize: fontSize * _fontSizeMultiplier,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFFB2B2B2),
+                letterSpacing: 0.4,
+              ),
+            ),
+            // First two reactions
+            ...reactionEntries.take(2).map((entry) {
+              final emoji = entry.key;
+              final label = entry.value;
+              final count = reactions[emoji] ?? 0;
+              final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
+              
+                return GestureDetector(
+                    onTap: () {
+                      onReaction?.call(emoji);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
+                      child: Text(
+                        displayText,
+                        style: TextStyle(
+                          fontFamily: 'SF Compact Rounded',
+                          fontSize: fontSize * _fontSizeMultiplier,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFFB2B2B2),
+                          letterSpacing: 0.4,
+                        ),
                       ),
                     ),
-                  ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+          ],
+        ),
+        // Second row with the last reaction (if it exists)
+        if (reactionEntries.length > 2)
+          Row(
+            children: reactionEntries.skip(2).map((entry) {
+              final emoji = entry.key;
+              final label = entry.value;
+              final count = reactions[emoji] ?? 0;
+              final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
+              
+                return GestureDetector(
+                    onTap: () {
+                      onReaction?.call(emoji);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
+                      child: Text(
+                        displayText,
+                        style: TextStyle(
+                          fontFamily: 'SF Compact Rounded',
+                          fontSize: fontSize * _fontSizeMultiplier,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFFB2B2B2),
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                );
+              }).toList(),
+          ),
       ],
     );
   }

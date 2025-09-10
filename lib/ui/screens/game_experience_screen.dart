@@ -173,10 +173,11 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     }
 
     // Check character limit
-    if (text.trim().length > 90) {
+    final characterLimit = _currentWorldConfig?.characterLimit ?? 90;
+    if (text.trim().length > characterLimit) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Post is too long. Please keep it under 90 characters.'),
+        SnackBar(
+          content: Text('Post is too long. Please keep it under $characterLimit characters.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -606,8 +607,8 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Container(
         constraints: const BoxConstraints(
-          minHeight: 47,
-          maxHeight: 47, // Fixed height to match waiting state
+          minHeight: 56, // Increased from 47
+          maxHeight: 56, // Back to original
         ),
         decoration: BoxDecoration(
           color: const Color(0xFFF5F5F5),
@@ -624,9 +625,9 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
                       focusNode: _focusNode,
                       enabled: canPost,
                       cursorColor: const Color(0xFF8F8F8F),
-                      maxLength: 90, // Character limit for two full lines
+                      maxLength: _currentWorldConfig?.characterLimit ?? 180,
                       buildCounter: (context, {required int currentLength, required bool isFocused, int? maxLength}) {
-                        // Hide counter to match waiting state size
+                        // Hide counter
                         return const SizedBox.shrink();
                       },
                       decoration: InputDecoration(
@@ -639,7 +640,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
                         ),
                         hintTextDirection: TextDirection.ltr,
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.only(left: 21, right: 50, top: 8, bottom: 8),
+                        contentPadding: const EdgeInsets.only(left: 21, right: 15, top: 4, bottom: 4),
                         isDense: true,
                       ),
                       style: const TextStyle(
@@ -1003,7 +1004,6 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   Widget _buildStaticDivider() {
     return Column(
       children: [
-        const SizedBox(height: 25),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 20), // Spacing from comment area borders
           height: 2,
@@ -1011,7 +1011,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             color: Color(0xFFDEDBD9),
           ),
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 8), // Reduced spacing below divider
       ],
     );
   }
@@ -1036,7 +1036,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
               color: Color(0xFFABABAB),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
           Container(
             width: 280,
             child: Wrap(

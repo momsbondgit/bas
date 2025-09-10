@@ -5,13 +5,14 @@ class GirlMeetsCollegeWorld {
   static const WorldConfig config = WorldConfig(
     id: 'girl-meets-college',
     displayName: 'Girl Meets College',
-    topicOfDay: "Embarrassing hookup moment GO 👀",
+    topicOfDay: "hookup moments that made you text the gc right after 🤣",
     modalTitle: 'No code, no access. Only members can invite.',
     modalDescription: null,
     entryTileImage: 'assets/images/girl_meets_college.png', // TODO: Add actual asset path
     vibeSection: '',
     headingText: 'tea topic of the day',
     backgroundColorHue: 340, // Pink/rose hue for girl energy
+    characterLimit: 180, // Reduced limit
     botPool: [
       BotUser(
         botId: 'bot_g061',

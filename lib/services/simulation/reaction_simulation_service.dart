@@ -43,18 +43,18 @@ class ReactionSimulationService {
       double delaySeconds;
       
       if (quickMode) {
-        // Ultra-fast reactions for time-sensitive posts - all within 5 seconds
-        delaySeconds = 1.0 + (i * 0.25) + (_random.nextDouble() * 0.3);
-        delaySeconds = delaySeconds.clamp(1.0, 5.0);
+        // Ultra-fast reactions for time-sensitive posts - all within 12 seconds (slowed down more)
+        delaySeconds = 5.0 + (i * 0.5) + (_random.nextDouble() * 1.0);
+        delaySeconds = delaySeconds.clamp(5.0, 12.0);
       } else {
         // Smart timing based on reaction count - more delayed/natural
         // For high reaction counts (10+), use tighter timing to fit all reactions
-        final maxTime = reactionCount > 10 ? 15.0 : 12.0;
+        final maxTime = reactionCount > 10 ? 25.0 : 22.0; // Slowed down more
         final spacing = maxTime / (reactionCount + 1); // Evenly distribute
         
-        final baseDelay = 2.0 + (i * spacing) + (_random.nextDouble() * spacing * 0.4);
-        final jitter = _random.nextDouble() * 0.5 - 0.25;
-        delaySeconds = (baseDelay + jitter).clamp(2.0, maxTime);
+        final baseDelay = 7.0 + (i * spacing) + (_random.nextDouble() * spacing * 0.5); // Slowed down more
+        final jitter = _random.nextDouble() * 1.0 - 0.5; // More jitter
+        delaySeconds = (baseDelay + jitter).clamp(7.0, maxTime); // Slowed down more
       }
       
       
@@ -199,7 +199,7 @@ class ReactionSimulationService {
     required String postId,
     required Function(String emoji) onReaction,
     required List<String> reactions,
-    double delayBetweenReactions = 1.0,
+    double delayBetweenReactions = 4.5, // Slowed down more
   }) {
     stopSimulationForPost(postId);
     

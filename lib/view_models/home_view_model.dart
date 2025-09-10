@@ -89,7 +89,7 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void _startReactionTimer() {
-    _reactionTimeRemaining = 20; // 20 seconds for reactions
+    _reactionTimeRemaining = 30; // 30 seconds for reactions
     _isReactionTimerActive = true;
     notifyListeners();
   }

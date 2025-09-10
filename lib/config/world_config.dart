@@ -11,6 +11,7 @@ class WorldConfig {
   final String vibeSection;         // "The vibe" section content
   final String headingText;         // "tea topic of the day" or similar
   final int backgroundColorHue;     // HSL hue value for background gradient
+  final int characterLimit;         // world-specific character limit for messages
 
   const WorldConfig({
     required this.id,
@@ -23,6 +24,7 @@ class WorldConfig {
     required this.vibeSection,
     required this.headingText,
     required this.backgroundColorHue,
+    required this.characterLimit,
   });
 
   Map<String, dynamic> toMap() {
@@ -37,6 +39,7 @@ class WorldConfig {
       'vibeSection': vibeSection,
       'headingText': headingText,
       'backgroundColorHue': backgroundColorHue,
+      'characterLimit': characterLimit,
     };
   }
 
@@ -54,6 +57,7 @@ class WorldConfig {
       vibeSection: map['vibeSection'] as String,
       headingText: map['headingText'] as String,
       backgroundColorHue: map['backgroundColorHue'] as int,
+      characterLimit: map['characterLimit'] as int? ?? 180, // Default to 180 if not specified
     );
   }
 
