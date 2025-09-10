@@ -39,9 +39,8 @@ class _AppInitializationWrapperState extends State<AppInitializationWrapper> {
         });
       }
 
-      // TESTING: Comment out real-time maintenance listener
-      // TODO: Uncomment when ready to use live maintenance mode
-      // _startMaintenanceListener();
+      // Start real-time maintenance listener
+      _startMaintenanceListener();
       
     } catch (e) {
       if (mounted) {

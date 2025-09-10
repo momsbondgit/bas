@@ -74,10 +74,10 @@ class QueueService extends ChangeNotifier {
 
   // Configuration constants
   static const int turnDurationSeconds = 60;
-  static const int baseBotTypingDelaySeconds = 15;
-  static const int maxBotTypingDelaySeconds = 25;
+  static const int baseBotTypingDelaySeconds = 20;  // Increased from 15
+  static const int maxBotTypingDelaySeconds = 30;  // Increased from 25
   static const int maxTurnTimeForBots = 10;
-  static const int reactionTimerSeconds = 20;
+  static const int reactionTimerSeconds = 35;  // Increased from 30
   static const int unlimitedTimeForRealUsers = 999999;
 
 

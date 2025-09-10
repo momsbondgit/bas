@@ -12,9 +12,9 @@ class ReactionSimulationService {
 
   // Reaction probabilities based on content sentiment
   static const Map<String, double> _reactionWeights = {
-    '🤭': 0.45, // Most common - relatable content
-    '☠️': 0.35, // Second most common - funny/shocking content  
-    '🤪': 0.20, // Least common - wild content
+    '🤣': 0.35, // Common - relatable content
+    '💀': 0.30, // Common - funny/shocking content  
+    '😭': 0.35, // Common - not lions gate reaction
   };
 
   void simulateReactionsForPost({
@@ -43,23 +43,25 @@ class ReactionSimulationService {
       double delaySeconds;
       
       if (quickMode) {
-        // Ultra-fast reactions for time-sensitive posts - all within 3 seconds
-        delaySeconds = 0.5 + (i * 0.15) + (_random.nextDouble() * 0.2);
-        delaySeconds = delaySeconds.clamp(0.5, 3.0);
+        // Ultra-fast reactions for time-sensitive posts - all within 5 seconds
+        delaySeconds = 1.0 + (i * 0.25) + (_random.nextDouble() * 0.3);
+        delaySeconds = delaySeconds.clamp(1.0, 5.0);
       } else {
-        // Smart timing based on reaction count
+        // Smart timing based on reaction count - more delayed/natural
         // For high reaction counts (10+), use tighter timing to fit all reactions
-        final maxTime = reactionCount > 10 ? 8.0 : 8.0;
+        final maxTime = reactionCount > 10 ? 15.0 : 12.0;
         final spacing = maxTime / (reactionCount + 1); // Evenly distribute
         
-        final baseDelay = 0.5 + (i * spacing) + (_random.nextDouble() * spacing * 0.3);
-        final jitter = _random.nextDouble() * 0.2 - 0.1;
-        delaySeconds = (baseDelay + jitter).clamp(0.5, maxTime);
+        final baseDelay = 2.0 + (i * spacing) + (_random.nextDouble() * spacing * 0.4);
+        final jitter = _random.nextDouble() * 0.5 - 0.25;
+        delaySeconds = (baseDelay + jitter).clamp(2.0, maxTime);
       }
       
       
       final timer = Timer(Duration(milliseconds: (delaySeconds * 1000).round()), () {
         final emoji = _selectWeightedReaction(content);
+        print('[ReactionService] Triggering reaction: $emoji after ${delaySeconds}s delay');
+        print('[ReactionService] Available emojis: ${_reactionWeights.keys.toList()}');
         onReaction(emoji);
       });
 
@@ -135,15 +137,15 @@ class ReactionSimulationService {
     final lowerContent = content.toLowerCase();
     
     if (lowerContent.contains(RegExp(r'\b(same|relatable|me too|this|yes|exactly|facts)\b'))) {
-      adjustedWeights['🤭'] = adjustedWeights['🤭']! * 1.3;
+      adjustedWeights['🤣'] = adjustedWeights['🤣']! * 1.3;
     }
     
     if (lowerContent.contains(RegExp(r'\b(dead|dying|lmao|lol|funny|hilarious|omg|wtf)\b'))) {
-      adjustedWeights['☠️'] = adjustedWeights['☠️']! * 1.4;
+      adjustedWeights['💀'] = adjustedWeights['💀']! * 1.4;
     }
     
     if (lowerContent.contains(RegExp(r'\b(wild|crazy|insane|no way|unbelievable|chaos)\b'))) {
-      adjustedWeights['🤪'] = adjustedWeights['🤪']! * 1.5;
+      adjustedWeights['😭'] = adjustedWeights['😭']! * 1.5;
     }
 
     // Weighted random selection
@@ -162,7 +164,9 @@ class ReactionSimulationService {
     }
     
     // Fallback
-    return '🤭';
+    final fallbackEmoji = '🤣';
+    print('[ReactionService] Using fallback emoji: $fallbackEmoji');
+    return fallbackEmoji;
   }
 
   void stopSimulationForPost(String postId) {

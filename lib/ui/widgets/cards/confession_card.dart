@@ -11,10 +11,10 @@ class ConfessionCard extends StatelessWidget {
   static const double _screenWidthFactor = 0.6;
   static const double _lineHeight = 1.3;
   static const double _blurSigma = 3.0;
-  static const double _fontSizeMultiplier = 1.1;
-  static const double _reactionSpacing = 6.0;
+  static const double _fontSizeMultiplier = 0.95;  // Slightly smaller to fit numbers
+  static const double _reactionSpacing = 2.5;  // Small spacing
   static const double _reactionRunSpacing = 4.0;
-  static const double _reactionPadding = 4.0;
+  static const double _reactionPadding = 2.0;  // Small padding for numbers
   static const double _reactionVerticalPadding = 2.0;
   static const double _blurOverlayOpacity = 0.1;
   static const double _messageBoxOpacity = 0.9;
@@ -38,6 +38,7 @@ class ConfessionCard extends StatelessWidget {
   final bool isCurrentUser;
   final Map<String, int> reactions;
   final Function(String)? onReaction;
+  final String? worldId;
 
   const ConfessionCard({
     super.key,
@@ -49,6 +50,7 @@ class ConfessionCard extends StatelessWidget {
     this.isCurrentUser = false,
     this.reactions = const {},
     this.onReaction,
+    this.worldId,
   });
 
   String _generateNickname() {
@@ -174,16 +176,23 @@ class ConfessionCard extends StatelessWidget {
   
   Widget _buildReactionRow(double fontSize) {
     
-    // Original reaction labels (matching the exact original format)
-    final reactionLabels = {
-      '🤭': 'SAMEE',
-      '☠️': 'DEAD', 
-      '🤪': 'W',
+    // World-specific reaction labels
+    final isGuyWorld = worldId == 'guy-meets-college';
+    final reactionLabels = isGuyWorld ? {
+      '🤣': 'LMAOO',
+      '💀': 'dead',
+      '😭': 'not lions gate shorties',
+    } : {
+      '🤣': 'LMAOO',
+      '💀': 'dead',
+      '😭': 'not lions gate men',
     };
     
-    return Wrap(
-      spacing: _reactionSpacing,
-      runSpacing: _reactionRunSpacing,
+    // Debug logging
+    print('[ConfessionCard] Current reactions: $reactions');
+    print('[ConfessionCard] Expected emojis: ${reactionLabels.keys.toList()}');
+    
+    return Row(
       children: [
         // REACT: label (matching original styling)
         Text(
@@ -196,34 +205,34 @@ class ConfessionCard extends StatelessWidget {
             letterSpacing: 0.4,
           ),
         ),
-        // Original reaction format
+        // Original reaction format - all on one line
         ...reactionLabels.entries.map((entry) {
             final emoji = entry.key;
             final label = entry.value;
             final count = reactions[emoji] ?? 0;
             final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
             
-            return GestureDetector(
-              onTap: () {
-                onReaction?.call(emoji);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
-                child: Text(
-                  displayText,
-                  style: TextStyle(
-                    fontFamily: 'SF Compact Rounded',
-                    fontSize: fontSize * _fontSizeMultiplier,
-                    fontWeight: FontWeight.w400,
-                    color: const Color(0xFFB2B2B2),
-                    letterSpacing: 0.4,
+              return GestureDetector(
+                  onTap: () {
+                    onReaction?.call(emoji);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
+                    child: Text(
+                      displayText,
+                      style: TextStyle(
+                        fontFamily: 'SF Compact Rounded',
+                        fontSize: fontSize * _fontSizeMultiplier,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFFB2B2B2),
+                        letterSpacing: 0.4,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            );
-          }).toList(),
-        ],
-      );
+              );
+            }).toList(),
+      ],
+    );
   }
 
 }

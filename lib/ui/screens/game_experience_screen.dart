@@ -201,19 +201,23 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 
   void _handleLocalReaction(String postId, String emoji) {
+    print('[GameExperience] _handleLocalReaction called with emoji: $emoji for post: $postId');
     // Add natural delay to simulate reading time before reacting
     // Random delay between 2000-4500ms to feel more human
     final random = Random();
     final delayMs = 2000 + random.nextInt(2500); // 2000-4500ms range
     
+    print('[GameExperience] Adding reaction after ${delayMs}ms delay');
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted) {
+        print('[GameExperience] Actually adding reaction: $emoji to post: $postId');
         setState(() {
           // Initialize reactions for this post if not exists
           _localReactions[postId] ??= {};
           
           // Increment reaction count
           _localReactions[postId]![emoji] = (_localReactions[postId]![emoji] ?? 0) + 1;
+          print('[GameExperience] Reaction count for $emoji: ${_localReactions[postId]![emoji]}');
         });
       }
     });
@@ -238,20 +242,27 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     // Start reaction simulation for all new posts (bots will react to everyone including real user)
     if (!_simulatedPosts.contains(postId)) {
       _simulatedPosts.add(postId);
+      print('[GameExperience] Starting reaction simulation for post: $postId');
       
       // Start realistic reaction simulation after a short delay
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
+          print('[GameExperience] Calling simulateReactionsForPost for: $postId');
           _reactionService.simulateReactionsForPost(
             postId: postId,
             content: content,
-            onReaction: (emoji) => _handleLocalReaction(postId, emoji),
+            onReaction: (emoji) {
+              print('[GameExperience] Bot reaction received: $emoji for post: $postId');
+              _handleLocalReaction(postId, emoji);
+            },
             isRealUserPost: isCurrentUser,
           );
         } else {
+          print('[GameExperience] Not mounted, skipping reactions for: $postId');
         }
       });
     } else {
+      print('[GameExperience] Post already simulated: $postId');
     }
     
     return ConfessionCard(
@@ -263,6 +274,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       isCurrentUser: isCurrentUser,
       reactions: _localReactions[postId] ?? {},
       onReaction: (emoji) => _handleUserReaction(postId, emoji),
+      worldId: _currentWorldConfig?.id,
     );
   }
 

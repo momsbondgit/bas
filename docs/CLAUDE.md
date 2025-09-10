@@ -56,8 +56,8 @@ lib/
 - `RitualQueueService` handles ritual-specific message queuing
 - Real users randomly positioned 3rd-6th in queue (never 1st/2nd)
 - Queue prevents duplicate user entries
-- Session timing based on 20-second universal reaction timer completion
-- Session ends when 6th user posts and their 20-second reaction timer expires
+- Session timing based on 25-second universal reaction timer completion
+- Session ends when 6th user posts and their 25-second reaction timer expires
 
 **User Flow**:
 1. `GeneralScreen` - World selection with access code authentication
@@ -75,7 +75,7 @@ lib/
 - Enhanced mobile keyboard handling
 - Improved reaction system for real users
 - Simplified timer system by removing 60-second individual reaction timers
-- Updated session end logic to use single 20-second universal reaction timer
+- Updated session end logic to use single 25-second universal reaction timer (increased from 20)
 - Fixed session end detection for 6th user completion
 - Fixed input widget sizing consistency: Both posting and waiting states now use same 47px height
 - Added 90-character limit to prevent scrolling in comment sections
@@ -86,6 +86,9 @@ lib/
 - Removed floor field from posts - no longer stored in Firebase or used in posting logic
 - Isolated posts per user session - users only see their own posts + bot posts from their session
 - Fixed post sharing issue where multiple active users would see each other's posts during reaction time
+- Implemented bot assignment tracking to prevent users from getting same bots on return visits
+- Bot typing/posting delays increased to 20-30 seconds (from 15-25) for more natural pacing
+- Updated world topics to match bot responses about awkward hookup stories
 
 ### Development Principles
 
@@ -114,12 +117,13 @@ lib/
 ### Key Services
 - `AuthService` - User authentication and world-specific account creation
 - `WorldService` - World configuration management and access validation
-- `QueueService` - Main queue logic, user positioning, and state management
+- `QueueService` - Main queue logic, user positioning, and state management (20-30s bot delays, 25s reactions)
 - `RitualQueueService` - Ritual-specific message queue management
 - `PostService` - Message/post operations and content management
 - `LocalStorageService` - Device storage for user preferences
 - `EndingService` - Session end contact collection (now optional gender data)
 - `ReactionSimulationService` - Bot reaction simulation with realistic delays
+- `BotAssignmentService` - Manages bot assignments, prevents duplicate bots across visits (max 4 fresh visits per world)
 
 ### UI/UX Features
 - Clean slide transition animations for session end screen
