@@ -87,7 +87,7 @@ class StatusIndicator extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: Image.asset(
-                  'Assets/eye.png',
+                  'assets/eye.png',
                   width: profileIconSize,
                   height: profileIconSize,
                   fit: BoxFit.cover,
