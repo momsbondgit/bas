@@ -88,8 +88,6 @@ class AuthService {
       await _localStorage.setNickname(nickname);
       await _localStorage.setHasAccount(true);
       
-      // Silently assign bots to user during account creation
-      await _botAssignmentService.assignBotsToUser(anonId);
       
       return true;
     } catch (e) {
@@ -125,8 +123,6 @@ class AuthService {
       await _localStorage.setHasAccount(true);
       await _localStorage.setAuthenticatedWorldId(worldId);
       
-      // Silently assign bots to user during account creation
-      await _botAssignmentService.assignBotsToUser(anonId);
       
       return true;
     } catch (e) {

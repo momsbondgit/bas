@@ -115,7 +115,7 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> submitPost(String text) async {
-    final world = await _localStorageService.getWorldOrMigrateFromGender();
+    final world = await _localStorageService.getCurrentWorld();
     final userId = await _localStorageService.getAnonId() ?? 'unknown';
     
     // Add to local user posts immediately

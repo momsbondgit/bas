@@ -33,9 +33,9 @@ class MyApp extends StatelessWidget {
       ),
       navigatorKey: navigatorKey,
       initialRoute: '/',
-      builder: (context, child) {
-        return GlobalMaintenanceListener(child: child!);
-      },
+      // builder: (context, child) {
+      //   return GlobalMaintenanceListener(child: child!);
+      // },
       routes: {
         '/': (context) => const AppInitializationWrapper(),
         '/app': (context) => const GeneralScreen(),

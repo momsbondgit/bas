@@ -2,11 +2,13 @@ class BotUser {
   final String botId;
   final String nickname;
   final String quineResponse;
+  final String goodbyeText;
 
   const BotUser({
     required this.botId,
     required this.nickname,
     required this.quineResponse,
+    required this.goodbyeText,
   });
 
   Map<String, dynamic> toMap() {
@@ -14,6 +16,7 @@ class BotUser {
       'botId': botId,
       'nickname': nickname,
       'quineResponse': quineResponse,
+      'goodbyeText': goodbyeText,
     };
   }
 
@@ -22,6 +25,7 @@ class BotUser {
       botId: map['botId'] as String,
       nickname: map['nickname'] as String,
       quineResponse: map['quineResponse'] as String,
+      goodbyeText: map['goodbyeText'] as String,
     );
   }
 

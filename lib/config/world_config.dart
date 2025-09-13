@@ -7,7 +7,9 @@ class WorldConfig {
   final String modalTitle;          // "join the world bestie ✨"
   final String? modalDescription;    // world-specific copy
   final String entryTileImage;      // path to world image
-  final List<BotUser> botPool;      // world-specific bots
+  final List<BotUser> botTable1;   // Chaotic/Edgy personality bots
+  final List<BotUser> botTable2;   // Goofy/Soft personality bots
+  final List<BotUser> botTable3;   // Balanced/Mixed personality bots
   final String vibeSection;         // "The vibe" section content
   final String headingText;         // "tea topic of the day" or similar
   final int backgroundColorHue;     // HSL hue value for background gradient
@@ -20,7 +22,9 @@ class WorldConfig {
     required this.modalTitle,
     this.modalDescription,
     required this.entryTileImage,
-    required this.botPool,
+    required this.botTable1,
+    required this.botTable2,
+    required this.botTable3,
     required this.vibeSection,
     required this.headingText,
     required this.backgroundColorHue,
@@ -35,7 +39,9 @@ class WorldConfig {
       'modalTitle': modalTitle,
       'modalDescription': modalDescription,
       'entryTileImage': entryTileImage,
-      'botPool': botPool.map((bot) => bot.toMap()).toList(),
+      'botTable1': botTable1.map((bot) => bot.toMap()).toList(),
+      'botTable2': botTable2.map((bot) => bot.toMap()).toList(),
+      'botTable3': botTable3.map((bot) => bot.toMap()).toList(),
       'vibeSection': vibeSection,
       'headingText': headingText,
       'backgroundColorHue': backgroundColorHue,
@@ -51,9 +57,15 @@ class WorldConfig {
       modalTitle: map['modalTitle'] as String,
       modalDescription: map['modalDescription'] as String?,
       entryTileImage: map['entryTileImage'] as String,
-      botPool: (map['botPool'] as List<dynamic>)
-          .map((botMap) => BotUser.fromMap(botMap as Map<String, dynamic>))
-          .toList(),
+      botTable1: (map['botTable1'] as List<dynamic>?)
+          ?.map((botMap) => BotUser.fromMap(botMap as Map<String, dynamic>))
+          .toList() ?? [],
+      botTable2: (map['botTable2'] as List<dynamic>?)
+          ?.map((botMap) => BotUser.fromMap(botMap as Map<String, dynamic>))
+          .toList() ?? [],
+      botTable3: (map['botTable3'] as List<dynamic>?)
+          ?.map((botMap) => BotUser.fromMap(botMap as Map<String, dynamic>))
+          .toList() ?? [],
       vibeSection: map['vibeSection'] as String,
       headingText: map['headingText'] as String,
       backgroundColorHue: map['backgroundColorHue'] as int,

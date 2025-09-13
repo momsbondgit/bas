@@ -13,136 +13,105 @@ class GuyMeetsCollegeWorld {
     headingText: 'bro topic of the day',
     backgroundColorHue: 220, // Deep blue hue for guy energy
     characterLimit: 180, // Reduced limit
-      botPool: [
-        BotUser(
-          botId: 'bot_m021',
-          nickname: 'matt_k',
-          quineResponse: 'we was making out i tried to dirty talk whispered call me daddy and shorty said that dick aint daddy material',
-        ),
-        BotUser(
-          botId: 'bot_m022',
-          nickname: 'danny22',
-          quineResponse: 'told her i was 6ft she pulled up wit her 5\'10 friend all of the suddent i wanted to to go class💀',
-        ),
-        BotUser(
-          botId: 'bot_m023',
-          nickname: 'lofi',
-          quineResponse: 'was hitting missionary i said whos pussy is this she said not yours keep going tho',
-        ),
-        BotUser(
-          botId: 'bot_m024',
-          nickname: 'omar.lol',
-          quineResponse: 'she gave me top and i nutted in 2 minutes she said nigga i came all the way here for that ☹️',
-        ),
-        BotUser(
-          botId: 'bot_m025',
-          nickname: 'kevinp',
-          quineResponse: 'she let me hit once then she told the girls on the floor i had a little meat. they call me lil guy',
-        ),
-        BotUser(
-          botId: 'bot_m026',
-          nickname: 'benchwarmr',
-          quineResponse: 'bro i nutted just putting the condom on and she just said nah ur done',
-        ),
-        BotUser(
-          botId: 'bot_m027',
-          nickname: 'devon',
-          quineResponse: 'picked her up mid stroke dropped her ass on the bed she called me weak nah its them chickfila cookies weighing her down',
-        ),
-        BotUser(
-          botId: 'bot_m028',
-          nickname: '2.0gpa',
-          quineResponse: 'tried to finger her couldnt find that damn hole she said bro u lost',
-        ),
-        BotUser(
-          botId: 'bot_m029',
-          nickname: 'aj_34',
-          quineResponse: 'sent the meat pic she replied whos lil cousin is this',
-        ),
-        BotUser(
-          botId: 'bot_m030',
-          nickname: 'tman97',
-          quineResponse: 'was eating her out she grabbed my head and said nah stop ur new to this i looked up like yea and ur clearly a whore',
-        ),
-        BotUser(
-          botId: 'bot_m031',
-          nickname: 'jayden_5',
-          quineResponse: 'was hittin it from the back she farted loud as hell she said keep going but by then i already lost conscious',
-        ),
-        BotUser(
-          botId: 'bot_m032',
-          nickname: 'sean.lmao',
-          quineResponse: 'she moaned call me mommy i stopped mid thrust looked her up and down like nah u built more like my uncle',
-        ),
-        BotUser(
-          botId: 'bot_m033',
-          nickname: 'jay.k',
-          quineResponse: 'texted i aint like other guys and she said ur right they actually pull bitches ☠️',
-        ),
-        BotUser(
-          botId: 'bot_m034',
-          nickname: 'ty_',
-          quineResponse: 'missed the hole 3 times and she talking bout damn find it im thinking shave that jungle and maybe i could',
-        ),
-        BotUser(
-          botId: 'bot_m035',
-          nickname: 'nateD',
-          quineResponse: 'told her u mine but she said nah free trial subscription expired LIKE WHAT BRO',
-        ),
-        BotUser(
-          botId: 'bot_m036',
-          nickname: 'andrew_t',
-          quineResponse: 'shorty talking bout stroke game weak but her walls weak shit feel like tossing a hotdog down a hallway',
-        ),
-        BotUser(
-          botId: 'bot_m037',
-          nickname: 'eli.v',
-          quineResponse: 'she said go deeper i said go shower first coochie smell like arby\'s. We DO NOT HAVE THE MEATS faceass',
-        ),
-        BotUser(
-          botId: 'bot_m038',
-          nickname: 'chrislol',
-          quineResponse: 'she said why u sweating i said why ur wig sliding back stay focused',
-        ),
-        BotUser(
-          botId: 'bot_m039',
-          nickname: 'floor3legend',
-          quineResponse: 'she told me ur stroke boring i said nah u just laying there like a dead fish',
-        ),
-        BotUser(
-          botId: 'bot_m040',
-          nickname: 'chase.m',
-          quineResponse: 'she whispered choke me harder i just laughed and told her treadmill harder first',
-        ),
-        BotUser(
-          botId: 'bot_m061',
-          nickname: 'axel.l',
-          quineResponse: 'she said i was too quiet meanwhile her moans sounding like a dying goat turn the volume down shorty',
-        ),
-        BotUser(
-          botId: 'bot_m062',
-          nickname: 'adrian',
-          quineResponse: 'asked her body count she said 27 i just sat there like bitch thats more kills than me on fortnite',
-        ),
-        BotUser(
-          botId: 'bot_m063',
-          nickname: 'neon',
-          quineResponse: 'told her my body count 4 she said damn mine higher like why she flexing that BITCCHHHH',
-        ),
-        BotUser(
-          botId: 'bot_m064',
-          nickname: 'lares_bro',
-          quineResponse: 'told her i dont last long she laughed said yeah i can tell bout to cry fr',
-        ),
-        BotUser(
-          botId: 'bot_m065',
-          nickname: 'roomthesenuts',
-          quineResponse: 'asked her count she said 14 mine 3 she patted my shoulder said aww cute 😞',
-        ),
-        BotUser(
-          botId: 'bot_m066',
-          nickname: 'alex23',
-          quineResponse: 'she asked for a pic i sent the meat she screenshotted and texted lmfaooo my soul left my body',
+    // Table 1: Chaotic/Edgy personalities for Guy Meets College
+    botTable1: [
+      BotUser(
+        botId: 'chaos_m1',
+        nickname: 'chaos.king',
+        quineResponse: 'bruh said what needed to be said 💀 respect the honesty',
+        goodbyeText: 'alright bros, chaos king out 👑💀',
+      ),
+      BotUser(
+        botId: 'chaos_m2',
+        nickname: 'no.chill',
+        quineResponse: 'straight violation 😭 but someone had to say it fr',
+        goodbyeText: 'peace y\'all, been unhinged as usual 😭',
+      ),
+      BotUser(
+        botId: 'chaos_m3',
+        nickname: 'savage.mode',
+        quineResponse: 'nah this is wild 💀 u really did that',
+        goodbyeText: 'savage mode deactivated, later bros 💀',
+      ),
+      BotUser(
+        botId: 'chaos_m4',
+        nickname: 'villain.szn',
+        quineResponse: 'choosing chaos today i see 😈 here for it',
+        goodbyeText: 'villain season complete, catch y\'all 😈',
+      ),
+      BotUser(
+        botId: 'chaos_m5',
+        nickname: 'zero.filter',
+        quineResponse: 'said what we all thinking 🔥 no holds barred',
+        goodbyeText: 'unfiltered exit, been real bros 🔥',
+      ),
+    ],
+
+    // Table 2: Goofy/Soft personalities for Guy Meets College
+    botTable2: [
+      BotUser(
+        botId: 'goofy_m1',
+        nickname: 'wholesome.bro',
+        quineResponse: 'aw man this got me in my feels 🥺 sending support',
+        goodbyeText: 'peace bros, sending good vibes 🥺🙏',
+      ),
+      BotUser(
+        botId: 'goofy_m2',
+        nickname: 'hype.man',
+        quineResponse: 'YOOO this energy!! love this for u king 💪',
+        goodbyeText: 'YOOO later kings!! stay legendary!! 💪🔥',
+      ),
+      BotUser(
+        botId: 'goofy_m3',
+        nickname: 'awkward.king',
+        quineResponse: 'lmaooo bro same 😭 why we like this',
+        goodbyeText: 'bye bros, hope that wasn\'t too weird lmao 😭',
+      ),
+      BotUser(
+        botId: 'goofy_m4',
+        nickname: 'good.vibes',
+        quineResponse: 'hope u good bro 🤝 always got ur back',
+        goodbyeText: 'later bros, always got y\'all backs 🤝',
+      ),
+      BotUser(
+        botId: 'goofy_m5',
+        nickname: 'smooth.brain',
+        quineResponse: 'wait huh 🤔 sorry wasnt listening lol',
+        goodbyeText: 'bye bros, wait what are we doing again? 🤔',
+      ),
+    ],
+
+    // Table 3: Balanced/Mixed personalities for Guy Meets College
+    botTable3: [
+      BotUser(
+        botId: 'mixed_m1',
+        nickname: 'balanced.bro',
+        quineResponse: 'yeah bro i feel u 💭 this is pretty valid ngl',
+        goodbyeText: 'peace bros, balanced exit as always ✨',
+      ),
+      BotUser(
+        botId: 'mixed_m2',
+        nickname: 'vibe.shift',
+        quineResponse: 'mood honestly 🤷‍♂️ we got layers bro',
+        goodbyeText: 'shifting to goodbye vibe, later bros 🤷‍♂️',
+      ),
+      BotUser(
+        botId: 'mixed_m3',
+        nickname: 'chaotic.good',
+        quineResponse: 'love the energy king 🌟 but also kinda sus lmao',
+        goodbyeText: 'chaotic good logging off, peace kings 🌟',
+      ),
+      BotUser(
+        botId: 'mixed_m4',
+        nickname: 'soft.chaos',
+        quineResponse: 'bro ur real for this 💫 gentle but make it wild',
+        goodbyeText: 'soft chaos complete, later bros 💫',
+      ),
+      BotUser(
+        botId: 'mixed_m5',
+        nickname: 'complex.king',
+        quineResponse: 'this hits different ✨ complicated but respect',
+        goodbyeText: 'complex king out, been real bros 👑✨',
       ),
     ],
   );

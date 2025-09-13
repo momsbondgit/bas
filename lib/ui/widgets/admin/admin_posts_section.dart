@@ -170,7 +170,7 @@ class _AdminPostsSectionState extends State<AdminPostsSection> {
           isMobile ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Floor and gender info row
+              // Floor and world info row
               Row(
                 children: [
                   Container(
@@ -196,7 +196,7 @@ class _AdminPostsSectionState extends State<AdminPostsSection> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      data['gender'] ?? 'Unknown',
+                      data['world'] ?? 'Unknown',
                       style: TextStyle(
                         fontSize: isDesktop ? 11 : 10,
                         fontWeight: FontWeight.w500,
@@ -242,7 +242,7 @@ class _AdminPostsSectionState extends State<AdminPostsSection> {
             ],
           ) : Row(
             children: [
-              // Floor and gender info
+              // Floor and world info
               Container(
                 padding: EdgeInsets.symmetric(horizontal: isDesktop ? 8 : 6, vertical: isDesktop ? 4 : 3),
                 decoration: BoxDecoration(
@@ -266,7 +266,7 @@ class _AdminPostsSectionState extends State<AdminPostsSection> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  data['gender'] ?? 'Unknown',
+                  data['world'] ?? 'Unknown',
                   style: TextStyle(
                     fontSize: isDesktop ? 11 : 10,
                     fontWeight: FontWeight.w500,

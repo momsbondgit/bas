@@ -1,11 +1,7 @@
 enum ReactionType {
-  heart('❤️'),
-  laugh('😂'),
-  wow('😮'),
-  sad('😢'),
-  angry('😠'),
-  thumbsUp('👍'),
-  thumbsDown('👎');
+  lmfaooo('LMFAOOO 😭'),
+  soReal('so real 💅'),
+  nahThatWild('nah that\'s wild 💀');
 
   const ReactionType(this.emoji);
 
@@ -13,20 +9,12 @@ enum ReactionType {
 
   String get displayName {
     switch (this) {
-      case ReactionType.heart:
-        return 'Heart';
-      case ReactionType.laugh:
-        return 'Laugh';
-      case ReactionType.wow:
-        return 'Wow';
-      case ReactionType.sad:
-        return 'Sad';
-      case ReactionType.angry:
-        return 'Angry';
-      case ReactionType.thumbsUp:
-        return 'Thumbs Up';
-      case ReactionType.thumbsDown:
-        return 'Thumbs Down';
+      case ReactionType.lmfaooo:
+        return 'LMFAOOO';
+      case ReactionType.soReal:
+        return 'So Real';
+      case ReactionType.nahThatWild:
+        return 'Nah That\'s Wild';
     }
   }
 

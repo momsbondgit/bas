@@ -49,18 +49,21 @@ class WorldService {
 
   // Validate world configuration
   bool isValidWorldConfig(WorldConfig config) {
-    if (config.id.isEmpty || 
+    if (config.id.isEmpty ||
         config.displayName.isEmpty ||
         config.topicOfDay.isEmpty ||
         config.modalTitle.isEmpty ||
         config.entryTileImage.isEmpty ||
-        config.botPool.isEmpty) {
+        config.botTable1.isEmpty ||
+        config.botTable2.isEmpty ||
+        config.botTable3.isEmpty) {
       return false;
     }
 
-    // Check for duplicate bot IDs within the world
-    final botIds = config.botPool.map((bot) => bot.botId).toSet();
-    if (botIds.length != config.botPool.length) {
+    // Check for duplicate bot IDs within all bot tables
+    final allBots = [...config.botTable1, ...config.botTable2, ...config.botTable3];
+    final botIds = allBots.map((bot) => bot.botId).toSet();
+    if (botIds.length != allBots.length) {
       return false; // Duplicate bot IDs found
     }
 
@@ -74,7 +77,10 @@ class WorldService {
       'worlds': _availableWorlds.map((world) => {
         'id': world.id,
         'displayName': world.displayName,
-        'botCount': world.botPool.length,
+        'botTable1Count': world.botTable1.length,
+        'botTable2Count': world.botTable2.length,
+        'botTable3Count': world.botTable3.length,
+        'totalBots': world.botTable1.length + world.botTable2.length + world.botTable3.length,
         'isValid': isValidWorldConfig(world),
       }).toList(),
     };

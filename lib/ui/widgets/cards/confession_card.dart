@@ -32,7 +32,7 @@ class ConfessionCard extends StatelessWidget {
   
   final int floor;
   final String text;
-  final String gender;
+  // Removed gender field - now uses worldId for world-specific behavior
   final bool isBlurred;
   final String? customAuthor;
   final bool isCurrentUser;
@@ -44,7 +44,7 @@ class ConfessionCard extends StatelessWidget {
     super.key,
     required this.floor,
     required this.text,
-    required this.gender,
+    // Removed gender parameter
     this.isBlurred = false,
     this.customAuthor,
     this.isCurrentUser = false,

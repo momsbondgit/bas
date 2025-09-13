@@ -207,7 +207,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
                             final data = widget.endings[index].data() as Map<String, dynamic>;
                             return _buildPhoneNumberItem(
                               phoneNumber: data['phone'] ?? 'N/A',
-                              gender: data['gender'] ?? 'N/A',
+                              world: data['world'] ?? 'N/A',
                               floor: data['floor']?.toString() ?? 'N/A',
                               isDesktop: isDesktop,
                             );
@@ -269,7 +269,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
                             final data = doc.data() as Map<String, dynamic>;
                             return _buildInstagramItem(
                               instagramId: data['instagram'] ?? '',
-                              gender: data['gender'] ?? 'N/A',
+                              world: data['world'] ?? 'N/A',
                               floor: data['floor']?.toString() ?? 'N/A',
                               isDesktop: isDesktop,
                             );
@@ -497,7 +497,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
 
   Widget _buildPhoneNumberItem({
     required String phoneNumber,
-    required String gender,
+    required String world,
     required String floor,
     required bool isDesktop,
   }) {
@@ -525,7 +525,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
                 ),
               ),
               Text(
-                'Gender: $gender • Floor: $floor',
+                'World: $world • Floor: $floor',
                 style: const TextStyle(
                   fontSize: 12,
                   color: Color(0xFF6B7280),
@@ -671,7 +671,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
 
   Widget _buildInstagramItem({
     required String instagramId,
-    required String gender,
+    required String world,
     required String floor,
     required bool isDesktop,
   }) {
@@ -699,7 +699,7 @@ class _AdminSystemControlsSectionState extends State<AdminSystemControlsSection>
                 ),
               ),
               Text(
-                'Gender: $gender • Floor: $floor',
+                'World: $world • Floor: $floor',
                 style: const TextStyle(
                   fontSize: 12,
                   color: Color(0xFF6B7280),

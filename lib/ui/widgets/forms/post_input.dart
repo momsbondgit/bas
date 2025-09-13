@@ -13,7 +13,7 @@ class PostInput extends StatefulWidget {
 class _PostInputState extends State<PostInput> {
   final TextEditingController _controller = TextEditingController();
   late PostInputViewModel _viewModel;
-  String _selectedGender = 'girl';
+  // Removed gender selection - now uses world-based posting
   int _selectedFloor = 1;
   bool _preferencesLoaded = false;
 
@@ -35,20 +35,18 @@ class _PostInputState extends State<PostInput> {
       if (mounted) {
         setState(() {
           _selectedFloor = preferences['floor'];
-          _selectedGender = preferences['gender'];
           _preferencesLoaded = true;
         });
       }
       
       // Retry mechanism if we got default values (indicating possible race condition)
-      if (preferences['floor'] == 1 && preferences['gender'] == 'girl') {
+      if (preferences['floor'] == 1) {
         await Future.delayed(const Duration(milliseconds: 500));
         final retryPreferences = await _viewModel.loadUserPreferences();
         
         if (mounted) {
           setState(() {
             _selectedFloor = retryPreferences['floor'];
-            _selectedGender = retryPreferences['gender'];
           });
         }
       }
@@ -83,7 +81,6 @@ class _PostInputState extends State<PostInput> {
     await _viewModel.submitPost(
       _controller.text,
       _selectedFloor,
-      _selectedGender,
       () {
         _controller.clear();
         if (widget.onPostSubmitted != null) {

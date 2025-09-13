@@ -2,8 +2,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorageService {
   static const String _floorKey = 'user.floor';
-  static const String _genderKey = 'user.gender';
   static const String _worldKey = 'user.world';
+  static const String _tableIdKey = 'user.tableId';
+  static const String _vibeAnswersKey = 'user.vibeAnswers';
+  static const String _assignedBotsKey = 'user.assignedBots';
   static const String _hasPostedKey = 'user.hasPosted';
   
   // Auth keys
@@ -31,14 +33,45 @@ class LocalStorageService {
     return prefs.getInt(_floorKey);
   }
 
-  Future<void> setGender(String gender) async {
+  Future<void> setTableId(String tableId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_genderKey, gender);
+    await prefs.setString(_tableIdKey, tableId);
   }
 
-  Future<String?> getGender() async {
+  Future<String?> getTableId() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_genderKey);
+    return prefs.getString(_tableIdKey);
+  }
+
+  Future<void> setVibeAnswers(Map<int, String> answers) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = answers.entries.map((e) => '${e.key}:${e.value}').join(',');
+    await prefs.setString(_vibeAnswersKey, jsonString);
+  }
+
+  Future<Map<int, String>?> getVibeAnswers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_vibeAnswersKey);
+    if (jsonString == null) return null;
+
+    final Map<int, String> answers = {};
+    for (final pair in jsonString.split(',')) {
+      final parts = pair.split(':');
+      if (parts.length == 2) {
+        answers[int.parse(parts[0])] = parts[1];
+      }
+    }
+    return answers;
+  }
+
+  Future<void> setAssignedBots(List<String> bots) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_assignedBotsKey, bots);
+  }
+
+  Future<List<String>?> getAssignedBots() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_assignedBotsKey);
   }
 
   Future<void> setWorld(String world) async {
@@ -51,27 +84,11 @@ class LocalStorageService {
     return prefs.getString(_worldKey);
   }
 
-  /// Migration helper: Get world from gender if world not set
-  Future<String> getWorldOrMigrateFromGender() async {
+  /// Get current world or default
+  Future<String> getCurrentWorld() async {
     final prefs = await SharedPreferences.getInstance();
-    
-    // Check if world is already set
     final world = prefs.getString(_worldKey);
-    if (world != null) return world;
-    
-    // Migrate from gender if available
-    final gender = prefs.getString(_genderKey);
-    if (gender == 'girl') {
-      await setWorld('Girl Meets College');
-      return 'Girl Meets College';
-    } else if (gender == 'boy') {
-      await setWorld('Guy Meets College');
-      return 'Guy Meets College';
-    }
-    
-    // Default to Girl Meets College for backward compatibility
-    await setWorld('Girl Meets College');
-    return 'Girl Meets College';
+    return world ?? 'Girl Meets College';
   }
 
   Future<void> setHasPosted(bool hasPosted) async {

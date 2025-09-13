@@ -55,21 +55,22 @@ class _AppInitializationWrapperState extends State<AppInitializationWrapper> {
   }
 
   void _startMaintenanceListener() {
-    _maintenanceSubscription = _maintenanceService
-        .getMaintenanceStatusStream()
-        .listen(
-          (status) {
-            if (mounted) {
-              setState(() {
-                _isMaintenanceMode = status.isEnabled;
-              });
-            }
-          },
-          onError: (error) {
-            // Continue with current state on error
-            // The maintenance screen has its own error handling
-          },
-        );
+    // Commented out for development - maintenance mode disabled
+    // _maintenanceSubscription = _maintenanceService
+    //     .getMaintenanceStatusStream()
+    //     .listen(
+    //       (status) {
+    //         if (mounted) {
+    //           setState(() {
+    //             _isMaintenanceMode = status.isEnabled;
+    //           });
+    //         }
+    //       },
+    //       onError: (error) {
+    //         // Continue with current state on error
+    //         // The maintenance screen has its own error handling
+    //       },
+    //     );
   }
 
   @override
@@ -171,13 +172,15 @@ class MaintenanceModeChecker {
   
   /// Check if app is in maintenance mode before navigation
   static Future<bool> isMaintenanceModeActive() async {
-    try {
-      final status = await _maintenanceService.getMaintenanceStatus();
-      return status.isEnabled;
-    } catch (e) {
-      // If we can't check, allow access (fail open)
-      return false;
-    }
+    // Commented out for development - maintenance mode disabled
+    // try {
+    //   final status = await _maintenanceService.getMaintenanceStatus();
+    //   return status.isEnabled;
+    // } catch (e) {
+    //   // If we can't check, allow access (fail open)
+    //   return false;
+    // }
+    return false; // Always return false for development
   }
   
   /// Redirect to maintenance screen if maintenance is active

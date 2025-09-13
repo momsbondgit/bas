@@ -47,7 +47,6 @@ class QueueState {
 
 class QueueService extends ChangeNotifier {
   final LocalStorageService _localStorageService = LocalStorageService();
-  final AuthService _authService = AuthService();
   final BotAssignmentService _botAssignmentService = BotAssignmentService();
   final Random _random = Random();
   
@@ -95,29 +94,19 @@ class QueueService extends ChangeNotifier {
     _broadcastState();
   }
 
-  /// Load user's assigned bots from Firebase (handles returning users with fresh bots)
+  /// Load user's assigned bots from local storage (based on vibe check)
   Future<void> _loadAssignedBots() async {
     try {
-      final anonId = await _authService.getOrCreateAnonId();
-      print('[QueueService] Loading bots for user: $anonId');
-      
-      // Check if this is a returning user
-      final isReturningUser = await _localStorageService.recordSessionAndCheckIfReturning();
-      print('[QueueService] Is returning user: $isReturningUser');
-      
-      if (isReturningUser) {
-        // Returning users get fresh bot assignments for new experience
-        final sessionCount = await _localStorageService.getSessionCount();
-        print('[QueueService] Reassigning bots for returning user (session $sessionCount)');
-        await _botAssignmentService.reassignBotsForReturningUser(anonId, sessionCount);
-      } else {
-        // First-time users get initial bot assignments
-        print('[QueueService] Ensuring first-time user has bots');
-        await _botAssignmentService.ensureUserHasBots(anonId);
-      }
-      
-      _assignedBots = await _botAssignmentService.getAssignedBots(anonId);
+      print('[QueueService] Loading assigned bots');
+
+      // Get assigned bots from BotAssignmentService
+      _assignedBots = await _botAssignmentService.getAssignedBots();
       print('[QueueService] Loaded ${_assignedBots.length} assigned bots');
+
+      // If no bots assigned, this means user hasn't done vibe check yet
+      if (_assignedBots.isEmpty) {
+        print('[QueueService] No bots assigned - user needs to complete vibe check');
+      }
     } catch (e) {
       print('[QueueService] ERROR loading assigned bots: $e');
       _assignedBots = [];
@@ -133,7 +122,7 @@ class QueueService extends ChangeNotifier {
 
   Future<void> _createInitialQueue() async {
     final realUserFloor = await _localStorageService.getFloor() ?? 1;
-    final realUserWorld = await _localStorageService.getWorldOrMigrateFromGender();
+    final realUserWorld = await _localStorageService.getCurrentWorld();
     
     final realUser = QueueUser(
       id: 'real_user',
@@ -149,14 +138,8 @@ class QueueService extends ChangeNotifier {
       (index) => _createDummyUser(index)
     );
     
-    // All users (new and returning) get random position (3rd-6th, never first or second)
-    final availablePositions = List.generate(botUsers.length, (i) => i + 1)
-        .where((pos) => pos > 1) // Never position 0 (first) or 1 (second)
-        .toList();
-    
-    if (availablePositions.isEmpty) availablePositions.add(2); // Fallback to 3rd position (index 2)
-    
-    final userPosition = availablePositions[_random.nextInt(availablePositions.length)];
+    // Always place user at position 3 (index 2)
+    final userPosition = 2;
     
     // Build queue with user at random position
     List<QueueUser> queue = <QueueUser>[];

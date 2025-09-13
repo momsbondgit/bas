@@ -14,7 +14,7 @@ class PostInputViewModel extends ChangeNotifier {
   bool get isSubmitting => _isSubmitting;
   String? get errorMessage => _errorMessage;
 
-  Future<bool> submitPost(String text, int selectedFloor, String selectedGender, VoidCallback onSuccess) async {
+  Future<bool> submitPost(String text, int selectedFloor, VoidCallback onSuccess) async {
     if (text.trim().isEmpty) {
       _errorMessage = 'Please enter your confession';
       notifyListeners();
@@ -34,13 +34,12 @@ class PostInputViewModel extends ChangeNotifier {
     try {
       // Save user data locally
       await _localStorageService.setFloor(selectedFloor);
-      await _localStorageService.setGender(selectedGender);
       
       // Get user ID for tracking
       final userId = await _localStorageService.getAnonId() ?? 'unknown';
       
       // Submit post
-      await _postService.addPost(text.trim(), selectedFloor, selectedGender, userId);
+      await _postService.addPost(text.trim(), selectedFloor, userId);
       
       // Mark as posted
       await _localStorageService.setHasPosted(true);
@@ -67,7 +66,7 @@ class PostInputViewModel extends ChangeNotifier {
 
   Future<Map<String, dynamic>> loadUserPreferences() async {
     final floor = await _localStorageService.getFloor();
-    final world = await _localStorageService.getWorldOrMigrateFromGender();
+    final world = await _localStorageService.getCurrentWorld();
     
     return {
       'floor': floor ?? 1, // Default to floor 1

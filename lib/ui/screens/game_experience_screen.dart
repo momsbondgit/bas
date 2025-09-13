@@ -11,6 +11,8 @@ import '../../services/simulation/reaction_simulation_service.dart';
 import '../../services/data/local_storage_service.dart';
 import '../../services/core/world_service.dart';
 import 'session_end_screen.dart';
+import '../widgets/modals/goodbye_popup_modal.dart';
+import '../../services/simulation/bot_assignment_service.dart';
 
 
 class GameExperienceScreen extends StatefulWidget {
@@ -96,29 +98,66 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
 
   void _onViewModelChanged() {
     final isExpired = _viewModel.isTimerExpired;
-    
+
     if (isExpired) {
-      Navigator.of(context).pushAndRemoveUntil(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const SessionEndScreen(),
-          transitionDuration: const Duration(milliseconds: 300),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.0, -1.0), // Start from top (off-screen)
-                end: Offset.zero, // End at current position
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeInOut,
-              )),
-              child: child,
-            );
-          },
-        ),
-        (route) => false,
-      );
+      _showGoodbyePopup();
     }
     setState(() {});
+  }
+
+  void _showGoodbyePopup() async {
+    try {
+      // Get assigned bots and world config
+      final botAssignmentService = BotAssignmentService();
+      final assignedBots = await botAssignmentService.getAssignedBots();
+
+      if (_currentWorldConfig == null) {
+        // Fallback to session end screen if no world config
+        _navigateToSessionEnd();
+        return;
+      }
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => GoodbyePopupModal(
+            worldConfig: _currentWorldConfig!,
+            assignedBots: assignedBots,
+            onComplete: () {
+              Navigator.of(context).pop(); // Close popup
+              _navigateToSessionEnd(); // Then go to session end
+            },
+          ),
+        );
+      }
+    } catch (e) {
+      print('[GameExperienceScreen] Error showing goodbye popup: $e');
+      // Fallback to session end screen on error
+      _navigateToSessionEnd();
+    }
+  }
+
+  void _navigateToSessionEnd() {
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const SessionEndScreen(),
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.0, -1.0), // Start from top (off-screen)
+              end: Offset.zero, // End at current position
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            )),
+            child: child,
+          );
+        },
+      ),
+      (route) => false,
+    );
   }
 
   void _setupPulseAnimation() {
@@ -269,7 +308,6 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     return ConfessionCard(
       floor: data['floor'] ?? 0,
       text: content,
-      gender: data['gender'] ?? '',
       isBlurred: false,
       customAuthor: data['customAuthor'] as String?,
       isCurrentUser: isCurrentUser,
@@ -415,6 +453,18 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
               top: screenHeight * 0.28 + 10,
               left: 25,
               child: _buildTimerButton(),
+            ),
+            // Queue section - positioned below chat area
+            Positioned(
+              top: screenHeight * 0.28 + 334, // 10 pixels below chat area (324 + 10)
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  _buildStaticDivider(),
+                  _buildQueueContent(),
+                ],
+              ),
             ),
             // Fixed bottom input
             Positioned(
@@ -843,13 +893,9 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
           children: [
             const SizedBox(height: 60), // Space to move content down under LIVE button
             // Message content area
-            Flexible(
+            Expanded(
               child: _buildMessageAreaContent(),
             ),
-            // Static divider above Turn Queue
-            _buildStaticDivider(),
-            // Queue section
-            _buildQueueContent(),
           ],
         ),
       ),
