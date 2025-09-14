@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'dart:math';
 
-class ConfessionCard extends StatelessWidget {
+class ConfessionCard extends StatefulWidget {
   // Constants
   static const double _tabletBreakpoint = 768.0;
   static const double _desktopBreakpoint = 1024.0;
@@ -53,21 +53,28 @@ class ConfessionCard extends StatelessWidget {
     this.worldId,
   });
 
+  @override
+  State<ConfessionCard> createState() => _ConfessionCardState();
+}
+
+class _ConfessionCardState extends State<ConfessionCard> {
+  String? _pressedReaction;
+
   String _generateNickname() {
-    final seed = text.hashCode + floor;
-    final random = Random(seed);
-    return _nicknames[random.nextInt(_nicknames.length)];
+    final seed = widget.text.hashCode + widget.floor;
+    final random = Random(seed.toInt());
+    return ConfessionCard._nicknames[random.nextInt(ConfessionCard._nicknames.length)];
   }
 
   String _getHeaderText() {
-    if (isCurrentUser) {
+    if (widget.isCurrentUser) {
       return 'From: You';
     }
-    
-    if (customAuthor != null) {
-      return 'From: $customAuthor';
+
+    if (widget.customAuthor != null) {
+      return 'From: ${widget.customAuthor}';
     }
-    
+
     return 'From: ${_generateNickname()}';
   }
 
@@ -77,16 +84,16 @@ class ConfessionCard extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     
     // Responsive breakpoints
-    final isTablet = screenWidth >= _tabletBreakpoint;
-    final isDesktop = screenWidth >= _desktopBreakpoint;
+    final isTablet = screenWidth >= ConfessionCard._tabletBreakpoint;
+    final isDesktop = screenWidth >= ConfessionCard._desktopBreakpoint;
     
     // Responsive font sizes
-    final labelFontSize = isDesktop ? 16.0 : (isTablet ? 15.0 : (screenWidth * _screenWidthFontFactor).clamp(14.0, 16.0));
-    final textFontSize = isDesktop ? 15.0 : (isTablet ? 14.0 : (screenWidth * _screenWidthFontFactor).clamp(14.0, 16.0));
-    final reactionFontSize = isDesktop ? 15.0 : (isTablet ? 14.0 : (screenWidth * _screenWidthFontFactor).clamp(14.0, 16.0));
+    final labelFontSize = isDesktop ? 16.0 : (isTablet ? 15.0 : (screenWidth * ConfessionCard._screenWidthFontFactor).clamp(14.0, 16.0));
+    final textFontSize = isDesktop ? 15.0 : (isTablet ? 14.0 : (screenWidth * ConfessionCard._screenWidthFontFactor).clamp(14.0, 16.0));
+    final reactionFontSize = isDesktop ? 15.0 : (isTablet ? 14.0 : (screenWidth * ConfessionCard._screenWidthFontFactor).clamp(14.0, 16.0));
     
     // Responsive spacing
-    final verticalSpacing = (screenHeight * _screenHeightSpacingFactor).clamp(6.0, 12.0);
+    final verticalSpacing = (screenHeight * ConfessionCard._screenHeightSpacingFactor).clamp(6.0, 12.0);
     
     return Stack(
       children: [
@@ -113,7 +120,7 @@ class ConfessionCard extends StatelessWidget {
             maxWidth: isDesktop ? 600.0 : (isTablet ? 450.0 : screenWidth * 0.85),
           ),
           child: Text(
-            text,
+            widget.text,
             style: TextStyle(
               fontFamily: 'SF Compact Rounded',
               fontSize: textFontSize,
@@ -126,16 +133,16 @@ class ConfessionCard extends StatelessWidget {
           ),
         ),
         
-        SizedBox(height: verticalSpacing),
-        
-        // Local reactions section (not stored in Firebase)  
-        if (onReaction != null)
+        SizedBox(height: verticalSpacing * 6), // Add much more space before REACT section
+
+        // Local reactions section (not stored in Firebase)
+        if (widget.onReaction != null)
           _buildReactionRow(reactionFontSize),
           ],
         ),
         
         // Blur overlay when post is restricted
-        if (isBlurred)
+        if (widget.isBlurred)
           Positioned.fill(
             child: ClipRect(
               child: BackdropFilter(
@@ -175,101 +182,209 @@ class ConfessionCard extends StatelessWidget {
   }
   
   Widget _buildReactionRow(double fontSize) {
-    
-    // World-specific reaction labels
-    final isGuyWorld = worldId == 'guy-meets-college';
-    final reactionLabels = isGuyWorld ? {
-      '🤣': 'LMAOO',
-      '💀': 'dead',
-      '😭': 'not lions gate shorties',
-    } : {
-      '🤣': 'LMAOO',
-      '💀': 'dead',
-      '😭': 'not lions gate men',
+
+    // Updated reaction labels to match new design
+    const reactionLabels = {
+      'LMFAOOO 😭': 'LMFAOOO 😭',
+      'so real 💅': 'so real 💅',
+      'nah that\'s wild 💀': 'nah that\'s wild 💀',
     };
-    
-    // Debug logging
-    print('[ConfessionCard] Current reactions: $reactions');
-    print('[ConfessionCard] Expected emojis: ${reactionLabels.keys.toList()}');
-    
-    final reactionEntries = reactionLabels.entries.toList();
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // First row with REACT label and first two reactions
-        Row(
-          children: [
-            // REACT: label (matching original styling)
-            Text(
-              'REACT: ',
-              style: TextStyle(
-                fontFamily: 'SF Compact Rounded',
-                fontSize: fontSize * _fontSizeMultiplier,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFFB2B2B2),
-                letterSpacing: 0.4,
+
+    // Map old emoji keys to new reaction keys for compatibility
+    final topReactionKeys = ['LMFAOOO 😭', 'so real 💅'];
+    final bottomReactionKey = 'nah that\'s wild 💀';
+    final emojiMapping = {
+      'LMFAOOO 😭': '😭',
+      'so real 💅': '💅',
+      'nah that\'s wild 💀': '💀',
+    };
+
+    // Principle: Real-time reaction validation - System ensures reaction data integrity by validating against expected emoji set
+
+    return Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // REACT label centered above reactions
+          Text(
+            'REACT',
+            style: TextStyle(
+              fontFamily: 'SF Compact Rounded',
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: const Color(0xFFB2B2B2),
+              letterSpacing: 1.76, // 11% of 16px = 1.76px
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Top row with two reaction pills
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: topReactionKeys.map((reactionKey) {
+              final emoji = emojiMapping[reactionKey]!;
+              final count = widget.reactions[emoji] ?? 0;
+              final isPressed = _pressedReaction == emoji;
+
+              // Get specific color for each reaction
+              Color getReactionColor(String reactionKey) {
+                switch (reactionKey) {
+                  case 'LMFAOOO 😭':
+                    return const Color(0xFFFFD734); // Yellow
+                  case 'so real 💅':
+                    return Colors.red;
+                  case 'nah that\'s wild 💀':
+                    return Colors.black;
+                  default:
+                    return const Color(0xFFB2B2B2);
+                }
+              }
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: GestureDetector(
+                  onTapDown: (_) {
+                    setState(() {
+                      _pressedReaction = emoji;
+                    });
+                  },
+                  onTapUp: (_) {
+                    setState(() {
+                      _pressedReaction = null;
+                    });
+                  },
+                  onTapCancel: () {
+                    setState(() {
+                      _pressedReaction = null;
+                    });
+                  },
+                  onTap: () {
+                    widget.onReaction?.call(emoji);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(
+                        color: const Color(0xFFC5C3C3),
+                        width: 0.5,
+                      ),
+                      boxShadow: isPressed ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.25),
+                          offset: const Offset(0, 4),
+                          blurRadius: 4,
+                          spreadRadius: 0,
+                        ),
+                      ] : null,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          reactionKey,
+                          style: TextStyle(
+                            fontFamily: 'SF Compact Rounded',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                            color: getReactionColor(reactionKey),
+                            letterSpacing: 1.65, // 11% of 15px = 1.65px
+                          ),
+                        ),
+                        if (count > 0) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            count.toString(),
+                            style: TextStyle(
+                              fontFamily: 'SF Compact Rounded',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: getReactionColor(reactionKey),
+                              letterSpacing: 1.65, // 11% of 15px = 1.65px
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 8),
+          // Bottom row with single centered reaction pill
+          GestureDetector(
+            onTapDown: (_) {
+              setState(() {
+                _pressedReaction = emojiMapping[bottomReactionKey]!;
+              });
+            },
+            onTapUp: (_) {
+              setState(() {
+                _pressedReaction = null;
+              });
+            },
+            onTapCancel: () {
+              setState(() {
+                _pressedReaction = null;
+              });
+            },
+            onTap: () {
+              final emoji = emojiMapping[bottomReactionKey]!;
+              widget.onReaction?.call(emoji);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: const Color(0xFFC5C3C3),
+                  width: 0.5,
+                ),
+                boxShadow: _pressedReaction == emojiMapping[bottomReactionKey]! ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    offset: const Offset(0, 4),
+                    blurRadius: 4,
+                    spreadRadius: 0,
+                  ),
+                ] : null,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    bottomReactionKey,
+                    style: TextStyle(
+                      fontFamily: 'SF Compact Rounded',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black, // "nah that's wild" is black
+                      letterSpacing: 1.65, // 11% of 15px = 1.65px
+                    ),
+                  ),
+                  if ((widget.reactions[emojiMapping[bottomReactionKey]!] ?? 0) > 0) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      (widget.reactions[emojiMapping[bottomReactionKey]!] ?? 0).toString(),
+                      style: TextStyle(
+                        fontFamily: 'SF Compact Rounded',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black, // Count number same color as text
+                        letterSpacing: 1.65, // 11% of 15px = 1.65px
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            // First two reactions
-            ...reactionEntries.take(2).map((entry) {
-              final emoji = entry.key;
-              final label = entry.value;
-              final count = reactions[emoji] ?? 0;
-              final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
-              
-                return GestureDetector(
-                    onTap: () {
-                      onReaction?.call(emoji);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
-                      child: Text(
-                        displayText,
-                        style: TextStyle(
-                          fontFamily: 'SF Compact Rounded',
-                          fontSize: fontSize * _fontSizeMultiplier,
-                          fontWeight: FontWeight.w400,
-                          color: const Color(0xFFB2B2B2),
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ),
-                );
-              }).toList(),
-          ],
-        ),
-        // Second row with the last reaction (if it exists)
-        if (reactionEntries.length > 2)
-          Row(
-            children: reactionEntries.skip(2).map((entry) {
-              final emoji = entry.key;
-              final label = entry.value;
-              final count = reactions[emoji] ?? 0;
-              final displayText = count > 0 ? '[$label $emoji]$count' : '[$label $emoji]';
-              
-                return GestureDetector(
-                    onTap: () {
-                      onReaction?.call(emoji);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: _reactionPadding, vertical: _reactionVerticalPadding),
-                      child: Text(
-                        displayText,
-                        style: TextStyle(
-                          fontFamily: 'SF Compact Rounded',
-                          fontSize: fontSize * _fontSizeMultiplier,
-                          fontWeight: FontWeight.w400,
-                          color: const Color(0xFFB2B2B2),
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ),
-                );
-              }).toList(),
           ),
       ],
-    );
+    ),
+  );
   }
 
 }

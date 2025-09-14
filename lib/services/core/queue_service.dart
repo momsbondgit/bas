@@ -97,18 +97,18 @@ class QueueService extends ChangeNotifier {
   /// Load user's assigned bots from local storage (based on vibe check)
   Future<void> _loadAssignedBots() async {
     try {
-      print('[QueueService] Loading assigned bots');
+      // Principle: Bot assignment initialization - System loads user's vibe-matched bot table to create personalized interaction experiences
 
       // Get assigned bots from BotAssignmentService
       _assignedBots = await _botAssignmentService.getAssignedBots();
-      print('[QueueService] Loaded ${_assignedBots.length} assigned bots');
+      // Principle: Successful bot table matching - User's vibe check results successfully mapped to appropriate bot personality table
 
       // If no bots assigned, this means user hasn't done vibe check yet
       if (_assignedBots.isEmpty) {
-        print('[QueueService] No bots assigned - user needs to complete vibe check');
+        // Principle: Prerequisite validation - Vibe check completion required before bot assignment and queue participation
       }
     } catch (e) {
-      print('[QueueService] ERROR loading assigned bots: $e');
+      // Principle: Error resilience - Bot assignment failures are handled gracefully to maintain queue functionality
       _assignedBots = [];
     }
   }

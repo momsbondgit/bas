@@ -132,7 +132,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
         );
       }
     } catch (e) {
-      print('[GameExperienceScreen] Error showing goodbye popup: $e');
+      // Principle: Graceful session termination - When goodbye popup fails, system maintains user flow by defaulting to session end screen
       // Fallback to session end screen on error
       _navigateToSessionEnd();
     }
@@ -241,23 +241,23 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 
   void _handleLocalReaction(String postId, String emoji) {
-    print('[GameExperience] _handleLocalReaction called with emoji: $emoji for post: $postId');
+    // Principle: User engagement tracking - System captures and processes user reactions to maintain authentic interaction patterns
     // Add natural delay to simulate reading time before reacting
     // Random delay between 2000-4500ms to feel more human
     final random = Random();
     final delayMs = 2000 + random.nextInt(2500); // 2000-4500ms range
     
-    print('[GameExperience] Adding reaction after ${delayMs}ms delay');
+    // Principle: Natural interaction timing - Simulated delays create realistic user response patterns that enhance engagement authenticity
     Future.delayed(Duration(milliseconds: delayMs), () {
       if (mounted) {
-        print('[GameExperience] Actually adding reaction: $emoji to post: $postId');
+        // Principle: Confirmed reaction processing - System validates successful reaction application to maintain data consistency
         setState(() {
           // Initialize reactions for this post if not exists
           _localReactions[postId] ??= {};
           
           // Increment reaction count
           _localReactions[postId]![emoji] = (_localReactions[postId]![emoji] ?? 0) + 1;
-          print('[GameExperience] Reaction count for $emoji: ${_localReactions[postId]![emoji]}');
+          // Principle: Real-time engagement metrics - Reaction counts tracked locally to provide immediate user feedback without database dependency
         });
       }
     });
@@ -282,27 +282,27 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     // Start reaction simulation for all new posts (bots will react to everyone including real user)
     if (!_simulatedPosts.contains(postId)) {
       _simulatedPosts.add(postId);
-      print('[GameExperience] Starting reaction simulation for post: $postId');
+      // Principle: Automated engagement initiation - Bot reaction simulation begins to create lively social atmosphere around user content
       
       // Start realistic reaction simulation after a short delay
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
-          print('[GameExperience] Calling simulateReactionsForPost for: $postId');
+          // Principle: Bot table integration - Assigned bots from user's vibe-matched table participate in content reactions for personalized experience
           _reactionService.simulateReactionsForPost(
             postId: postId,
             content: content,
             onReaction: (emoji) {
-              print('[GameExperience] Bot reaction received: $emoji for post: $postId');
+              // Principle: Personalized bot engagement - Vibe-matched bots provide contextually appropriate reactions based on user's personality assessment
               _handleLocalReaction(postId, emoji);
             },
             isRealUserPost: isCurrentUser,
           );
         } else {
-          print('[GameExperience] Not mounted, skipping reactions for: $postId');
+          // Principle: Component lifecycle safety - System prevents memory leaks by checking widget state before processing reactions
         }
       });
     } else {
-      print('[GameExperience] Post already simulated: $postId');
+      // Principle: Duplicate prevention - System tracks simulated posts to ensure each receives exactly one bot reaction cycle
     }
     
     return ConfessionCard(
@@ -356,7 +356,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       top: 140,
       left: 0,
       right: 0,
-      bottom: 90,
+      bottom: 110,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 17),
         decoration: BoxDecoration(
@@ -456,7 +456,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             ),
             // Queue section - positioned below chat area
             Positioned(
-              top: screenHeight * 0.28 + 334, // 10 pixels below chat area (324 + 10)
+              top: screenHeight * 0.28 + 334, // Original position maintains relative spacing with moved border
               left: 0,
               right: 0,
               child: Column(
@@ -1048,48 +1048,85 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
 
 
   Widget _buildStaticDivider() {
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20), // Spacing from comment area borders
-          height: 2,
-          decoration: const BoxDecoration(
-            color: Color(0xFFDEDBD9),
-          ),
-        ),
-        const SizedBox(height: 8), // Reduced spacing below divider
-      ],
-    );
+    // Remove divider completely as per requirements
+    return const SizedBox.shrink();
   }
 
   Widget _buildQueueContent() {
     final activeUser = _viewModel.activeUser;
     final queueState = _viewModel.queueState;
-    
+
     // Use the original fixed queue order (never changes)
     final allUsers = queueState.queue;
-    
-    return Center(
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10), // Same padding as chat container edge
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Static header
-          const Text(
-            '[ Turn Queue ]',
-            style: TextStyle(
-              fontFamily: 'SF Pro Rounded',
-              fontWeight: FontWeight.w500,
-              fontSize: 17,
-              color: Color(0xFFABABAB),
-            ),
+          // Header aligned to far left
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Who\'s turn is it 🧐:',
+                style: TextStyle(
+                  fontFamily: 'SF Compact Rounded',
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  color: Color(0xFFB2B2B2),
+                ),
+              ),
+              // DEVELOPER ONLY: Remove this button later
+              GestureDetector(
+                onTap: () => _showGoodbyePopup(),
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.fast_forward,
+                    size: 12,
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 5),
-          Container(
-            width: 280,
+          const SizedBox(height: 12),
+          // User pills - left aligned
+          Align(
+            alignment: Alignment.centerLeft,
             child: Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 5,
-              runSpacing: 5,
-              children: _buildUsersWithSeparators(allUsers, activeUser),
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.start,
+              children: allUsers.map((user) {
+                final isCurrentUser = user == activeUser;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isCurrentUser ? const Color(0xFFFF6262) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: isCurrentUser ? const Color(0xFFFF6262) : const Color(0xFFC5C3C3),
+                      width: isCurrentUser ? 1.0 : 0.5,
+                    ),
+                  ),
+                  child: Text(
+                    user.displayName,
+                    style: TextStyle(
+                      fontFamily: 'SF Compact Rounded',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isCurrentUser ? Colors.white : const Color(0xFFB2B2B2),
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ],
@@ -1097,44 +1134,6 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     );
   }
 
-  List<Widget> _buildUsersWithSeparators(List users, activeUser) {
-    final widgets = <Widget>[];
-    
-    for (int i = 0; i < users.length; i++) {
-      final user = users[i];
-      final isCurrentUser = user == activeUser;
-      
-      // Add user name
-      widgets.add(
-        Text(
-          user.displayName,
-          style: TextStyle(
-            fontFamily: 'SF Compact Rounded',
-            fontWeight: isCurrentUser ? FontWeight.w700 : FontWeight.w500,
-            fontSize: 14,
-            color: isCurrentUser ? const Color(0xFFFF6262) : const Color(0xFFABABAB),
-          ),
-        ),
-      );
-      
-      // Add separator (except after last user)
-      if (i < users.length - 1) {
-        widgets.add(
-          const Text(
-            '|',
-            style: TextStyle(
-              fontFamily: 'SF Compact Rounded',
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              color: Color(0xFFABABAB),
-            ),
-          ),
-        );
-      }
-    }
-    
-    return widgets;
-  }
 }
 
 

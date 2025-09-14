@@ -26,15 +26,24 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
   final TextEditingController _goodbyeController = TextEditingController();
   final List<GoodbyeMessage> _goodbyeMessages = [];
   late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
 
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(seconds: 10), // 10 second fade duration
       vsync: this,
     );
+
+    _fadeAnimation = Tween<double>(
+      begin: 1.0, // Start fully visible
+      end: 0.0,   // End fully transparent
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    ));
 
     _startTimer();
     _addBotGoodbyes();
@@ -45,6 +54,11 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
       setState(() {
         _remainingSeconds--;
       });
+
+      // Start fade-out animation when 10 seconds remain
+      if (_remainingSeconds == 10) {
+        _fadeController.forward();
+      }
 
       if (_remainingSeconds <= 0) {
         _timer.cancel();
@@ -80,18 +94,12 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
     setState(() {
       _goodbyeMessages.add(goodbyeMessage);
     });
-
-    // Auto-remove message after 8 seconds (fade out effect)
-    Timer(const Duration(seconds: 8), () {
-      if (mounted) {
-        setState(() {
-          _goodbyeMessages.remove(goodbyeMessage);
-        });
-      }
-    });
   }
 
   void _submitGoodbye() {
+    // Don't allow submissions when fading out (last 10 seconds)
+    if (_remainingSeconds <= 10) return;
+
     final message = _goodbyeController.text.trim();
     if (message.isNotEmpty) {
       _addGoodbyeMessage('You', message);
@@ -111,25 +119,27 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
-        width: 350,
-        height: 500,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1EDEA),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: const Color(0xFFB2B2B2),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              offset: const Offset(0, 8),
-              blurRadius: 32,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          width: 350,
+          height: 500,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1EDEA),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFB2B2B2),
+              width: 1,
             ),
-          ],
-        ),
-        child: Column(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                offset: const Offset(0, 8),
+                blurRadius: 32,
+              ),
+            ],
+          ),
+          child: Column(
           children: [
             // Header with timer
             Container(
@@ -137,7 +147,7 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
               child: Column(
                 children: [
                   Text(
-                    'Goodbye Time! 👋',
+                    'say ur byes 💕',
                     style: TextStyle(
                       fontFamily: 'SF Pro',
                       fontSize: 24,
@@ -182,7 +192,7 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
                 child: _goodbyeMessages.isEmpty
                     ? const Center(
                         child: Text(
-                          'Say your goodbyes! 💕',
+                          'drop a quick bye 👋',
                           style: TextStyle(
                             fontFamily: 'SF Pro',
                             fontSize: 16,
@@ -221,7 +231,7 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
                         controller: _goodbyeController,
                         maxLength: 100,
                         decoration: const InputDecoration(
-                          hintText: 'Type your goodbye...',
+                          hintText: 'drop a quick bye 👋',
                           hintStyle: TextStyle(
                             fontFamily: 'SF Pro',
                             fontSize: 14,
@@ -246,13 +256,17 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
                     child: Container(
                       width: 44,
                       height: 44,
-                      decoration: const BoxDecoration(
-                        color: Colors.black,
+                      decoration: BoxDecoration(
+                        color: _remainingSeconds <= 10
+                            ? Colors.black.withOpacity(0.3)
+                            : Colors.black,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.send,
-                        color: Colors.white,
+                        color: _remainingSeconds <= 10
+                            ? Colors.white.withOpacity(0.5)
+                            : Colors.white,
                         size: 20,
                       ),
                     ),
@@ -263,6 +277,7 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -271,7 +286,7 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: message.isBot ? const Color(0xFFF0F0F0) : Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: const Color(0xFFE5E5E5),
@@ -282,37 +297,14 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Text(
-                message.username,
-                style: TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: message.isBot ? const Color(0xFF8F8F8F) : Colors.black,
-                ),
-              ),
-              if (message.isBot) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5E5E5),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'BOT',
-                    style: TextStyle(
-                      fontFamily: 'SF Pro',
-                      fontSize: 8,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF8F8F8F),
-                    ),
-                  ),
-                ),
-              ],
-            ],
+          Text(
+            message.username,
+            style: TextStyle(
+              fontFamily: 'SF Pro',
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 4),
           Text(

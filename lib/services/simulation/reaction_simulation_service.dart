@@ -60,8 +60,7 @@ class ReactionSimulationService {
       
       final timer = Timer(Duration(milliseconds: (delaySeconds * 1000).round()), () {
         final emoji = _selectWeightedReaction(content);
-        print('[ReactionService] Triggering reaction: $emoji after ${delaySeconds}s delay');
-        print('[ReactionService] Available emojis: ${_reactionWeights.keys.toList()}');
+        // Principle: Weighted randomness creates authentic user engagement patterns through varied reaction timing and distribution
         onReaction(emoji);
       });
 
@@ -165,7 +164,7 @@ class ReactionSimulationService {
     
     // Fallback
     final fallbackEmoji = '🤣';
-    print('[ReactionService] Using fallback emoji: $fallbackEmoji');
+    // Principle: Reliable fallback mechanisms ensure consistent user experience even when primary reaction logic fails
     return fallbackEmoji;
   }
 

@@ -75,7 +75,7 @@ class BotAssignmentService {
         return worldConfig.botTable3;
       }
     } catch (e) {
-      print('[BotAssignmentService] Error getting assigned bots: $e');
+      // Principle: Graceful degradation - When bot assignment fails, system continues with empty bot list rather than crashing user experience
       return [];
     }
   }
