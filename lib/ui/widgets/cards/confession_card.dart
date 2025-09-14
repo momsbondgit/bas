@@ -98,41 +98,47 @@ class _ConfessionCardState extends State<ConfessionCard> {
     return Stack(
       children: [
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
         // Post header with "from:" prefix
-        Text(
-          _getHeaderText(),
-          style: TextStyle(
-            fontFamily: 'SF Compact Rounded',
-            fontSize: labelFontSize,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-            letterSpacing: 0.5,
-          ),
-        ),
-        
-        SizedBox(height: verticalSpacing),
-        
-        // Confession text - improved responsive width
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: isDesktop ? 600.0 : (isTablet ? 450.0 : screenWidth * 0.85),
-          ),
+        Align(
+          alignment: Alignment.centerLeft,
           child: Text(
-            widget.text,
+            _getHeaderText(),
             style: TextStyle(
               fontFamily: 'SF Compact Rounded',
-              fontSize: textFontSize,
-              fontWeight: FontWeight.w400,
+              fontSize: labelFontSize,
+              fontWeight: FontWeight.w600,
               color: Colors.black,
-              letterSpacing: 0.4,
-              height: 1.3, // Better line height for readability
+              letterSpacing: 0.5,
             ),
-            softWrap: true,
           ),
         ),
-        
+
+        SizedBox(height: verticalSpacing),
+
+        // Confession text - improved responsive width
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: isDesktop ? 600.0 : (isTablet ? 450.0 : screenWidth * 0.85),
+            ),
+            child: Text(
+              widget.text,
+              style: TextStyle(
+                fontFamily: 'SF Compact Rounded',
+                fontSize: textFontSize,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+                letterSpacing: 0.4,
+                height: 1.3, // Better line height for readability
+              ),
+              softWrap: true,
+            ),
+          ),
+        ),
+
         SizedBox(height: verticalSpacing * 6), // Add much more space before REACT section
 
         // Local reactions section (not stored in Firebase)
@@ -210,10 +216,10 @@ class _ConfessionCardState extends State<ConfessionCard> {
             'REACT',
             style: TextStyle(
               fontFamily: 'SF Compact Rounded',
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.w400,
               color: const Color(0xFFB2B2B2),
-              letterSpacing: 1.76, // 11% of 16px = 1.76px
+              letterSpacing: 1.98, // 11% of 18px = 1.98px
             ),
           ),
           const SizedBox(height: 12),
@@ -236,7 +242,7 @@ class _ConfessionCardState extends State<ConfessionCard> {
                   case 'nah that\'s wild 💀':
                     return Colors.black;
                   default:
-                    return const Color(0xFFB2B2B2);
+                    return const Color(0xFFC5C3C3);
                 }
               }
 
@@ -264,7 +270,7 @@ class _ConfessionCardState extends State<ConfessionCard> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
+                      color: const Color(0xFFFFF8F2),
                       borderRadius: BorderRadius.circular(5),
                       border: Border.all(
                         color: const Color(0xFFC5C3C3),
@@ -337,7 +343,8 @@ class _ConfessionCardState extends State<ConfessionCard> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
+                // this is where you change the collor of the fill color of the reaction buttons
+                color: const Color(0xFFFFF8F2),
                 borderRadius: BorderRadius.circular(5),
                 border: Border.all(
                   color: const Color(0xFFC5C3C3),
