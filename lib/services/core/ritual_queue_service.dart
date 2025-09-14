@@ -11,9 +11,10 @@ class RitualQueueService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final LocalStorageService _localStorage = LocalStorageService();
   final StreamController<RitualQueueState> _queueStateController = StreamController<RitualQueueState>.broadcast();
-  
+
   Timer? _turnTimer;
   RitualQueueState? _currentState;
+  bool _isSessionExpired = false;
 
   Stream<RitualQueueState> get queueStateStream => _queueStateController.stream;
   RitualQueueState? get currentState => _currentState;
@@ -98,7 +99,10 @@ class RitualQueueService {
 
   void _startTurnTimer() {
     _cancelTurnTimer();
-    
+
+    // Don't start timer if session is expired
+    if (_isSessionExpired) return;
+
     _turnTimer = Timer(RitualConfig.defaultTurnDuration, () async {
       await rotateQueue();
     });
@@ -148,6 +152,8 @@ class RitualQueueService {
 
 
   Future<void> rotateQueue() async {
+    // Stop rotation if session is expired
+    if (_isSessionExpired) return;
     if (_currentState == null || _currentState!.userQueue.isEmpty) return;
 
     final currentQueue = List<QueueUser>.from(_currentState!.userQueue);
@@ -256,6 +262,12 @@ class RitualQueueService {
 
   String _generateMessageId() {
     return DateTime.now().millisecondsSinceEpoch.toString();
+  }
+
+  // Method to stop the queue when session expires
+  void stopSessionQueue() {
+    _isSessionExpired = true;
+    _cancelTurnTimer();
   }
 
   void dispose() {

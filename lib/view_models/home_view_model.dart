@@ -20,11 +20,11 @@ class HomeViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _userPosts = []; // User's own posts only
   List<Map<String, dynamic>> _localBotPosts = [];
   QueueState _queueState = const QueueState(queue: [], currentIndex: 0, isInitialized: false);
-  
+
   // Universal reaction timer state
   int _reactionTimeRemaining = 0; // in seconds
   bool _isReactionTimerActive = false;
-  
+
   // Private
   Timer? _timer;
   Timer? _viewerTimer;
@@ -76,13 +76,13 @@ class HomeViewModel extends ChangeNotifier {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_isReactionTimerActive && _reactionTimeRemaining > 0) {
         _reactionTimeRemaining--;
-        
+
         if (_reactionTimeRemaining <= 0) {
           _stopReactionTimer();
           // Move to next user in queue
           _queueService.moveToNextUser();
         }
-        
+
         notifyListeners();
       }
     });
@@ -150,32 +150,36 @@ class HomeViewModel extends ChangeNotifier {
     _queueService.stopRealUserTyping();
   }
 
+  void stopQueueRotation() {
+    _queueService.stopQueueRotation();
+  }
+
   bool get isTimerExpired {
     // Navigate to session end when all users have posted AND reaction time is complete
     final queue = _queueState.queue;
-    
+
     if (queue.isEmpty) {
       return false;
     }
-    
-    // Check if all users have completed their posts (state == posted OR completed)
-    final allUsersPosted = queue.every((user) => user.hasPosted || user.state == QueueUserState.completed);
-    final postedCount = queue.where((user) => user.hasPosted || user.state == QueueUserState.completed).length;
-    
+
+    // Check if all users have posted
+    final allUsersPosted = queue.every((user) =>
+      user.hasPosted || user.state == QueueUserState.completed
+    );
+
     if (!allUsersPosted) {
       return false;
     }
-    
+
     // Check if 6th user (queue.last) has posted and universal reaction timer expired
     if (queue.length == 6) {
       final lastUser = queue[5]; // 6th user (0-indexed)
       final lastUserHasPosted = lastUser.hasPosted || lastUser.state == QueueUserState.completed;
       final reactionTimerExpired = !_isReactionTimerActive && _reactionTimeRemaining <= 0;
-      
-      
+
       return lastUserHasPosted && reactionTimerExpired;
     }
-    
+
     return false;
   }
 
@@ -195,14 +199,14 @@ class HomeViewModel extends ChangeNotifier {
       
       // Check if active user has posted and start reaction timer
       final currentActiveUser = _queueState.activeUser;
-      
-      if (currentActiveUser != null && 
-          currentActiveUser.hasPosted && 
+
+      if (currentActiveUser != null &&
+          currentActiveUser.hasPosted &&
           !_isReactionTimerActive &&
           (previousActiveUser?.id != currentActiveUser.id || !previousActiveUser!.hasPosted)) {
         _startReactionTimer();
       }
-      
+
       notifyListeners();
     });
   }

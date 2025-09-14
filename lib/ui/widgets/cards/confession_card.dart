@@ -139,7 +139,7 @@ class _ConfessionCardState extends State<ConfessionCard> {
           ),
         ),
 
-        SizedBox(height: verticalSpacing * 6), // Add much more space before REACT section
+        SizedBox(height: verticalSpacing * 4), // Add space before REACT section
 
         // Local reactions section (not stored in Firebase)
         if (widget.onReaction != null)

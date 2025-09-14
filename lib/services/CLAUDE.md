@@ -123,9 +123,17 @@ This directory contains service classes that handle business logic, external int
 **Purpose**: Simulates bot reactions to messages for realistic interactions.
 
 **Features**:
-- Automatic reaction generation based on message content
-- Timing simulation for realistic bot behavior
-- Integration with reaction system
+- **Automatic Reaction Generation**: Creates realistic bot reactions to user messages
+- **Balanced Distribution**: Ensures varied reaction types with guaranteed minimum representation
+- **Content-Aware Weighting**: Adjusts reaction probabilities based on message sentiment
+- **Realistic Timing**: First reaction after 6 seconds, subsequent reactions every 1.5 seconds
+- **Reaction Weights**: LMFAOOO 😭 (34%), so real 💅 (33%), nah that's wild 💀 (33%)
+
+**Key Methods**:
+- `simulateReactionsForPost()`: Main method to trigger reaction simulation
+- `_generateDistributedReactions()`: Ensures each reaction type appears at least once for 3+ reactions
+- `_selectWeightedReaction()`: Content-based reaction selection with sentiment analysis
+- `stopSimulationForPost()`: Cancels ongoing reaction timers for specific posts
 
 ## Key Patterns
 

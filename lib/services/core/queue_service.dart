@@ -49,9 +49,10 @@ class QueueService extends ChangeNotifier {
   final LocalStorageService _localStorageService = LocalStorageService();
   final BotAssignmentService _botAssignmentService = BotAssignmentService();
   final Random _random = Random();
-  
+
   List<BotUser> _assignedBots = [];
-  
+  bool _isQueueStopped = false;
+
   // Callback for when a bot posts locally
   Function({required String botNickname, required String confession, required String world})? onBotPost;
   
@@ -235,6 +236,9 @@ class QueueService extends ChangeNotifier {
 
   /// Advances queue to the next user in line
   void _advanceToNextUser() {
+    // Don't advance if queue is stopped
+    if (_isQueueStopped) return;
+
     final queue = _currentState.queue;
     if (queue.isEmpty) return;
 
@@ -540,6 +544,15 @@ class QueueService extends ChangeNotifier {
   /// Public method for HomeViewModel to advance queue when timer expires
   void moveToNextUser() {
     _advanceToNextUser();
+  }
+
+  /// Stops the queue rotation (called when goodbye popup appears)
+  void stopQueueRotation() {
+    _isQueueStopped = true;
+    _turnTimer?.cancel();
+    _dummyActionTimer?.cancel();
+    _typingTimer?.cancel();
+    _botTypingDelayTimer?.cancel();
   }
 
   @override

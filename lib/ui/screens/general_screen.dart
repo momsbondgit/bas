@@ -222,10 +222,10 @@ class _GeneralScreenState extends State<GeneralScreen> {
   Widget _buildBackgroundCollages(BuildContext context) {
     return Stack(
       children: [
-        // Girl Meets College background (left side)
+        // Girl Meets College background (centered)
         _buildFadeBackground(context, isLeft: true),
-        // Guy Meets College background (right side)  
-        _buildFadeBackground(context, isLeft: false),
+        // Guy Meets College background (right side) - COMMENTED OUT
+        // _buildFadeBackground(context, isLeft: false),
       ],
     );
   }
@@ -235,10 +235,8 @@ class _GeneralScreenState extends State<GeneralScreen> {
     final groupWidth = 124.0;
     final groupHeight = 128.0;
     
-    // Position on left or right side
-    final leftOffset = isLeft 
-        ? (screenSize.width / 2 - 100) - (groupWidth / 2)
-        : (screenSize.width / 2 + 100) - (groupWidth / 2);
+    // Position: center the background since we only have Girl Meets College
+    final leftOffset = (screenSize.width / 2) - (groupWidth / 2);
     
     return Positioned(
       left: leftOffset,
@@ -310,26 +308,26 @@ class _GeneralScreenState extends State<GeneralScreen> {
 
   Widget _buildWorldTiles(BuildContext context) {
     final girlWorld = _availableWorlds.firstWhere((world) => world.id == 'girl-meets-college');
-    final guyWorld = _availableWorlds.firstWhere((world) => world.id == 'guy-meets-college');
-    
+    // final guyWorld = _availableWorlds.firstWhere((world) => world.id == 'guy-meets-college');
+
     return Stack(
       children: [
-        // Girl Meets College tile (left)
+        // Girl Meets College tile (centered)
         _buildWorldTile(
           context,
           world: girlWorld,
-          isLeft: true,
+          isLeft: false, // Changed to false to center it
           stickerAsset: 'assets/sticker_image.png',
         ),
-        // Guy Meets College tile (right)
-        _buildWorldTile(
-          context,
-          world: guyWorld,
-          isLeft: false,
-          stickerAsset: 'assets/Boy_sticker.png',
-        ),
-        // Tap indicators
-        _buildTapIndicators(context),
+        // Guy Meets College tile (right) - COMMENTED OUT
+        // _buildWorldTile(
+        //   context,
+        //   world: guyWorld,
+        //   isLeft: false,
+        //   stickerAsset: 'assets/Boy_sticker.png',
+        // ),
+        // Tap indicators - COMMENTED OUT
+        // _buildTapIndicators(context),
       ],
     );
   }
@@ -343,10 +341,10 @@ class _GeneralScreenState extends State<GeneralScreen> {
     final boxWidth = 122.0;
     final boxHeight = 126.0;
     
-    // Position on left or right side
-    final leftOffset = isLeft 
-        ? (screenSize.width / 2 - 100) - (boxWidth / 2)
-        : (screenSize.width / 2 + 100) - (boxWidth / 2);
+    // Position: left side, right side, or centered
+    final leftOffset = isLeft
+        ? (screenSize.width / 2 - 100) - (boxWidth / 2)  // Left position
+        : (screenSize.width / 2) - (boxWidth / 2);        // Centered position
     
     return Stack(
       children: [

@@ -48,6 +48,8 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   
   // Local reaction storage (not persisted to Firebase)
   final Map<String, Map<String, int>> _localReactions = {};
+  // Track which reactions the current user has clicked (postId -> Set of emojis)
+  final Map<String, Set<String>> _userReactedEmojis = {};
   
   // Reaction simulation
   final ReactionSimulationService _reactionService = ReactionSimulationService();
@@ -55,6 +57,9 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   
   // World configuration
   WorldConfig? _currentWorldConfig;
+
+  // Goodbye popup state tracking
+  bool _goodbyePopupShown = false;
 
   @override
   void initState() {
@@ -99,14 +104,27 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   void _onViewModelChanged() {
     final isExpired = _viewModel.isTimerExpired;
 
-    if (isExpired) {
+    // Debug: Track when timer expiry is detected
+    print('[DEBUG] _onViewModelChanged called - isExpired: $isExpired, _goodbyePopupShown: $_goodbyePopupShown');
+
+    if (isExpired && !_goodbyePopupShown) {
+      print('[DEBUG] Timer expired and popup not shown yet - showing goodbye popup');
       _showGoodbyePopup();
+    } else if (isExpired && _goodbyePopupShown) {
+      print('[DEBUG] Timer expired but popup already shown - skipping');
     }
     setState(() {});
   }
 
   void _showGoodbyePopup() async {
     try {
+      // Debug: Track popup creation
+      print('[DEBUG] _showGoodbyePopup called - setting _goodbyePopupShown = true');
+      _goodbyePopupShown = true;
+
+      // Stop the queue rotation when goodbye popup appears
+      _viewModel.stopQueueRotation();
+
       // Get assigned bots and world config
       final botAssignmentService = BotAssignmentService();
       final assignedBots = await botAssignmentService.getAssignedBots();
@@ -118,6 +136,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       }
 
       if (mounted) {
+        print('[DEBUG] Creating new GoodbyePopupModal dialog');
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -125,6 +144,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             worldConfig: _currentWorldConfig!,
             assignedBots: assignedBots,
             onComplete: () {
+              print('[DEBUG] GoodbyePopupModal onComplete called - closing popup and navigating to session end');
               Navigator.of(context).pop(); // Close popup
               _navigateToSessionEnd(); // Then go to session end
             },
@@ -267,9 +287,19 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     // Real user reactions are immediate (no delay)
     if (mounted) {
       setState(() {
-        // Initialize reactions for this post if not exists
+        // Initialize tracking structures if not exists
         _localReactions[postId] ??= {};
-        
+        _userReactedEmojis[postId] ??= {};
+
+        // Check if user already reacted with this emoji
+        if (_userReactedEmojis[postId]!.contains(emoji)) {
+          // User already reacted with this emoji - don't allow duplicate
+          return;
+        }
+
+        // Add this emoji to user's reacted set for this post
+        _userReactedEmojis[postId]!.add(emoji);
+
         // Increment reaction count
         _localReactions[postId]![emoji] = (_localReactions[postId]![emoji] ?? 0) + 1;
       });
