@@ -29,52 +29,10 @@ class SessionEndScreen extends StatefulWidget {
 }
 
 class _SessionEndScreenState extends State<SessionEndScreen> {
-  final TextEditingController _numberController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final EndingService _endingService = EndingService();
-  bool _isPhoneSending = false;
   bool _isInstagramSending = false;
 
-  void _onPhoneSendPressed() async {
-    final phoneNumber = _numberController.text.trim();
-    
-    if (phoneNumber.isEmpty || _isPhoneSending) return;
-    
-    setState(() {
-      _isPhoneSending = true;
-    });
-    
-    try {
-      await _endingService.saveContactInfo(phoneNumber, null);
-      _numberController.clear();
-      
-      // Show success message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Phone number saved successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      // Show error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving phone number: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isPhoneSending = false;
-        });
-      }
-    }
-  }
 
   void _onInstagramSendPressed() async {
     final instagramHandle = _instagramController.text.trim();
@@ -86,9 +44,9 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
     });
     
     try {
-      await _endingService.saveContactInfo(null, instagramHandle);
+      await _endingService.saveContactInfo(instagramHandle);
       _instagramController.clear();
-      
+
       // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -220,7 +178,6 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
 
   @override
   void dispose() {
-    _numberController.dispose();
     _instagramController.dispose();
     super.dispose();
   }
@@ -268,66 +225,33 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                // Main text content
+                // Title
                 Text(
-                  'You\'re a member now — only members can invite, just don\'t give the code to lames.',
+                  'Lions Gate Baddies Only 🔒',
                   style: TextStyle(
                     fontFamily: 'SF Pro',
-                    fontSize: bodyFontSize,
-                    fontWeight: FontWeight.w400,
+                    fontSize: bodyFontSize * 1.2,
+                    fontWeight: FontWeight.w700,
                     color: Colors.black,
                     letterSpacing: 0.4,
                     height: 1.4,
                   ),
-                ),
-                
-                SizedBox(height: isDesktop ? 40.0 : (isTablet ? 35.0 : (screenHeight * 0.04).clamp(30.0, 40.0))),
-                
-                // Phone number section
-                Text(
-                  'Drop your number (fastest way we\'ll send the next code).',
-                  style: TextStyle(
-                    fontFamily: 'SF Pro',
-                    fontSize: bodyFontSize,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                    letterSpacing: 0.4,
-                    height: 1.4,
-                  ),
-                ),
-                
-                SizedBox(height: isDesktop ? 15.0 : (isTablet ? 12.0 : 10.0)),
-                
-                // Phone input field with send button
-                _buildInputField(
-                  controller: _numberController,
-                  hintText: 'Number....',
-                  onSendPressed: _onPhoneSendPressed,
-                  isSending: _isPhoneSending,
-                  keyboardType: TextInputType.phone,
-                  inputHeight: inputHeight,
-                  inputFontSize: inputFontSize,
-                  buttonWidth: buttonWidth,
-                  buttonHeight: buttonHeight,
-                  buttonFontSize: buttonFontSize,
-                  isDesktop: isDesktop,
-                  isTablet: isTablet,
                 ),
 
-                SizedBox(height: isDesktop ? 35.0 : (isTablet ? 30.0 : 25.0)),
-                
-                // Divider for visual separation
+                SizedBox(height: isDesktop ? 30.0 : (isTablet ? 25.0 : 20.0)),
+
+                // Divider after title
                 Container(
                   width: double.infinity,
                   height: 1,
                   color: const Color(0xFFE0E0E0),
                 ),
-                
+
                 SizedBox(height: isDesktop ? 30.0 : (isTablet ? 25.0 : 20.0)),
-                
+
                 // Instagram section
                 Text(
-                  'If you\'re on that \'I don\'t give my number out\' headass vibe → drop your IG, we\'ll follow you from the private account.',
+                  'If you\'re new here → Drop your @ so we can make you a member.',
                   style: TextStyle(
                     fontFamily: 'SF Pro',
                     fontSize: bodyFontSize,
@@ -337,8 +261,8 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
                     height: 1.4,
                   ),
                 ),
-                
-                SizedBox(height: isDesktop ? 15.0 : (isTablet ? 12.0 : 10.0)),
+
+                SizedBox(height: isDesktop ? 20.0 : (isTablet ? 18.0 : 15.0)),
 
                 // Instagram input field
                 _buildInputField(
@@ -355,10 +279,55 @@ class _SessionEndScreenState extends State<SessionEndScreen> {
                   isDesktop: isDesktop,
                   isTablet: isTablet,
                 ),
-                
-                SizedBox(height: isDesktop ? 30.0 : (isTablet ? 25.0 : (screenHeight * 0.025).clamp(18.0, 25.0))),
-                
-                
+
+                SizedBox(height: isDesktop ? 35.0 : (isTablet ? 30.0 : 25.0)),
+
+                // Divider after Instagram input
+                Container(
+                  width: double.infinity,
+                  height: 1,
+                  color: const Color(0xFFE0E0E0),
+                ),
+
+                SizedBox(height: isDesktop ? 30.0 : (isTablet ? 25.0 : 20.0)),
+
+                // Already a member text
+                Text(
+                  'If you\'re already a member → We\'ll send you the next code — you better be guarding that code like your life depends on it lmfaoo 😭',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: bodyFontSize,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                    letterSpacing: 0.4,
+                    height: 1.4,
+                  ),
+                ),
+
+                SizedBox(height: isDesktop ? 35.0 : (isTablet ? 30.0 : 25.0)),
+
+                // Divider before footer
+                Container(
+                  width: double.infinity,
+                  height: 1,
+                  color: const Color(0xFFE0E0E0),
+                ),
+
+                SizedBox(height: isDesktop ? 25.0 : (isTablet ? 20.0 : 15.0)),
+
+                // Footer note
+                Text(
+                  'Members invite only. Don\'t share with lames.',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: bodyFontSize * 0.9,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black.withOpacity(0.7),
+                    letterSpacing: 0.4,
+                    height: 1.4,
+                  ),
+                ),
+
                 // Add some bottom spacing
                 const SizedBox(height: 20),
               ],

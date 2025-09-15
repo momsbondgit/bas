@@ -202,9 +202,9 @@ class LocalStorageService {
   Future<double?> getHoursSinceLastSession() async {
     final prefs = await SharedPreferences.getInstance();
     final lastSession = prefs.getInt(_lastSessionKey);
-    
+
     if (lastSession == null) return null;
-    
+
     final now = DateTime.now().millisecondsSinceEpoch;
     final diffMs = now - lastSession;
     return diffMs / (1000 * 60 * 60); // Convert to hours

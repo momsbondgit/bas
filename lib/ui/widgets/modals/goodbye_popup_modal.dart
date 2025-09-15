@@ -100,8 +100,8 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
   }
 
   void _submitGoodbye() {
-    // Don't allow submissions when fading out (last 10 seconds)
-    if (_remainingSeconds <= 10) return;
+    // Don't allow submissions when fading out (last 4 seconds)
+    if (_remainingSeconds <= 4) return;
 
     final message = _goodbyeController.text.trim();
     if (message.isNotEmpty) {
@@ -261,14 +261,14 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: _remainingSeconds <= 10
+                        color: _remainingSeconds <= 4
                             ? Colors.black.withOpacity(0.3)
                             : Colors.black,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.send,
-                        color: _remainingSeconds <= 10
+                        color: _remainingSeconds <= 4
                             ? Colors.white.withOpacity(0.5)
                             : Colors.white,
                         size: 20,

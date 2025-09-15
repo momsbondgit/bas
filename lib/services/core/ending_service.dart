@@ -5,46 +5,27 @@ class EndingService {
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   final LocalStorageService _localStorageService = LocalStorageService();
 
-  Future<void> savePhoneNumber(String phone) async {
-    final floor = await _localStorageService.getFloor();
+  Future<void> saveContactInfo(String? instagram) async {
+    // Get user ID using existing logic
+    String? userId = await _localStorageService.getAnonId();
+    userId ??= await _localStorageService.getRitualUserId();
 
-    final data = <String, dynamic>{
-      'phone': phone,
-      'createdAt': FieldValue.serverTimestamp(),
-    };
-
-    // Add floor only if available (optional)
-    if (floor != null) {
-      data['floor'] = floor;
+    if (userId == null) {
+      // Generate a new user ID if none exists
+      userId = DateTime.now().millisecondsSinceEpoch.toString();
+      await _localStorageService.setAnonId(userId);
     }
 
-    await _firestore.collection('endings').add(data);
-  }
+    // Set Instagram field
+    final instagramValue = (instagram != null && instagram.isNotEmpty)
+        ? '@$instagram'
+        : 'N/A';
 
-  Future<void> saveContactInfo(String? phone, String? instagram) async {
-    final floor = await _localStorageService.getFloor();
-
-    if (phone == null && instagram == null) {
-      throw Exception('At least one contact method is required');
-    }
-
-    final data = <String, dynamic>{
-      'createdAt': FieldValue.serverTimestamp(),
-    };
-
-    // Add floor only if available (optional)
-    if (floor != null) {
-      data['floor'] = floor;
-    }
-
-    if (phone != null && phone.isNotEmpty) {
-      data['phone'] = phone;
-    }
-
-    if (instagram != null && instagram.isNotEmpty) {
-      data['instagram'] = instagram;
-    }
-
-    await _firestore.collection('endings').add(data);
+    // Update or create user account in accounts collection
+    final docRef = _firestore.collection('accounts').doc(userId);
+    await docRef.set({
+      'instagram': instagramValue,
+      'lastUpdated': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 }

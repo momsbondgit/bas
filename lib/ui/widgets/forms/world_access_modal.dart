@@ -487,7 +487,7 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
       children: [
         Center(
           child: Text(
-            'vibe check time ✨',
+            'vibe check ✨',
             style: const TextStyle(
               fontFamily: 'SF Pro',
               fontSize: 18,
