@@ -1,12 +1,10 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../data/local_storage_service.dart';
-import '../simulation/bot_assignment_service.dart';
 
 class AuthService {
   final LocalStorageService _localStorage = LocalStorageService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final BotAssignmentService _botAssignmentService = BotAssignmentService();
   
   static const String _accountsCollection = 'accounts';
   
@@ -71,62 +69,52 @@ class AuthService {
 
   /// Create account with access code and nickname
   Future<bool> createAccount(String accessCode, String nickname) async {
-    try {
-      final anonId = await getOrCreateAnonId();
-      
-      // Store in Firebase
-      await _firestore.collection(_accountsCollection).doc(anonId).set({
-        'anonId': anonId,
-        'accessCode': accessCode,
-        'nickname': nickname,
-        'worldVisitCount': 1,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      
-      // Store locally
-      await _localStorage.setAccessCode(accessCode);
-      await _localStorage.setNickname(nickname);
-      await _localStorage.setHasAccount(true);
-      
-      
-      return true;
-    } catch (e) {
-      // Handle error - return false on failure
-      return false;
-    }
+    return _createAccountInternal(accessCode, nickname, null);
   }
 
   /// Create account with world-specific access code and nickname
   Future<bool> createAccountForWorld(String accessCode, String nickname, String worldId) async {
+    // Validate access code for the specific world
+    final correctCode = _worldAccessCodes[worldId];
+    if (correctCode == null || accessCode != correctCode) {
+      return false;
+    }
+
+    return _createAccountInternal(accessCode, nickname, worldId);
+  }
+
+  /// Internal method to create account with optional world ID
+  Future<bool> _createAccountInternal(String accessCode, String nickname, String? worldId) async {
     try {
-      // Validate access code for the specific world
-      final correctCode = _worldAccessCodes[worldId];
-      if (correctCode == null || accessCode != correctCode) {
-        return false; // Invalid access code for this world
-      }
-      
       final anonId = await getOrCreateAnonId();
-      
-      // Store in Firebase with world ID (including initial visit count)
-      await _firestore.collection(_accountsCollection).doc(anonId).set({
+
+      // Build Firebase data
+      final firebaseData = {
         'anonId': anonId,
         'accessCode': accessCode,
         'nickname': nickname,
-        'worldId': worldId,
         'worldVisitCount': 1,
         'createdAt': FieldValue.serverTimestamp(),
-      });
-      
-      // Store locally with authenticated world
+      };
+
+      if (worldId != null) {
+        firebaseData['worldId'] = worldId;
+      }
+
+      // Store in Firebase
+      await _firestore.collection(_accountsCollection).doc(anonId).set(firebaseData);
+
+      // Store locally
       await _localStorage.setAccessCode(accessCode);
       await _localStorage.setNickname(nickname);
       await _localStorage.setHasAccount(true);
-      await _localStorage.setAuthenticatedWorldId(worldId);
-      
-      
+
+      if (worldId != null) {
+        await _localStorage.setAuthenticatedWorldId(worldId);
+      }
+
       return true;
     } catch (e) {
-      // Handle error - return false on failure
       return false;
     }
   }

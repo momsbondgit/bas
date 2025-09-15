@@ -16,16 +16,22 @@ class EndingService {
       await _localStorageService.setAnonId(userId);
     }
 
-    // Set Instagram field
-    final instagramValue = (instagram != null && instagram.isNotEmpty)
-        ? '@$instagram'
-        : 'N/A';
-
     // Update or create user account in accounts collection
     final docRef = _firestore.collection('accounts').doc(userId);
     await docRef.set({
-      'instagram': instagramValue,
+      'instagram': _formatInstagram(instagram),
       'lastUpdated': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  Future<void> saveRejectedUserInstagram(String instagram) async {
+    await _firestore.collection('rejected_users').add({
+      'instagram': _formatInstagram(instagram),
+      'rejectedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  String _formatInstagram(String? instagram) {
+    return (instagram != null && instagram.isNotEmpty) ? '@$instagram' : 'N/A';
   }
 }

@@ -45,6 +45,36 @@ class GirlMeetsCollegeWorld {
         quineResponse: 'this is giving main character energy 💯 obsessed',
         goodbyeText: 'main character exit, as expected 💅',
       ),
+      BotUser(
+        botId: 'chaos_g6',
+        nickname: 'drama.alert',
+        quineResponse: 'the way this just escalated 👀 living for the chaos',
+        goodbyeText: 'drama documented, exiting stage left 🎭',
+      ),
+      BotUser(
+        botId: 'chaos_g7',
+        nickname: 'unhinged.bestie',
+        quineResponse: 'girl the audacity... i stan tho 💀',
+        goodbyeText: 'unhinged energy depleted, bye loves 💀',
+      ),
+      BotUser(
+        botId: 'chaos_g8',
+        nickname: 'messy.queen',
+        quineResponse: 'this is so messy i love it 🍿 keep going',
+        goodbyeText: 'mess acknowledged, queen out 👑',
+      ),
+      BotUser(
+        botId: 'chaos_g9',
+        nickname: 'savage.mode',
+        quineResponse: 'the way u just ended them 😭 brutal bestie',
+        goodbyeText: 'savage mode deactivated, ttyl 😈',
+      ),
+      BotUser(
+        botId: 'chaos_g10',
+        nickname: 'chaos.goblin',
+        quineResponse: 'we\'re all going to hell for laughing at this 🔥',
+        goodbyeText: 'chaos achieved, goblin retreating 👹',
+      ),
     ],
 
     // Table 2: Goofy/Soft personalities for Girl Meets College (chill table)
@@ -78,6 +108,36 @@ class GirlMeetsCollegeWorld {
         nickname: 'no.thoughts',
         quineResponse: 'wait what 🤔 sorry i wasnt paying attention lol',
         goodbyeText: 'bye besties, wait what happened? 🤔',
+      ),
+      BotUser(
+        botId: 'goofy_g6',
+        nickname: 'wholesome.bean',
+        quineResponse: 'this is so valid bestie 🥺 we support u',
+        goodbyeText: 'bye loves, stay wholesome 🌸💕',
+      ),
+      BotUser(
+        botId: 'goofy_g7',
+        nickname: 'emotional.support',
+        quineResponse: 'bestie ur so brave for sharing this 💗',
+        goodbyeText: 'emotional support signing off, love u all 💗',
+      ),
+      BotUser(
+        botId: 'goofy_g8',
+        nickname: 'baby.energy',
+        quineResponse: 'this is giving me life omg 🥰 ur amazing',
+        goodbyeText: 'baby energy depleted, nap time bye 🥰',
+      ),
+      BotUser(
+        botId: 'goofy_g9',
+        nickname: 'pure.vibes',
+        quineResponse: 'the way this made my day better 🌟 thank u bestie',
+        goodbyeText: 'pure vibes only, see u later loves 🌟',
+      ),
+      BotUser(
+        botId: 'goofy_g10',
+        nickname: 'soft.clown',
+        quineResponse: 'why is this literally me tho 🤡💕 felt that',
+        goodbyeText: 'clown car leaving, honk honk 🤡💕',
       ),
     ],
   );

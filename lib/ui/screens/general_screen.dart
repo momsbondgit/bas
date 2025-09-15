@@ -8,6 +8,7 @@ import '../../services/simulation/bot_assignment_service.dart';
 import '../../services/admin/simple_admin_service.dart';
 import '../../config/world_config.dart';
 import '../widgets/forms/world_access_modal.dart';
+import '../widgets/forms/instagram_collection_modal.dart';
 
 void main() => runApp(MaterialApp(home: GeneralScreen()));
 
@@ -167,7 +168,26 @@ class _GeneralScreenState extends State<GeneralScreen> {
     );
   }
 
+  bool _isModalOpen = false;
+  bool _hasBeenRejectedForFullWorld = false;
+
   void _showWorldAccessModal(BuildContext context, WorldConfig world) {
+    // Prevent multiple modals from opening
+    if (_isModalOpen) {
+      print('🚫 [UI] Modal already open, ignoring tap');
+      return;
+    }
+
+    // If user has already been rejected for full world, show Instagram modal
+    if (_hasBeenRejectedForFullWorld) {
+      print('🚫 [UI] User already rejected for full world, showing Instagram modal');
+      _showInstagramCollectionModal(context);
+      return;
+    }
+
+    _isModalOpen = true;
+    print('🚀 [UI] Opening world access modal');
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -178,13 +198,29 @@ class _GeneralScreenState extends State<GeneralScreen> {
           final success = await authService.createAccountForWorld(accessCode, nickname, world.id);
 
           if (success) {
+            print('🚀 [UI] Auth successful, starting bot assignment...');
             // Assign bots based on vibe check
             final botAssignmentService = BotAssignmentService();
-            await botAssignmentService.assignBotsBasedOnVibeCheck(vibeAnswers);
+            final assignedBots = await botAssignmentService.assignBotsBasedOnVibeCheck(vibeAnswers);
+
+            print('🎯 [UI] Bot assignment result: ${assignedBots.length} bots assigned');
+
+            if (assignedBots.isEmpty) {
+              print('🚫 [UI] No bots assigned - world is full');
+              // World is full - show Instagram modal and mark user as rejected
+              if (context.mounted) {
+                _closeModal(context);
+                _hasBeenRejectedForFullWorld = true;
+                _showInstagramCollectionModal(context);
+              }
+              return false;
+            } else {
+              print('✅ [UI] Bots assigned successfully, proceeding to game');
+            }
           }
-          
+
           if (success && context.mounted) {
-            Navigator.of(context).pop(); // Close modal
+            _closeModal(context);
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -200,7 +236,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
           }
         },
         onCancel: () {
-          Navigator.of(context).pop();
+          _closeModal(context);
         },
       ),
     );
@@ -430,4 +466,20 @@ class _GeneralScreenState extends State<GeneralScreen> {
     );
   }
 
+  void _closeModal(BuildContext context) {
+    Navigator.of(context).pop();
+    _isModalOpen = false;
+  }
+
+  void _showInstagramCollectionModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => InstagramCollectionModal(
+        onInstagramSubmitted: () {
+          print('✅ [UI] Instagram submitted for rejected user');
+        },
+      ),
+    );
+  }
 }

@@ -45,6 +45,36 @@ class GuyMeetsCollegeWorld {
         quineResponse: 'said what we all thinking 🔥 no holds barred',
         goodbyeText: 'unfiltered exit, been real bros 🔥',
       ),
+      BotUser(
+        botId: 'chaos_m6',
+        nickname: 'menace.energy',
+        quineResponse: 'bro woke up and chose violence 💀 i respect it',
+        goodbyeText: 'menace mode off, peace out kings 💀',
+      ),
+      BotUser(
+        botId: 'chaos_m7',
+        nickname: 'toxic.king',
+        quineResponse: 'this is foul but im here for it 😈',
+        goodbyeText: 'toxic energy depleted, later bros 😈',
+      ),
+      BotUser(
+        botId: 'chaos_m8',
+        nickname: 'unhinged.bro',
+        quineResponse: 'nah the audacity 😭 but facts tho',
+        goodbyeText: 'unhinged session over, deuces 😭',
+      ),
+      BotUser(
+        botId: 'chaos_m9',
+        nickname: 'demon.time',
+        quineResponse: 'bro really said that with his whole chest 🔥',
+        goodbyeText: 'demon time over, back to normal 🔥',
+      ),
+      BotUser(
+        botId: 'chaos_m10',
+        nickname: 'chaos.agent',
+        quineResponse: 'we all going to hell for laughing at this 💀',
+        goodbyeText: 'chaos mission complete, agent out 💀',
+      ),
     ],
 
     // Table 2: Goofy/Soft personalities for Guy Meets College
@@ -78,6 +108,36 @@ class GuyMeetsCollegeWorld {
         nickname: 'smooth.brain',
         quineResponse: 'wait huh 🤔 sorry wasnt listening lol',
         goodbyeText: 'bye bros, wait what are we doing again? 🤔',
+      ),
+      BotUser(
+        botId: 'goofy_m6',
+        nickname: 'golden.boy',
+        quineResponse: 'this is so valid king 🙏 we support u',
+        goodbyeText: 'golden boy signing off, stay blessed 🙏',
+      ),
+      BotUser(
+        botId: 'goofy_m7',
+        nickname: 'soft.hours',
+        quineResponse: 'bro ur so real for this 💯 respect',
+        goodbyeText: 'soft hours over, catch y\'all later 💯',
+      ),
+      BotUser(
+        botId: 'goofy_m8',
+        nickname: 'himbo.energy',
+        quineResponse: 'this is fire bro!! 🔥 ur killing it',
+        goodbyeText: 'himbo out, keep being amazing bros 🔥',
+      ),
+      BotUser(
+        botId: 'goofy_m9',
+        nickname: 'pure.king',
+        quineResponse: 'the way this made my day better 💪 thanks bro',
+        goodbyeText: 'pure king departing, stay real bros 💪',
+      ),
+      BotUser(
+        botId: 'goofy_m10',
+        nickname: 'goofy.goober',
+        quineResponse: 'why is this literally me tho 🤡 felt that',
+        goodbyeText: 'goofy goober rolling out, honk honk 🤡',
       ),
     ],
   );

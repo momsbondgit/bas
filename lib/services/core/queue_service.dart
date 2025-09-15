@@ -124,7 +124,7 @@ class QueueService extends ChangeNotifier {
   Future<void> _createInitialQueue() async {
     final realUserFloor = await _localStorageService.getFloor() ?? 1;
     final realUserWorld = await _localStorageService.getCurrentWorld();
-    
+
     final realUser = QueueUser(
       id: 'real_user',
       displayName: 'You',
@@ -133,40 +133,42 @@ class QueueService extends ChangeNotifier {
       floor: realUserFloor,
       world: realUserWorld,
     );
-    
-    final botUsers = List.generate(
-      _assignedBots.length.clamp(0, 5), 
-      (index) => _createDummyUser(index)
-    );
-    
-    // Always place user at position 3 (index 2)
-    final userPosition = 2;
-    
-    // Build queue with user at random position
-    List<QueueUser> queue = <QueueUser>[];
-    
-    // Add first bot as active
-    if (botUsers.isNotEmpty) {
-      queue.add(botUsers[0].copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()));
-    }
-    
-    // Add remaining bots and user at specified position
-    bool userAdded = false;
-    for (int i = 1; i < botUsers.length + 1; i++) {
-      if (i == userPosition && !userAdded) {
-        queue.add(realUser);
-        userAdded = true;
+
+    // Always ensure we have exactly 5 bots - pad if necessary
+    final botUsers = <QueueUser>[];
+    final maxBots = 5;
+
+    // Create bots from assigned bots list
+    for (int i = 0; i < maxBots; i++) {
+      if (i < _assignedBots.length) {
+        botUsers.add(_createDummyUser(i));
       } else {
-        final botIndex = i > userPosition ? i - 1 : i;
-        if (botIndex < botUsers.length && botIndex > 0) {
-          queue.add(botUsers[botIndex]);
-        }
+        // If we don't have enough assigned bots, create a fallback bot
+        botUsers.add(_createFallbackBot(i));
       }
     }
-    
-    // Ensure user is added if position is at end (only if not already added)
-    if (userPosition >= botUsers.length && !userAdded) {
-      queue.add(realUser);
+
+    // Always place real user at position 3 (index 2)
+    final userPosition = 2;
+    List<QueueUser> queue = <QueueUser>[];
+
+    // Build the 6-person queue: 5 bots + 1 real user
+    for (int i = 0; i < 6; i++) {
+      if (i == userPosition) {
+        // Place real user at position 3 (index 2)
+        queue.add(realUser);
+      } else {
+        // Place bots in other positions
+        final botIndex = i < userPosition ? i : i - 1;
+        final bot = botUsers[botIndex];
+
+        // First person in queue (index 0) is always active
+        if (i == 0) {
+          queue.add(bot.copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()));
+        } else {
+          queue.add(bot);
+        }
+      }
     }
 
     _currentState = QueueState(
@@ -181,16 +183,34 @@ class QueueService extends ChangeNotifier {
     if (_assignedBots.isEmpty || index >= _assignedBots.length) {
       throw Exception('No assigned bots available or invalid index: $index');
     }
-    
+
     final floors = [1, 2, 3, 4, 5];
     final bot = _assignedBots[index];
-    
+
     // Determine world based on bot's origin (all bots in same world as real user)
     final world = _getCurrentUserWorld();
-    
+
     return QueueUser(
       id: bot.botId,
       displayName: bot.nickname,
+      type: QueueUserType.dummy,
+      state: QueueUserState.waiting,
+      floor: floors[_random.nextInt(floors.length)],
+      world: world,
+    );
+  }
+
+  QueueUser _createFallbackBot(int index) {
+    final floors = [1, 2, 3, 4, 5];
+    final world = _getCurrentUserWorld();
+
+    // Create fallback bot names if we don't have enough assigned bots
+    final fallbackNames = ['Alex', 'Casey', 'Jordan', 'Riley', 'Quinn'];
+    final fallbackName = fallbackNames[index % fallbackNames.length];
+
+    return QueueUser(
+      id: 'fallback_bot_$index',
+      displayName: fallbackName,
       type: QueueUserType.dummy,
       state: QueueUserState.waiting,
       floor: floors[_random.nextInt(floors.length)],
@@ -379,11 +399,27 @@ class QueueService extends ChangeNotifier {
 
   /// Gets the specific response for a bot user
   String _getBotResponse(String botId) {
+    // Check if this is a fallback bot
+    if (botId.startsWith('fallback_bot_')) {
+      return _getFallbackBotResponse();
+    }
+
     final bot = _assignedBots.firstWhere(
       (bot) => bot.botId == botId,
       orElse: () => throw Exception('Bot with ID $botId not found in assigned bots'),
     );
     return bot.quineResponse;
+  }
+
+  String _getFallbackBotResponse() {
+    final fallbackResponses = [
+      "honestly same energy 💀",
+      "wait this is actually so real",
+      "why did I just relate to this so hard",
+      "not me crying at this confession",
+      "bestie you said what we're all thinking",
+    ];
+    return fallbackResponses[_random.nextInt(fallbackResponses.length)];
   }
 
   /// Checks if the real user can post (is active and real)

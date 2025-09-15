@@ -17,6 +17,9 @@
    - Wait for explicit **“Approved”** confirmation before proceeding.  
    - Repeat this loop for every step.
 
+4. **instead of creating new metnods and logic**
+   - check the code base to see if there is already logic that we can use instead of makin know ones. 
+
 ---
 
 ## okayuConfirmation Protocol
@@ -30,7 +33,7 @@ For **every change step**, the developer must post:
 - **Test cases**: list of validations they will run  
 
 ** questions ** 
-- ** always question me if you are are not sure about somthing never make things up theres should be no room for assuptions. 
+- ** always question me if you are are not sure about somthing never make things up theres should be no room for assuptions, keep asking me questions untill it super clear what you need to do. 
 
 ** key thing to keep in mind **
 - ** everything that we do or implment has to be simple, simplify over all complexity we should not include complexity at all 
