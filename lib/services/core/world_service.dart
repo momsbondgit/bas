@@ -55,13 +55,12 @@ class WorldService {
         config.modalTitle.isEmpty ||
         config.entryTileImage.isEmpty ||
         config.botTable1.isEmpty ||
-        config.botTable2.isEmpty ||
-        config.botTable3.isEmpty) {
+        config.botTable2.isEmpty) {
       return false;
     }
 
     // Check for duplicate bot IDs within all bot tables
-    final allBots = [...config.botTable1, ...config.botTable2, ...config.botTable3];
+    final allBots = [...config.botTable1, ...config.botTable2];
     final botIds = allBots.map((bot) => bot.botId).toSet();
     if (botIds.length != allBots.length) {
       return false; // Duplicate bot IDs found
@@ -79,8 +78,7 @@ class WorldService {
         'displayName': world.displayName,
         'botTable1Count': world.botTable1.length,
         'botTable2Count': world.botTable2.length,
-        'botTable3Count': world.botTable3.length,
-        'totalBots': world.botTable1.length + world.botTable2.length + world.botTable3.length,
+        'totalBots': world.botTable1.length + world.botTable2.length,
         'isValid': isValidWorldConfig(world),
       }).toList(),
     };

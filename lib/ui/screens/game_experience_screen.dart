@@ -486,7 +486,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             ),
             // Queue section - positioned below chat area
             Positioned(
-              top: screenHeight * 0.28 + 334, // Original position maintains relative spacing with moved border
+              top: screenHeight * 0.28 + 325, // Positioned closer to the bottom border of chat area
               left: 0,
               right: 0,
               child: Column(
@@ -1094,39 +1094,26 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header aligned to far left
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Who\'s turn is it 🧐:',
-                style: TextStyle(
-                  fontFamily: 'SF Compact Rounded',
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
-                  color: Color(0xFFB2B2B2),
+          // DEVELOPER ONLY: Remove this button later
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () => _showGoodbyePopup(),
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.fast_forward,
+                  size: 12,
+                  color: Colors.red,
                 ),
               ),
-              // DEVELOPER ONLY: Remove this button later
-              GestureDetector(
-                onTap: () => _showGoodbyePopup(),
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.fast_forward,
-                    size: 12,
-                    color: Colors.red,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
           // User pills - left aligned
           Align(
             alignment: Alignment.centerLeft,

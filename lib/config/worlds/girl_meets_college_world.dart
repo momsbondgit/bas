@@ -13,7 +13,7 @@ class GirlMeetsCollegeWorld {
     headingText: 'tea topic of the day',
     backgroundColorHue: 340, // Pink/rose hue for girl energy
     characterLimit: 180, // Reduced limit
-    // Table 1: Chaotic/Edgy personalities for Girl Meets College
+    // Table 1: Chaotic/Edgy personalities for Girl Meets College (hype table)
     botTable1: [
       BotUser(
         botId: 'chaos_g1',
@@ -47,7 +47,7 @@ class GirlMeetsCollegeWorld {
       ),
     ],
 
-    // Table 2: Goofy/Soft personalities for Girl Meets College
+    // Table 2: Goofy/Soft personalities for Girl Meets College (chill table)
     botTable2: [
       BotUser(
         botId: 'goofy_g1',
@@ -78,40 +78,6 @@ class GirlMeetsCollegeWorld {
         nickname: 'no.thoughts',
         quineResponse: 'wait what 🤔 sorry i wasnt paying attention lol',
         goodbyeText: 'bye besties, wait what happened? 🤔',
-      ),
-    ],
-
-    // Table 3: Balanced/Mixed personalities for Girl Meets College
-    botTable3: [
-      BotUser(
-        botId: 'mixed_g1',
-        nickname: 'balanced.babe',
-        quineResponse: 'okay but like same bestie 💭 this is valid af',
-        goodbyeText: 'bye besties, this was such a vibe ✨',
-      ),
-      BotUser(
-        botId: 'mixed_g2',
-        nickname: 'vibe.switch',
-        quineResponse: 'mood honestly 🤷‍♀️ we contain multitudes sis',
-        goodbyeText: 'switching to goodbye mode, love y\'all 💕',
-      ),
-      BotUser(
-        botId: 'mixed_g3',
-        nickname: 'chaotic.good',
-        quineResponse: 'love this energy for u 🌟 but also concerned lmao',
-        goodbyeText: 'bye babes, stay chaotic but make it wholesome 🌟',
-      ),
-      BotUser(
-        botId: 'mixed_g4',
-        nickname: 'gentle.chaos',
-        quineResponse: 'bestie ur so real for this 💫 soft but make it spicy',
-        goodbyeText: 'goodbye loves, gentle chaos signing off 💫',
-      ),
-      BotUser(
-        botId: 'mixed_g5',
-        nickname: 'complex.queen',
-        quineResponse: 'this is such a vibe ✨ complicated but beautiful',
-        goodbyeText: 'bye besties, complexity complete 👑✨',
       ),
     ],
   );

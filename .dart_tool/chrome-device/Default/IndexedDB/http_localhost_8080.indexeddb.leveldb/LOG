@@ -1,7 +1,14 @@
-2025/09/14-18:17:22.917 3a263 Reusing MANIFEST /private/var/folders/qv/885p1qfx0r5cqj4xr31x7wtm0000gn/T/flutter_tools.9gwSdA/flutter_tools_chrome_device.8B5rEc/Default/IndexedDB/http_localhost_8080.indexeddb.leveldb/MANIFEST-000001
-2025/09/14-18:17:22.917 3a263 Recovering log #4
-2025/09/14-18:17:22.917 3a263 Reusing old log /private/var/folders/qv/885p1qfx0r5cqj4xr31x7wtm0000gn/T/flutter_tools.9gwSdA/flutter_tools_chrome_device.8B5rEc/Default/IndexedDB/http_localhost_8080.indexeddb.leveldb/000004.log 
-2025/09/14-18:17:22.929 3a26a Level-0 table #8: started
-2025/09/14-18:17:22.930 3a26a Level-0 table #8: 1639 bytes OK
-2025/09/14-18:17:22.931 3a26a Delete type=0 #4
-2025/09/14-18:17:22.932 3a260 Manual compaction at level-0 from '\x00\x03\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x04\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/09/14-21:03:08.568 706f0 Reusing MANIFEST /private/var/folders/qv/885p1qfx0r5cqj4xr31x7wtm0000gn/T/flutter_tools.0c0eG0/flutter_tools_chrome_device.59LRHH/Default/IndexedDB/http_localhost_8080.indexeddb.leveldb/MANIFEST-000001
+2025/09/14-21:03:08.568 706f0 Recovering log #7
+2025/09/14-21:03:08.569 706f0 Reusing old log /private/var/folders/qv/885p1qfx0r5cqj4xr31x7wtm0000gn/T/flutter_tools.0c0eG0/flutter_tools_chrome_device.59LRHH/Default/IndexedDB/http_localhost_8080.indexeddb.leveldb/000007.log 
+2025/09/14-21:03:08.569 706f0 Delete type=0 #4
+2025/09/14-21:03:08.590 706fc Level-0 table #11: started
+2025/09/14-21:03:08.590 706fc Level-0 table #11: 644 bytes OK
+2025/09/14-21:03:08.592 706fc Delete type=0 #7
+2025/09/14-21:03:08.592 706ee Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at '\x00\x04\x00\x00\x05' @ 97 : 1
+2025/09/14-21:03:08.592 706ee Compacting 1@0 + 1@1 files
+2025/09/14-21:03:08.593 706ee Generated table #12@0: 38 keys, 1169 bytes
+2025/09/14-21:03:08.593 706ee Compacted 1@0 + 1@1 files => 1169 bytes
+2025/09/14-21:03:08.594 706ee compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/09/14-21:03:08.594 706ee Delete type=2 #11
+2025/09/14-21:03:08.594 706ee Manual compaction at level-0 from '\x00\x04\x00\x00\x05' @ 97 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)

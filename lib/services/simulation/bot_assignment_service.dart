@@ -21,22 +21,18 @@ class BotAssignmentService {
       }
     });
 
-    // Determine table based on vibe answers
+    // Determine table based on majority (≥2 answers wins)
     String tableId;
     List<BotUser> assignedBots;
 
-    if (aCount == 3) {
-      // Pure A answers = Table 1 (chaotic/edgy)
+    if (aCount >= 2) {
+      // Majority A answers (2-3 A's) = Table 1 (chaotic/edgy)
       tableId = '1';
       assignedBots = worldConfig.botTable1;
-    } else if (aCount == 0) {
-      // Pure B answers = Table 2 (goofy/soft)
+    } else {
+      // Majority B answers (2-3 B's) = Table 2 (chill/soft)
       tableId = '2';
       assignedBots = worldConfig.botTable2;
-    } else {
-      // Mixed answers (1A/2B or 2A/1B) = Table 3 (balanced/mixed)
-      tableId = '3';
-      assignedBots = worldConfig.botTable3;
     }
 
     // Save table ID and assigned bots to local storage
@@ -69,10 +65,9 @@ class BotAssignmentService {
       // Return the appropriate bot table from current world
       if (tableId == '1') {
         return worldConfig.botTable1;
-      } else if (tableId == '2') {
-        return worldConfig.botTable2;
       } else {
-        return worldConfig.botTable3;
+        // Default to Table 2 for any non-1 table ID
+        return worldConfig.botTable2;
       }
     } catch (e) {
       // Principle: Graceful degradation - When bot assignment fails, system continues with empty bot list rather than crashing user experience
@@ -93,10 +88,9 @@ class BotAssignmentService {
 
     if (tableId == '1') {
       return worldConfig.botTable1;
-    } else if (tableId == '2') {
-      return worldConfig.botTable2;
     } else {
-      return worldConfig.botTable3;
+      // Default to Table 2 for any non-1 table ID
+      return worldConfig.botTable2;
     }
   }
 
@@ -114,13 +108,6 @@ class BotAssignmentService {
 
     // Check table 2
     for (final bot in worldConfig.botTable2) {
-      if (bot.botId == botId) {
-        return bot;
-      }
-    }
-
-    // Check table 3
-    for (final bot in worldConfig.botTable3) {
       if (bot.botId == botId) {
         return bot;
       }

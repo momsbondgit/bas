@@ -22,7 +22,7 @@ class GoodbyePopupModal extends StatefulWidget {
 
 class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProviderStateMixin {
   late Timer _timer;
-  int _remainingSeconds = 30;
+  int _remainingSeconds = 33;
   final TextEditingController _goodbyeController = TextEditingController();
   final List<GoodbyeMessage> _goodbyeMessages = [];
   late AnimationController _fadeController;
@@ -51,7 +51,7 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
   }
 
   void _startTimer() {
-    print('[DEBUG] GoodbyePopupModal: Starting timer with 30 seconds');
+    print('[DEBUG] GoodbyePopupModal: Starting timer with 33 seconds');
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _remainingSeconds--;
@@ -74,7 +74,7 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
     // Add bot goodbye messages with slight delays
     for (int i = 0; i < widget.assignedBots.length; i++) {
       final bot = widget.assignedBots[i];
-      Timer(Duration(milliseconds: 500 + (i * 1500)), () {
+      Timer(Duration(milliseconds: 2500 + (i * 1500)), () {
         if (mounted) {
           _addGoodbyeMessage(bot.nickname, _getRandomGoodbyeText(bot), isBot: true);
         }

@@ -80,39 +80,5 @@ class GuyMeetsCollegeWorld {
         goodbyeText: 'bye bros, wait what are we doing again? 🤔',
       ),
     ],
-
-    // Table 3: Balanced/Mixed personalities for Guy Meets College
-    botTable3: [
-      BotUser(
-        botId: 'mixed_m1',
-        nickname: 'balanced.bro',
-        quineResponse: 'yeah bro i feel u 💭 this is pretty valid ngl',
-        goodbyeText: 'peace bros, balanced exit as always ✨',
-      ),
-      BotUser(
-        botId: 'mixed_m2',
-        nickname: 'vibe.shift',
-        quineResponse: 'mood honestly 🤷‍♂️ we got layers bro',
-        goodbyeText: 'shifting to goodbye vibe, later bros 🤷‍♂️',
-      ),
-      BotUser(
-        botId: 'mixed_m3',
-        nickname: 'chaotic.good',
-        quineResponse: 'love the energy king 🌟 but also kinda sus lmao',
-        goodbyeText: 'chaotic good logging off, peace kings 🌟',
-      ),
-      BotUser(
-        botId: 'mixed_m4',
-        nickname: 'soft.chaos',
-        quineResponse: 'bro ur real for this 💫 gentle but make it wild',
-        goodbyeText: 'soft chaos complete, later bros 💫',
-      ),
-      BotUser(
-        botId: 'mixed_m5',
-        nickname: 'complex.king',
-        quineResponse: 'this hits different ✨ complicated but respect',
-        goodbyeText: 'complex king out, been real bros 👑✨',
-      ),
-    ],
   );
 }

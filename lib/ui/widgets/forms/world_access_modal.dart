@@ -464,19 +464,19 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
   Widget _buildVibeCheckStep() {
     final questions = [
       {
-        'question': 'Your crew is going out Friday night. You\'re…',
-        'optionA': 'Already putting on the fit 💃',
-        'optionB': 'Staying in w snacks + Netflix 🍿',
+        'question': 'When dorm drama pops off right in front of me, I usually…',
+        'optionA': 'Gas it up like "nahh that\'s crazyyy" 🍿',
+        'optionB': 'Pull my bestie aside later with all the tea 💌',
       },
       {
-        'question': 'You\'re chilling in your dorm and 6 people walk in. You…',
-        'optionA': 'Say hi first and jump in the convo 👋',
-        'optionB': 'Kick back, let them come to you 😏',
+        'question': 'Friday night, you\'ll catch me…',
+        'optionA': 'Out with the girls till 2 AM 💃',
+        'optionB': 'Cozy night in w/ face masks + shows 🛏️',
       },
       {
-        'question': 'If you hear someone spreading rumors about you, you\'re…',
-        'optionA': 'Pulling up receipts + clapping back 🔥',
-        'optionB': 'Laughing it off with the squad 💀',
+        'question': 'When the GC goes silent, I usually…',
+        'optionA': 'Drop a random meme 🤡',
+        'optionB': 'Wait for someone else to revive it 💤',
       },
     ];
 

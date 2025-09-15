@@ -41,7 +41,7 @@ flutter run -d chrome  # For development
 
 The app uses a multi-world system where each world has:
 - **WorldConfig**: Configuration including bot tables, UI theming, character limits
-- **Two bot tables**: Chaotic/Edgy vs Goofy/Soft personality types
+- **Three bot tables**: Table 1 (chaotic/edgy), Table 2 (goofy/soft), Table 3 (balanced/mixed) personality types
 - **World-specific**: Topic of day, modal copy, background colors, entry images
 
 **World Files**:
@@ -131,7 +131,12 @@ The app uses a multi-world system where each world has:
 ## Important Implementation Details
 
 ### Bot Assignment Logic
-The `BotAssignmentService` manages bot personality assignment based on world configurations, ensuring varied interactions within each world's personality tables.
+The `BotAssignmentService` manages bot personality assignment through a vibe check system:
+- **3 A answers**: Table 1 (chaotic/edgy personalities)
+- **0 A answers**: Table 2 (goofy/soft personalities)
+- **1-2 A answers**: Table 3 (balanced/mixed personalities)
+
+Assignment is persistent across sessions and tied to the current world's bot configurations.
 
 ### Real-time Features
 Most UI components use Firestore streams for live updates. Always dispose stream subscriptions properly in `dispose()` methods.
