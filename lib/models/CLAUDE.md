@@ -80,6 +80,11 @@ This directory contains data models that represent the core entities and state i
 - `isActive`, `hasPosted`, `isReal`, `isDummy`, `isTyping`
 - `remainingTurnSeconds`: Calculates remaining time (unlimited for real users, 60s for bots)
 
+**Integration with Queue Services**:
+- Used by both `RitualQueueService` (Firebase-based) and `QueueService` (local bot simulation)
+- Real users always positioned at index 2 in local queue management
+- Bot users fill positions 0, 1, 3, 4, 5 with position 0 being the initial active user
+
 ## Key Patterns
 
 ### Immutable State Pattern

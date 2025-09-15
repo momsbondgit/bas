@@ -10,6 +10,7 @@ Static configuration constants for the ritual queue system:
 - **Animation Settings**: FPS (60), dot bounce (600ms), shimmer (2s)
 - **UI Constants**: Dot size/spacing, banner height, reaction button sizes
 - **Text Constants**: Typing indicator text, banner messages
+- **Queue Settings**: Used by both RitualQueueService and QueueService for consistent timing
 
 ### `world_config.dart`
 Base model class defining the structure for different "worlds":

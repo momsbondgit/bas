@@ -34,6 +34,7 @@ flutter run -d chrome  # For development
 **Key Services Layer**:
 - **WorldService**: Manages multiple "worlds" (Girl/Guy Meets College) with different bot configurations
 - **RitualQueueService**: Handles real-time messaging queue system with turn-based interactions
+- **QueueService**: Local queue management with bot interactions (guarantees real user at position 3 with exactly 5 bots)
 - **AdminService**: Authentication and session management for admin features
 - **LocalStorageService**: Persistent storage using SharedPreferences
 
@@ -129,6 +130,21 @@ The app uses a multi-world system where each world has:
 - Flutter 3.8.1 stable channel
 
 ## Important Implementation Details
+
+### Queue Management System
+The application uses two distinct queue systems:
+
+1. **RitualQueueService** (`lib/services/core/ritual_queue_service.dart`):
+   - Firebase-based real-time messaging queue
+   - Turn-based messaging with 60-second turns
+   - Handles real user interactions and message submission
+
+2. **QueueService** (`lib/services/core/queue_service.dart`):
+   - Local bot simulation and queue management
+   - **Critical Feature**: Guarantees exactly 6 queue members (5 bots + 1 real user)
+   - **User Positioning**: Real user is always placed at position 3 (index 2)
+   - **Fallback System**: Creates fallback bots when insufficient bots are assigned
+   - **Bug Fix**: Completely rewritten `_createInitialQueue()` method eliminates all-bot lobbies
 
 ### Bot Assignment Logic
 The `BotAssignmentService` manages bot personality assignment through a vibe check system:

@@ -26,19 +26,7 @@ This directory contains service classes that handle business logic, external int
 - Real-time status streams for UI updates
 - Firebase integration for persistent maintenance state
 
-#### `simple_admin_service.dart`
-**Purpose**: Simplified admin service for basic admin operations.
 
-### `analytics/` - Analytics Services
-
-#### `returning_user_service.dart`
-**Purpose**: Tracks returning user analytics and metrics.
-
-**Functionality**:
-- Count returning users across sessions
-- Reset analytics data
-- Track user engagement patterns
-- Firebase integration for persistent analytics
 
 ### `auth/` - Authentication Services
 
@@ -71,7 +59,29 @@ This directory contains service classes that handle business logic, external int
 - `leaveQueue()`: Remove user from queue
 
 #### `queue_service.dart`
-**Purpose**: General queue management utilities.
+**Purpose**: Local queue management with bot simulation and interaction.
+
+**Key Responsibilities**:
+- **Bot Queue Management**: Creates and manages local queues with bot users
+- **User Positioning**: Guarantees real user is always at position 3 (index 2) in queue
+- **Bot Assignment Integration**: Works with BotAssignmentService for personality-based bot selection
+- **Fallback System**: Creates fallback bots when insufficient assigned bots are available
+- **Turn Management**: Handles bot turn rotation and timing
+- **Response Generation**: Manages bot responses and interactions
+
+**Critical Methods**:
+- `_createInitialQueue()`: **Recently fixed** - Guarantees exactly 6 queue members (5 bots + 1 real user)
+- `_createFallbackBot()`: Creates generic bots when needed to fill queue
+- `_getBotResponse()`: Generates bot responses including fallback bot handling
+- `moveToNextUser()`: Rotates queue to next user's turn
+
+**Bug Fix Details**:
+The `_createInitialQueue()` method was completely rewritten to eliminate the bug where users could get all-bot lobbies. The new implementation:
+- Deterministically builds a 6-person queue
+- Places real user at exactly position 3 (index 2)
+- Fills remaining positions with bots (assigned or fallback)
+- Ensures first person (index 0) is always active
+- Handles edge cases with insufficient bot assignments
 
 #### `world_service.dart`
 **Purpose**: Manages world configurations and selection.

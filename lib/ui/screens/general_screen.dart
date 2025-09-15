@@ -5,7 +5,6 @@ import '../../services/auth/auth_service.dart';
 import '../../services/core/world_service.dart';
 import '../../services/data/local_storage_service.dart';
 import '../../services/simulation/bot_assignment_service.dart';
-import '../../services/admin/simple_admin_service.dart';
 import '../../config/world_config.dart';
 import '../widgets/forms/world_access_modal.dart';
 import '../widgets/forms/instagram_collection_modal.dart';
@@ -33,7 +32,6 @@ class _GeneralScreenState extends State<GeneralScreen> {
 
     final authService = AuthService();
     final localStorageService = LocalStorageService();
-    final simpleAdminService = SimpleAdminService();
 
     // Store the selected world
     await localStorageService.setWorld(world.displayName);
@@ -43,17 +41,6 @@ class _GeneralScreenState extends State<GeneralScreen> {
 
     if (isLoggedInForWorld) {
       // This is a RETURNING user with existing account
-      // Check admin settings - if returning users are blocked, show message
-      final areReturningUsersAllowed = await simpleAdminService.areReturningUsersAllowed();
-
-      if (!areReturningUsersAllowed) {
-        // Show blocked message for returning users
-        if (context.mounted) {
-          _showBlockedMessage(context);
-        }
-        return;
-      }
-
       // Track world visit for returning users
       final anonId = await authService.getOrCreateAnonId();
       await authService.trackWorldVisit(anonId, world.id);
@@ -82,91 +69,6 @@ class _GeneralScreenState extends State<GeneralScreen> {
     }
   }
 
-  void _showBlockedMessage(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          width: MediaQuery.of(context).size.width > 400 ? 350 : MediaQuery.of(context).size.width * 0.85,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1EDEA),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFB2B2B2),
-              width: 1,
-            ),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.schedule,
-                  color: Color(0xFFEF4444),
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'come back tomorrow ✨',
-                style: TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                  letterSpacing: 0.4,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'the worlds are currently closed for new experiences. check back tomorrow for the next adventure!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF6B7280),
-                  letterSpacing: 0.4,
-                ),
-              ),
-              const SizedBox(height: 24),
-              GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  width: double.infinity,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'got it',
-                      style: TextStyle(
-                        fontFamily: 'SF Pro',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   bool _isModalOpen = false;
   bool _hasBeenRejectedForFullWorld = false;

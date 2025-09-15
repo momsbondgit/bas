@@ -17,6 +17,7 @@ This directory contains all user interface components for the BAS Rituals applic
 - **Purpose**: Main game interface for ritual queue participation
 - **Features**: Real-time messaging, queue management, bot interactions
 - **Integration**: Heavy integration with RitualQueueService and messaging system
+- **Queue Display**: Shows queue state with guaranteed real user positioning at slot 3
 
 **`world_experience_screen.dart`**
 - **Purpose**: World-specific experience interface
@@ -176,6 +177,8 @@ UI components integrate with services through:
 - Direct service instantiation for simple operations
 - Stream subscriptions for real-time data
 - Future builders for async operations
+- **Queue Services**: Components display queue state from both RitualQueueService and QueueService
+- **Real User Positioning**: UI reflects guaranteed user placement at queue position 3
 
 ### Theme and Styling
 - World-specific theming based on configuration

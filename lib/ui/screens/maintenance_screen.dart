@@ -11,8 +11,8 @@ class MaintenanceScreen extends StatefulWidget {
   State<MaintenanceScreen> createState() => _MaintenanceScreenState();
 }
 
-class _MaintenanceScreenState extends State<MaintenanceScreen> 
-    with TickerProviderStateMixin, AdminAccessMixin {
+class _MaintenanceScreenState extends State<MaintenanceScreen>
+    with TickerProviderStateMixin {
   final MaintenanceService _maintenanceService = MaintenanceService();
   final AdminService _adminService = AdminService();
   
@@ -50,16 +50,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
   }
 
   void _loadMaintenanceMessage() async {
-    try {
-      final status = await _maintenanceService.getMaintenanceStatus();
-      if (mounted) {
-        setState(() {
-          _maintenanceMessage = status.message;
-        });
-      }
-    } catch (e) {
-      // Use default message if can't fetch from Firestore
-    }
+    // Just use the default message since we removed custom messages
+    // Keep method for potential future use
   }
 
   void _startMaintenanceStatusListener() {
@@ -67,14 +59,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
         .getMaintenanceStatusStream()
         .listen((status) async {
       if (mounted) {
-        setState(() {
-          _maintenanceMessage = status.message;
-        });
-        
         // If maintenance is disabled, check if user is admin before returning to app
         if (!status.isEnabled) {
           final isAdmin = await _adminService.isLoggedIn();
-          
+
           if (!isAdmin) {
             _returnToApp();
           }
@@ -156,7 +144,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen>
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                navigateToAdmin();
+                AdminNavigation.navigateToLogin(context);
               },
               child: const Text(
                 'Admin Panel',
