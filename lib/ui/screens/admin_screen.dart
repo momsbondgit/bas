@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../services/admin/admin_service.dart';
 import '../../services/admin/maintenance_service.dart';
+import '../widgets/admin/admin_metrics_section.dart';
 import 'admin_login_screen.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -29,9 +30,7 @@ class _AdminScreenState extends State<AdminScreen> {
   void _checkAuthentication() async {
     final isLoggedIn = await _adminService.isLoggedIn();
     if (!isLoggedIn && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const AdminLoginScreen()),
-      );
+      _navigateToLogin();
     } else {
       setState(() {
         _isLoading = false;
@@ -68,8 +67,14 @@ class _AdminScreenState extends State<AdminScreen> {
               _buildHeader(),
               const SizedBox(height: 32),
               Expanded(
-                child: Center(
-                  child: _buildMaintenanceSection(),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const AdminMetricsSection(),
+                      const SizedBox(height: 24),
+                      _buildMaintenanceSection(),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -127,9 +132,7 @@ class _AdminScreenState extends State<AdminScreen> {
       onPressed: () async {
         await _adminService.logout();
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const AdminLoginScreen()),
-          );
+          _navigateToLogin();
         }
       },
       icon: const Icon(Icons.logout, size: 16),
@@ -140,12 +143,18 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
+  void _navigateToLogin() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const AdminLoginScreen()),
+    );
+  }
+
   Widget _buildMaintenanceSection() {
-    final isEnabled = _maintenanceStatus?.isEnabled ?? false;
+    final isMaintenanceEnabled = _maintenanceStatus?.isEnabled ?? false;
+    final isBlockingReturningUsers = _maintenanceStatus?.blockReturningUsers ?? false;
 
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(maxWidth: 500),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -156,65 +165,110 @@ class _AdminScreenState extends State<AdminScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(
-                  Icons.build_circle,
-                  color: Color(0xFFEF4444),
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Maintenance Mode',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF111827),
-                ),
-              ),
-            ],
+          _buildSwitchSection(
+            icon: Icons.build_circle,
+            iconColor: const Color(0xFFEF4444),
+            title: 'Maintenance Mode',
+            isEnabled: isMaintenanceEnabled,
+            onChanged: _toggleMaintenanceMode,
+            enabledText: 'Maintenance ON',
+            disabledText: 'Maintenance OFF',
+            enabledColor: const Color(0xFFEF4444),
+            description: 'Prevent all users from accessing the app during updates.',
           ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Switch(
-                value: isEnabled,
-                onChanged: (value) => _toggleMaintenanceMode(value),
-                activeColor: const Color(0xFF6366F1),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                isEnabled ? 'Maintenance ON' : 'Maintenance OFF',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: isEnabled ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Toggle maintenance mode to prevent users from accessing the app during updates.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B7280),
-            ),
+          const SizedBox(height: 32),
+          _buildSwitchSection(
+            icon: Icons.block,
+            iconColor: const Color(0xFFF59E0B),
+            title: 'Block Returning Users',
+            isEnabled: isBlockingReturningUsers,
+            onChanged: _toggleBlockReturningUsers,
+            enabledText: 'Blocking ON',
+            disabledText: 'Blocking OFF',
+            enabledColor: const Color(0xFFF59E0B),
+            description: 'Prevent returning users from re-entering worlds. New users can still sign up.',
           ),
         ],
       ),
     );
   }
 
+  Widget _buildSwitchSection({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required bool isEnabled,
+    required ValueChanged<bool> onChanged,
+    required String enabledText,
+    required String disabledText,
+    required Color enabledColor,
+    required String description,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                icon,
+                color: iconColor,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111827),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Switch(
+              value: isEnabled,
+              onChanged: onChanged,
+              activeColor: const Color(0xFF6366F1),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              isEnabled ? enabledText : disabledText,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: isEnabled ? enabledColor : const Color(0xFF10B981),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          description,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Color(0xFF6B7280),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _toggleMaintenanceMode(bool enabled) async {
     await _maintenanceService.setMaintenanceMode(enabled: enabled);
+  }
+
+  void _toggleBlockReturningUsers(bool enabled) async {
+    await _maintenanceService.setBlockReturningUsers(enabled: enabled);
   }
 
   @override

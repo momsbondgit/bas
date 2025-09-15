@@ -54,6 +54,26 @@ class _InstagramCollectionModalState extends State<InstagramCollectionModal> {
     }
   }
 
+  TextStyle _getTextStyle({required Color color}) {
+    return TextStyle(
+      fontFamily: 'SF Pro',
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      color: color,
+      letterSpacing: 0.4,
+    );
+  }
+
+  OutlineInputBorder _getInputBorder(Color color) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: color,
+        width: 1,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -87,7 +107,7 @@ class _InstagramCollectionModalState extends State<InstagramCollectionModal> {
                 children: [
                   // Title
                   Text(
-                    _isSubmitted ? 'thank u bestie ✨' : 'world is full',
+                    _isSubmitted ? 'thank you! ✨' : 'world is full!',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: 'SF Pro',
@@ -100,19 +120,18 @@ class _InstagramCollectionModalState extends State<InstagramCollectionModal> {
                   const SizedBox(height: 16),
 
                   // Message
-                  Text(
-                    _isSubmitted
-                        ? 'we\'ll make you a member + send you the next code soon!'
-                        : 'drop your Instagram and we\'ll make you a member + send you the next code.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: 'SF Pro',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF6B7280),
-                      letterSpacing: 0.4,
+                  if (!_isSubmitted)
+                    Text(
+                      'if we already have your instagram we\'ll send you the next code soon. if not, drop it below and we\'ll make you a member!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: 'SF Pro',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF6B7280),
+                        letterSpacing: 0.4,
+                      ),
                     ),
-                  ),
 
                   if (!_isSubmitted) ...[
                     const SizedBox(height: 24),
@@ -138,70 +157,22 @@ class _InstagramCollectionModalState extends State<InstagramCollectionModal> {
                       controller: _instagramController,
                       decoration: InputDecoration(
                         hintText: 'your_username',
-                        hintStyle: const TextStyle(
-                          fontFamily: 'SF Pro',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: Color(0xFFB2B2B2),
-                          letterSpacing: 0.4,
-                        ),
+                        hintStyle: _getTextStyle(color: const Color(0xFFB2B2B2)),
                         prefixText: '@',
-                        prefixStyle: const TextStyle(
-                          fontFamily: 'SF Pro',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black,
-                          letterSpacing: 0.4,
-                        ),
+                        prefixStyle: _getTextStyle(color: Colors.black),
                         filled: true,
                         fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFB2B2B2),
-                            width: 1,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFB2B2B2),
-                            width: 1,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
-                            width: 1,
-                          ),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.red,
-                            width: 1,
-                          ),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.red,
-                            width: 1,
-                          ),
-                        ),
+                        border: _getInputBorder(const Color(0xFFB2B2B2)),
+                        enabledBorder: _getInputBorder(const Color(0xFFB2B2B2)),
+                        focusedBorder: _getInputBorder(Colors.black),
+                        errorBorder: _getInputBorder(Colors.red),
+                        focusedErrorBorder: _getInputBorder(Colors.red),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
                         ),
                       ),
-                      style: const TextStyle(
-                        fontFamily: 'SF Pro',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black,
-                        letterSpacing: 0.4,
-                      ),
+                      style: _getTextStyle(color: Colors.black),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter your Instagram handle';
@@ -233,7 +204,7 @@ class _InstagramCollectionModalState extends State<InstagramCollectionModal> {
                                   ),
                                 )
                               : const Text(
-                                  'send it',
+                                  'submit',
                                   style: TextStyle(
                                     fontFamily: 'SF Pro',
                                     fontSize: 14,

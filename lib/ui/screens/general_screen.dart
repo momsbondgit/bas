@@ -5,6 +5,7 @@ import '../../services/auth/auth_service.dart';
 import '../../services/core/world_service.dart';
 import '../../services/data/local_storage_service.dart';
 import '../../services/simulation/bot_assignment_service.dart';
+import '../../services/admin/maintenance_service.dart';
 import '../../config/world_config.dart';
 import '../widgets/forms/world_access_modal.dart';
 import '../widgets/forms/instagram_collection_modal.dart';
@@ -32,6 +33,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
 
     final authService = AuthService();
     final localStorageService = LocalStorageService();
+    final maintenanceService = MaintenanceService();
 
     // Store the selected world
     await localStorageService.setWorld(world.displayName);
@@ -41,6 +43,17 @@ class _GeneralScreenState extends State<GeneralScreen> {
 
     if (isLoggedInForWorld) {
       // This is a RETURNING user with existing account
+      // Check if returning users are being blocked
+      final maintenanceStatus = await maintenanceService.getMaintenanceStatus();
+
+      if (maintenanceStatus.blockReturningUsers) {
+        // Returning users are blocked, show Instagram collection modal
+        if (context.mounted) {
+          _showInstagramCollectionModal(context);
+        }
+        return;
+      }
+
       // Track world visit for returning users
       final anonId = await authService.getOrCreateAnonId();
       await authService.trackWorldVisit(anonId, world.id);
@@ -172,10 +185,10 @@ class _GeneralScreenState extends State<GeneralScreen> {
     final screenSize = MediaQuery.of(context).size;
     final groupWidth = 124.0;
     final groupHeight = 128.0;
-    
+
     // Position: center the background since we only have Girl Meets College
     final leftOffset = (screenSize.width / 2) - (groupWidth / 2);
-    
+
     return Positioned(
       left: leftOffset,
       top: (screenSize.height - groupHeight) / 2,
@@ -184,61 +197,49 @@ class _GeneralScreenState extends State<GeneralScreen> {
         height: groupHeight,
         child: Stack(
           children: [
-            // Circle 1
-            Positioned(
-              left: 39,
-              top: 39,
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 32.5, sigmaY: 32.5),
-                child: Container(
-                  width: 85,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isLeft 
-                        ? const Color(0xFFF9D6D3).withOpacity(0.83)
-                        : const Color(0xFF6B73FF).withOpacity(0.4),
-                  ),
-                ),
-              ),
+            _buildBlurredCircle(
+              left: 39, top: 39, width: 85, height: 80,
+              color: isLeft
+                  ? const Color(0xFFF9D6D3).withOpacity(0.83)
+                  : const Color(0xFF6B73FF).withOpacity(0.4),
             ),
-            // Circle 2
-            Positioned(
-              left: 25,
-              top: 0,
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 32.5, sigmaY: 32.5),
-                child: Container(
-                  width: 76,
-                  height: 76,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isLeft 
-                        ? const Color(0xFFFDBFC5).withOpacity(0.83)
-                        : const Color(0xFF9B8CFF).withOpacity(0.4),
-                  ),
-                ),
-              ),
+            _buildBlurredCircle(
+              left: 25, top: 0, width: 76, height: 76,
+              color: isLeft
+                  ? const Color(0xFFFDBFC5).withOpacity(0.83)
+                  : const Color(0xFF9B8CFF).withOpacity(0.4),
             ),
-            // Circle 3
-            Positioned(
-              left: 0,
-              top: 54,
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 32.5, sigmaY: 32.5),
-                child: Container(
-                  width: 77,
-                  height: 74,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isLeft 
-                        ? const Color(0xFFFDC4A0).withOpacity(0.83)
-                        : const Color(0xFF7C6BFF).withOpacity(0.4),
-                  ),
-                ),
-              ),
+            _buildBlurredCircle(
+              left: 0, top: 54, width: 77, height: 74,
+              color: isLeft
+                  ? const Color(0xFFFDC4A0).withOpacity(0.83)
+                  : const Color(0xFF7C6BFF).withOpacity(0.4),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBlurredCircle({
+    required double left,
+    required double top,
+    required double width,
+    required double height,
+    required Color color,
+  }) {
+    return Positioned(
+      left: left,
+      top: top,
+      child: ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 32.5, sigmaY: 32.5),
+        child: Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
         ),
       ),
     );
@@ -379,7 +380,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
       barrierDismissible: false,
       builder: (context) => InstagramCollectionModal(
         onInstagramSubmitted: () {
-          print('✅ [UI] Instagram submitted for rejected user');
+          print('✅ [UI] Instagram submitted');
         },
       ),
     );
