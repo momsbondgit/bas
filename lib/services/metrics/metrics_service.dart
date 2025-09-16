@@ -12,7 +12,6 @@ class MetricsService {
     try {
       final accountsSnapshot = await _firestore.collection('accounts').get();
       final postsSnapshot = await _firestore.collection('posts').get();
-      final messagesSnapshot = await _firestore.collection('ritual_messages').get();
 
       final users = <UserCompassMetrics>[];
 
@@ -20,42 +19,49 @@ class MetricsService {
         final accountData = accountDoc.data();
         final userId = accountDoc.id;
 
+        // Skip bot users - only include real users
+        final isBot = accountData['isBot'] ?? false;
+        if (isBot) continue;
+
         // Get user info
         final nickname = accountData['nickname'] ?? 'Anonymous';
-        final visitCount = accountData['visitCount'] ?? 1;
-        final hasReturned = visitCount > 1;
+
+        // North - Belonging: Use worldVisitCount field
+        final worldVisitCount = accountData['worldVisitCount'] ?? 1;
+        final returnCount = worldVisitCount > 1 ? worldVisitCount - 1 : 0;
+
+        // East - Flow: Read from account fields (will be updated by session services)
+        final sessionsCompleted = accountData['sessionsCompleted'] ?? 0;
+        final totalSessions = accountData['totalSessions'] ?? 0;
+
+        // South - Voice: Count posts by this user
+        final userPosts = postsSnapshot.docs.where((doc) => doc.data()['userId'] == userId).length;
+
+        // West - Affection: Read from account field (will be updated by reaction services)
+        final reactionsGiven = accountData['reactionsGiven'] ?? 0;
+
+        // Get last visit timestamp
         final lastUpdated = accountData['lastUpdated'] as Timestamp?;
         final lastVisit = lastUpdated?.toDate();
 
-        // Count posts by this user
-        final userPosts = postsSnapshot.docs.where((doc) => doc.data()['userId'] == userId).length;
-
-        // Count sessions for this user (simplified - count unique sessionIds in messages)
-        final userMessages = messagesSnapshot.docs.where((doc) => doc.data()['userId'] == userId);
-        final sessionIds = userMessages.map((doc) => doc.data()['sessionId'] ?? '').where((id) => id.isNotEmpty).toSet();
-        final totalSessions = sessionIds.length;
-
-        // Count completed sessions (sessions with goodbye messages)
-        int completedSessions = 0;
-        for (final sessionId in sessionIds) {
-          final hasGoodbye = userMessages.any((doc) {
-            final data = doc.data();
-            return data['sessionId'] == sessionId && (data['type'] == 'goodbye' || data['type'] == 'session_end');
-          });
-          if (hasGoodbye) completedSessions++;
+        // Determine user status
+        String status = 'Active';
+        if (returnCount > 0) {
+          status = 'Returning';
         }
-
-        // Estimate reactions given (placeholder)
-        final reactionsGiven = userPosts * 2; // Rough estimate
+        if (sessionsCompleted == totalSessions && totalSessions > 0) {
+          status = 'Completed';
+        }
 
         users.add(UserCompassMetrics(
           userId: userId,
           nickname: nickname,
-          hasReturned: hasReturned,
-          sessionsCompleted: completedSessions,
+          returnCount: returnCount,
+          sessionsCompleted: sessionsCompleted,
           totalSessions: totalSessions,
           postsCreated: userPosts,
           reactionsGiven: reactionsGiven,
+          status: status,
           lastVisit: lastVisit,
         ));
       }

@@ -15,9 +15,14 @@ This directory contains all user interface components for the BAS Rituals applic
 
 **`game_experience_screen.dart`**
 - **Purpose**: Main game interface for ritual queue participation
-- **Features**: Real-time messaging, queue management, bot interactions
+- **Features**: Real-time messaging, queue management, bot interactions, metrics tracking
 - **Integration**: Heavy integration with RitualQueueService and messaging system
 - **Queue Display**: Shows queue state with guaranteed real user positioning at slot 3
+- **Metrics Tracking**:
+  - Session start tracking in `initState()` (fire-and-forget)
+  - Session completion tracking on navigation to session end
+  - Reaction click tracking when users click reaction buttons
+- **Firebase Optimization**: Simplified async calls, removed unnecessary try-catch blocks
 
 **`world_experience_screen.dart`**
 - **Purpose**: World-specific experience interface
@@ -55,6 +60,25 @@ This directory contains all user interface components for the BAS Rituals applic
 - **Purpose**: Navigation sidebar for admin dashboard
 - **Features**: Collapsible design, session timer, quick actions
 - **Responsive**: Adapts to different screen sizes
+
+**`admin_metrics_section.dart`**
+- **Purpose**: Compass metrics dashboard for real user engagement tracking
+- **Features**:
+  - Collapsible user list with click-to-expand functionality
+  - Real users only (filters out bots)
+  - Four compass directions with full detail display
+  - Visual status indicators (Active/Returning/Completed)
+- **Compass Points (Expanded View)**:
+  - North: Belonging Proof - Return count tracking
+  - East: Flow Working - Session completion rates
+  - South: Voice/Recognition - Post creation metrics
+  - West: Affection/Resonance - Reaction engagement
+- **Display Details**: Each metric shows Question, Metric, Indicator, and Meaning
+- **Code Optimization**: Extracted common UI patterns into helper methods
+  - `_buildMetricHeader()`: Reusable header component
+  - `_buildMetricRow()`: Generic metric row with customizable styling
+  - `_buildIndicatorRow()`: Standardized indicator display
+  - Reduced repetitive code by ~50%
 
 **`admin_posts_section.dart`**
 - **Purpose**: Posts management interface

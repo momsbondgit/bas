@@ -10,6 +10,7 @@ import '../../config/world_config.dart';
 import '../../services/simulation/reaction_simulation_service.dart';
 import '../../services/data/local_storage_service.dart';
 import '../../services/core/world_service.dart';
+import '../../services/auth/auth_service.dart';
 import 'session_end_screen.dart';
 import '../widgets/modals/goodbye_popup_modal.dart';
 import '../../services/simulation/bot_assignment_service.dart';
@@ -67,11 +68,18 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     _loadWorldConfig();
     _viewModel = HomeViewModel();
     _setupPulseAnimation();
-    
+
     _viewModel.addListener(_onViewModelChanged);
     _viewModel.initialize();
-    
+
     _setupTextFieldListeners();
+
+    // Track session start
+    LocalStorageService().getAnonId().then((userId) {
+      if (userId != null && userId.isNotEmpty) {
+        AuthService().incrementTotalSessions(userId);
+      }
+    });
   }
   
   void _loadWorldConfig() async {
@@ -159,6 +167,13 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 
   void _navigateToSessionEnd() {
+    // Track session completion
+    LocalStorageService().getAnonId().then((userId) {
+      if (userId != null && userId.isNotEmpty) {
+        AuthService().incrementSessionsCompleted(userId);
+      }
+    });
+
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => const SessionEndScreen(),
@@ -302,6 +317,13 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
 
         // Increment reaction count
         _localReactions[postId]![emoji] = (_localReactions[postId]![emoji] ?? 0) + 1;
+
+        // Track reaction to Firebase (fire and forget)
+        LocalStorageService().getAnonId().then((userId) {
+          if (userId != null && userId.isNotEmpty) {
+            AuthService().incrementReactionsGiven(userId);
+          }
+        });
       });
     }
   }

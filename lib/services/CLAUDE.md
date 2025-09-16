@@ -31,7 +31,7 @@ This directory contains service classes that handle business logic, external int
 ### `auth/` - Authentication Services
 
 #### `auth_service.dart`
-**Purpose**: Handles user authentication and session management.
+**Purpose**: Handles user authentication, session management, and metrics tracking.
 
 **Features**:
 - Anonymous user ID generation
@@ -39,6 +39,12 @@ This directory contains service classes that handle business logic, external int
 - Nickname management
 - World authentication tracking
 - Session persistence across app launches
+- **Metrics Tracking**: Simplified increment methods for compass metrics
+  - `incrementTotalSessions()`: Tracks game session starts
+  - `incrementSessionsCompleted()`: Tracks session completions
+  - `incrementReactionsGiven()`: Tracks reaction button clicks
+  - Generic `_incrementMetric()` method to reduce code duplication
+- **Firebase Optimization**: Uses `set` with `merge` to avoid reads before writes
 
 ### `core/` - Core Business Logic Services
 
@@ -116,6 +122,29 @@ The `_createInitialQueue()` method was completely rewritten to eliminate the bug
 - Admin post creation with special privileges
 - Post editing and deletion (admin features)
 - Firestore integration with proper error handling
+
+### `metrics/` - Metrics and Analytics Services
+
+#### `metrics_service.dart`
+**Purpose**: Calculates and aggregates user engagement metrics for admin dashboard.
+
+**Key Features**:
+- **Real User Filtering**: Excludes bot users via `isBot` field check
+- **Simplified Data Sources**: Reads from accounts collection primarily (optimized for performance)
+- **Four Compass Metrics**:
+  - **North (Belonging)**: Uses `worldVisitCount` field to calculate returns
+  - **East (Flow)**: Reads `sessionsCompleted` and `totalSessions` fields
+  - **South (Voice)**: Counts posts from posts collection
+  - **West (Affection)**: Reads `reactionsGiven` field from accounts
+- **Status Determination**: Assigns user status (Active/Returning/Completed)
+
+**Data Sources** (optimized):
+- `accounts` collection: User data, visit counts, sessions, reactions (primary)
+- `posts` collection: User-created posts (secondary)
+
+**Methods**:
+- `getUserCompassMetrics()`: Returns comprehensive metrics for all real users
+- **Performance**: Reduced from 3 collections to 2 for faster queries
 
 ### `simulation/` - Bot and Simulation Services
 

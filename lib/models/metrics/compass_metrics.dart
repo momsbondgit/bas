@@ -1,21 +1,23 @@
 class UserCompassMetrics {
   final String userId;
   final String? nickname;
-  final bool hasReturned;
+  final int returnCount;
   final int sessionsCompleted;
   final int totalSessions;
   final int postsCreated;
   final int reactionsGiven;
+  final String status;
   final DateTime? lastVisit;
 
   const UserCompassMetrics({
     required this.userId,
     this.nickname,
-    required this.hasReturned,
+    required this.returnCount,
     required this.sessionsCompleted,
     required this.totalSessions,
     required this.postsCreated,
     required this.reactionsGiven,
+    required this.status,
     this.lastVisit,
   });
 }

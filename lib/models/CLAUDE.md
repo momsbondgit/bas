@@ -4,6 +4,28 @@ This directory contains data models that represent the core entities and state i
 
 ## Directory Structure
 
+### `metrics/` - Metrics Models
+
+#### `compass_metrics.dart`
+**Purpose**: Data models for user engagement metrics in the admin dashboard.
+
+**Key Models**:
+- **UserCompassMetrics**: Individual user metrics tracking
+  - `returnCount`: Number of times user has returned (visits - 1)
+  - `sessionsCompleted`: Number of completed ritual sessions
+  - `totalSessions`: Total number of sessions attempted
+  - `postsCreated`: Number of posts created by user
+  - `reactionsGiven`: Count of reactions given by user
+  - `status`: User status (Active/Returning/Completed)
+- **CompassMetricsList**: Container for multiple user metrics with timestamp
+
+**Key Changes** (Latest Implementation):
+- Replaced boolean `hasReturned` with integer `returnCount` for precise tracking
+- Added `status` field to categorize users (Active/Returning/Completed)
+- Metrics exclude bot users (real users only)
+- Data source optimized to primarily read from accounts collection
+- Metrics automatically updated by AuthService when users interact with the app
+
 ### `data/` - Core Data Models
 
 #### `message.dart`

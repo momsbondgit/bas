@@ -126,6 +126,29 @@ class AuthService {
     await _localStorage.setHasAccount(false);
     await _localStorage.setAuthenticatedWorldId('');
   }
+
+  /// Generic method to increment any metric field
+  Future<void> _incrementMetric(String userId, String fieldName) async {
+    await _firestore.collection(_accountsCollection).doc(userId).set({
+      fieldName: FieldValue.increment(1),
+      'lastUpdated': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  /// Increment total sessions when user starts a game
+  Future<void> incrementTotalSessions(String userId) async {
+    await _incrementMetric(userId, 'totalSessions');
+  }
+
+  /// Increment completed sessions when user reaches session end
+  Future<void> incrementSessionsCompleted(String userId) async {
+    await _incrementMetric(userId, 'sessionsCompleted');
+  }
+
+  /// Increment reactions given when user clicks a reaction button
+  Future<void> incrementReactionsGiven(String userId) async {
+    await _incrementMetric(userId, 'reactionsGiven');
+  }
   
   /// Track when a user visits a world and increment their return count
   Future<void> trackWorldVisit(String anonId, String worldId) async {
