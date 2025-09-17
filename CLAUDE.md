@@ -143,8 +143,8 @@ The application uses two distinct queue systems:
    - Local bot simulation and queue management
    - **Critical Feature**: Guarantees exactly 6 queue members (5 bots + 1 real user)
    - **User Positioning**: Real user is always placed at position 3 (index 2)
-   - **Fallback System**: Creates fallback bots when insufficient bots are assigned
-   - **Bug Fix**: Completely rewritten `_createInitialQueue()` method eliminates all-bot lobbies
+   - **World Capacity Enforcement**: Only creates queues when sufficient assigned bots are available
+   - **Bug Fix**: Completely rewritten `_createInitialQueue()` method eliminates all-bot lobbies and removes fallback bot system
 
 ### Bot Assignment Logic
 The `BotAssignmentService` manages bot personality assignment through a vibe check system:
@@ -153,6 +153,25 @@ The `BotAssignmentService` manages bot personality assignment through a vibe che
 - **1-2 A answers**: Table 3 (balanced/mixed personalities)
 
 Assignment is persistent across sessions and tied to the current world's bot configurations.
+
+### Critical Bug Fixes
+
+#### World Rejection and Bot Assignment Storage Fix
+**Problem**: Users rejected due to world capacity were experiencing inconsistent behavior:
+- First attempt: Proper vibe check → world full popup (correct)
+- On refresh: Skipped vibe check → placed in fallback world with placeholder bots (Alex, Casey, Jordan, Riley, Quinn)
+
+**Root Cause**: Two separate issues:
+1. **Data Overwrite**: `AuthService.createAccountForWorld()` was using `set()` without merge, overwriting bot assignment data stored by `BotAssignmentService`
+2. **Fallback Bot System**: `QueueService` created placeholder bots when insufficient assigned bots were available
+
+**Solution Implemented**:
+1. **Authentication Flow Reordering**: Bot availability is now checked BEFORE account creation in `general_screen.dart`
+2. **Data Preservation**: `AuthService._createAccountInternal()` now uses `SetOptions(merge: true)` to preserve existing bot assignments
+3. **Fallback System Removal**: Completely removed fallback bot creation logic from `QueueService`
+4. **Consistent Rejection Handling**: Rejected users have no persistent account and must retry vibe check on refresh
+
+**Result**: Rejected users now consistently experience: vibe check → capacity check → Instagram modal (no bypass, no placeholder bots).
 
 ### Real-time Features
 Most UI components use Firestore streams for live updates. Always dispose stream subscriptions properly in `dispose()` methods.

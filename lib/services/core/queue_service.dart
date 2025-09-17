@@ -125,6 +125,18 @@ class QueueService extends ChangeNotifier {
     final realUserFloor = await _localStorageService.getFloor() ?? 1;
     final realUserWorld = await _localStorageService.getCurrentWorld();
 
+    // Don't create queue if no bots assigned (world was full)
+    if (_assignedBots.isEmpty) {
+      print('⚠️ [Queue] No bots assigned - cannot create queue');
+      _currentState = QueueState(
+        queue: [],
+        activeUser: null,
+        currentIndex: 0,
+        isInitialized: false,
+      );
+      return;
+    }
+
     final realUser = QueueUser(
       id: 'real_user',
       displayName: 'You',
@@ -134,18 +146,13 @@ class QueueService extends ChangeNotifier {
       world: realUserWorld,
     );
 
-    // Always ensure we have exactly 5 bots - pad if necessary
+    // Create exactly 5 bots from assigned bots
     final botUsers = <QueueUser>[];
     final maxBots = 5;
 
-    // Create bots from assigned bots list
-    for (int i = 0; i < maxBots; i++) {
-      if (i < _assignedBots.length) {
-        botUsers.add(_createDummyUser(i));
-      } else {
-        // If we don't have enough assigned bots, create a fallback bot
-        botUsers.add(_createFallbackBot(i));
-      }
+    // Use only assigned bots (we know we have exactly 5)
+    for (int i = 0; i < maxBots && i < _assignedBots.length; i++) {
+      botUsers.add(_createDummyUser(i));
     }
 
     // Always place real user at position 3 (index 2)
@@ -160,20 +167,22 @@ class QueueService extends ChangeNotifier {
       } else {
         // Place bots in other positions
         final botIndex = i < userPosition ? i : i - 1;
-        final bot = botUsers[botIndex];
+        if (botIndex < botUsers.length) {
+          final bot = botUsers[botIndex];
 
-        // First person in queue (index 0) is always active
-        if (i == 0) {
-          queue.add(bot.copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()));
-        } else {
-          queue.add(bot);
+          // First person in queue (index 0) is always active
+          if (i == 0) {
+            queue.add(bot.copyWith(state: QueueUserState.active, turnStartTime: DateTime.now()));
+          } else {
+            queue.add(bot);
+          }
         }
       }
     }
 
     _currentState = QueueState(
       queue: queue,
-      activeUser: queue.first,
+      activeUser: queue.isNotEmpty ? queue.first : null,
       currentIndex: 0,
       isInitialized: false,
     );
@@ -200,23 +209,6 @@ class QueueService extends ChangeNotifier {
     );
   }
 
-  QueueUser _createFallbackBot(int index) {
-    final floors = [1, 2, 3, 4, 5];
-    final world = _getCurrentUserWorld();
-
-    // Create fallback bot names if we don't have enough assigned bots
-    final fallbackNames = ['Alex', 'Casey', 'Jordan', 'Riley', 'Quinn'];
-    final fallbackName = fallbackNames[index % fallbackNames.length];
-
-    return QueueUser(
-      id: 'fallback_bot_$index',
-      displayName: fallbackName,
-      type: QueueUserType.dummy,
-      state: QueueUserState.waiting,
-      floor: floors[_random.nextInt(floors.length)],
-      world: world,
-    );
-  }
 
   String _getCurrentUserWorld() {
     // Get world from current queue real user, or default to Girl Meets College
@@ -399,27 +391,11 @@ class QueueService extends ChangeNotifier {
 
   /// Gets the specific response for a bot user
   String _getBotResponse(String botId) {
-    // Check if this is a fallback bot
-    if (botId.startsWith('fallback_bot_')) {
-      return _getFallbackBotResponse();
-    }
-
     final bot = _assignedBots.firstWhere(
       (bot) => bot.botId == botId,
       orElse: () => throw Exception('Bot with ID $botId not found in assigned bots'),
     );
     return bot.quineResponse;
-  }
-
-  String _getFallbackBotResponse() {
-    final fallbackResponses = [
-      "honestly same energy 💀",
-      "wait this is actually so real",
-      "why did I just relate to this so hard",
-      "not me crying at this confession",
-      "bestie you said what we're all thinking",
-    ];
-    return fallbackResponses[_random.nextInt(fallbackResponses.length)];
   }
 
   /// Checks if the real user can post (is active and real)

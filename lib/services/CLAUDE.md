@@ -45,6 +45,7 @@ This directory contains service classes that handle business logic, external int
   - `incrementReactionsGiven()`: Tracks reaction button clicks
   - Generic `_incrementMetric()` method to reduce code duplication
 - **Firebase Optimization**: Uses `set` with `merge` to avoid reads before writes
+- **Bot Assignment Preservation**: Account creation uses `SetOptions(merge: true)` to preserve existing bot assignment data
 
 ### `core/` - Core Business Logic Services
 
@@ -71,23 +72,21 @@ This directory contains service classes that handle business logic, external int
 - **Bot Queue Management**: Creates and manages local queues with bot users
 - **User Positioning**: Guarantees real user is always at position 3 (index 2) in queue
 - **Bot Assignment Integration**: Works with BotAssignmentService for personality-based bot selection
-- **Fallback System**: Creates fallback bots when insufficient assigned bots are available
+- **World Capacity Enforcement**: Prevents queue creation when insufficient assigned bots are available
 - **Turn Management**: Handles bot turn rotation and timing
 - **Response Generation**: Manages bot responses and interactions
 
 **Critical Methods**:
-- `_createInitialQueue()`: **Recently fixed** - Guarantees exactly 6 queue members (5 bots + 1 real user)
-- `_createFallbackBot()`: Creates generic bots when needed to fill queue
-- `_getBotResponse()`: Generates bot responses including fallback bot handling
+- `_createInitialQueue()`: **Recently fixed** - Guarantees exactly 6 queue members (5 bots + 1 real user), prevents queue creation without sufficient assigned bots
+- `_getBotResponse()`: Generates bot responses using only assigned bots
 - `moveToNextUser()`: Rotates queue to next user's turn
 
 **Bug Fix Details**:
-The `_createInitialQueue()` method was completely rewritten to eliminate the bug where users could get all-bot lobbies. The new implementation:
-- Deterministically builds a 6-person queue
-- Places real user at exactly position 3 (index 2)
-- Fills remaining positions with bots (assigned or fallback)
-- Ensures first person (index 0) is always active
-- Handles edge cases with insufficient bot assignments
+The `_createInitialQueue()` method was completely rewritten to eliminate bugs with fallback bots and world rejection handling:
+- **Fallback Bot Removal**: Completely removed fallback bot system (no more Alex, Casey, Jordan, Riley, Quinn placeholder bots)
+- **World Capacity Enforcement**: Only creates queues when sufficient assigned bots are available
+- **Deterministic Queue Building**: Places real user at exactly position 3 (index 2) with 5 assigned bots
+- **Integration with World Access Flow**: Works with updated authentication flow that checks bot availability before account creation
 
 #### `world_service.dart`
 **Purpose**: Manages world configurations and selection.

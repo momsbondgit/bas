@@ -110,29 +110,34 @@ class _GeneralScreenState extends State<GeneralScreen> {
         worldConfig: world,
         onSubmit: (accessCode, nickname, vibeAnswers) async {
           final authService = AuthService();
-          final success = await authService.createAccountForWorld(accessCode, nickname, world.id);
 
-          if (success) {
-            print('🚀 [UI] Auth successful, starting bot assignment...');
-            // Assign bots based on vibe check
-            final botAssignmentService = BotAssignmentService();
-            final assignedBots = await botAssignmentService.assignBotsBasedOnVibeCheck(vibeAnswers);
-
-            print('🎯 [UI] Bot assignment result: ${assignedBots.length} bots assigned');
-
-            if (assignedBots.isEmpty) {
-              print('🚫 [UI] No bots assigned - world is full');
-              // World is full - show Instagram modal and mark user as rejected
-              if (context.mounted) {
-                _closeModal(context);
-                _hasBeenRejectedForFullWorld = true;
-                _showInstagramCollectionModal(context);
-              }
-              return false;
-            } else {
-              print('✅ [UI] Bots assigned successfully, proceeding to game');
-            }
+          // First validate the access code
+          final correctCode = world.id == 'girl-meets-college' ? '789' : '456';
+          if (accessCode != correctCode) {
+            throw Exception('Invalid access code');
           }
+
+          // Check bot availability BEFORE creating account
+          print('🚀 [UI] Checking bot availability...');
+          final botAssignmentService = BotAssignmentService();
+          final assignedBots = await botAssignmentService.assignBotsBasedOnVibeCheck(vibeAnswers);
+
+          print('🎯 [UI] Bot assignment result: ${assignedBots.length} bots assigned');
+
+          if (assignedBots.isEmpty) {
+            print('🚫 [UI] No bots assigned - world is full');
+            // World is full - DON'T create account, show Instagram modal
+            if (context.mounted) {
+              _closeModal(context);
+              _hasBeenRejectedForFullWorld = true;
+              _showInstagramCollectionModal(context);
+            }
+            return false;
+          }
+
+          // Only create account if bots were successfully assigned
+          print('✅ [UI] Bots assigned, creating account...');
+          final success = await authService.createAccountForWorld(accessCode, nickname, world.id);
 
           if (success && context.mounted) {
             _closeModal(context);
@@ -146,8 +151,8 @@ class _GeneralScreenState extends State<GeneralScreen> {
               ),
             );
           } else {
-            // Throw error to trigger inline validation error in modal
-            throw Exception('Invalid access code');
+            // This shouldn't happen since we validated the code above
+            throw Exception('Failed to create account');
           }
         },
         onCancel: () {

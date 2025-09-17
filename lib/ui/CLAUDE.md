@@ -12,6 +12,7 @@ This directory contains all user interface components for the BAS Rituals applic
 - **Purpose**: Main landing screen with world selection
 - **Features**: World tiles, authentication flow integration, returning user handling
 - **Navigation**: Entry point that routes users to game experiences
+- **Updated Authentication Flow**: Bot availability is checked before account creation; rejected users see Instagram modal and must retry vibe check on refresh
 
 **`game_experience_screen.dart`**
 - **Purpose**: Main game interface for ritual queue participation
@@ -113,6 +114,7 @@ This directory contains all user interface components for the BAS Rituals applic
 - **Purpose**: Multi-step world authentication modal
 - **Features**: Access code input, nickname setup, vibe quiz, vibe matching animation, world-specific styling
 - **Flow**: 3-step process (authentication → vibe questions → vibe matching → world entry)
+- **World Capacity Integration**: Bot availability is checked before account creation; users are rejected with Instagram modal if world is full
 
 #### `indicators/` - Status and Feedback Components
 
