@@ -1116,26 +1116,6 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // DEVELOPER ONLY: Remove this button later
-          Align(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-              onTap: () => _showGoodbyePopup(),
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.fast_forward,
-                  size: 12,
-                  color: Colors.red,
-                ),
-              ),
-            ),
-          ),
           // User pills - left aligned
           Align(
             alignment: Alignment.centerLeft,
