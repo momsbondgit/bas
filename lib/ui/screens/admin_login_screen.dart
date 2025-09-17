@@ -105,6 +105,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     
     return Scaffold(
       backgroundColor: const Color(0xFFF1EDEA),
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

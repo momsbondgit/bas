@@ -84,7 +84,9 @@ class _InstagramCollectionModalState extends State<InstagramCollectionModal> {
       canPop: false, // Prevent closing
       child: Dialog(
         backgroundColor: Colors.transparent,
-        child: Container(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Container(
           width: screenWidth > 400 ? 350 : screenWidth * 0.85,
           constraints: BoxConstraints(
             maxHeight: screenHeight * 0.8,
@@ -229,6 +231,7 @@ class _InstagramCollectionModalState extends State<InstagramCollectionModal> {
               ),
             ),
           ),
+        ),
         ),
       ),
     );

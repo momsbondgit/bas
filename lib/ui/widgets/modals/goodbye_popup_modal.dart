@@ -146,12 +146,14 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Container(
-          width: 350,
-          height: 500,
-          decoration: BoxDecoration(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Container(
+            width: 350,
+            height: 500,
+            decoration: BoxDecoration(
             color: const Color(0xFFF1EDEA),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
@@ -303,7 +305,8 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
             ),
           ],
         ),
-      ),
+          ),
+        ),
       ),
     );
   }
