@@ -9,6 +9,7 @@ import '../../services/admin/maintenance_service.dart';
 import '../../config/world_config.dart';
 import '../widgets/forms/world_access_modal.dart';
 import '../widgets/forms/instagram_collection_modal.dart';
+import '../widgets/forms/tribe_loading_modal.dart';
 
 void main() => runApp(MaterialApp(home: GeneralScreen()));
 
@@ -58,17 +59,9 @@ class _GeneralScreenState extends State<GeneralScreen> {
       final anonId = await authService.getOrCreateAnonId();
       await authService.trackWorldVisit(anonId, world.id);
 
-      // User has account for this world, navigate directly
+      // Show loading modal for returning users before navigating
       if (context.mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => GameExperienceScreen(
-              selectedFloor: 1,
-              worldConfig: world,
-            ),
-          ),
-        );
+        _showTribeLoadingModal(context, world);
       }
     } else {
       // This is a NEW user without existing account
@@ -386,6 +379,35 @@ class _GeneralScreenState extends State<GeneralScreen> {
       builder: (context) => InstagramCollectionModal(
         onInstagramSubmitted: () {
           print('✅ [UI] Instagram submitted');
+        },
+      ),
+    );
+  }
+
+  void _showTribeLoadingModal(BuildContext context, WorldConfig world) {
+    print('🌟 [UI] Showing tribe loading modal for returning user');
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => TribeLoadingModal(
+        onComplete: () {
+          print('✅ [UI] Tribe loading complete, navigating to game');
+          // Close the loading modal
+          if (dialogContext.mounted) {
+            Navigator.of(dialogContext).pop();
+          }
+          // Navigate to the game experience screen
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GameExperienceScreen(
+                  selectedFloor: 1,
+                  worldConfig: world,
+                ),
+              ),
+            );
+          }
         },
       ),
     );
