@@ -284,17 +284,7 @@ class _AdminMetricsSectionState extends State<AdminMetricsSection> {
           const SizedBox(height: 20),
 
           // East - Flow Working
-          _buildCompassMetric(
-            direction: 'East',
-            directionColor: const Color(0xFFF59E0B),
-            icon: Icons.timeline,
-            title: 'Flow Working',
-            question: 'Did they complete the full session?',
-            metric: 'Sessions completed vs total attempts',
-            indicator: '${user.sessionsCompleted}/${user.totalSessions} sessions',
-            indicatorColor: user.sessionsCompleted > 0 ? Colors.green : Colors.grey,
-            meaning: 'Shows if users feel rhythm — start → middle → goodbye → "see you tomorrow."',
-          ),
+          _buildEastFlowMetric(user),
           const SizedBox(height: 20),
 
           // South - Voice / Recognition
@@ -420,6 +410,59 @@ class _AdminMetricsSectionState extends State<AdminMetricsSection> {
           child: Text(indicator, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
         ),
       ],
+    );
+  }
+
+  Widget _buildEastFlowMetric(UserCompassMetrics user) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildMetricHeader('East', const Color(0xFFF59E0B), Icons.timeline, 'Flow Working'),
+          const SizedBox(height: 12),
+          _buildMetricRow('Question: ', 'Did they complete the full session?', const Color(0xFFF3F4F6)),
+          const SizedBox(height: 8),
+          _buildSimpleMetricRow('Metric: ', 'Sessions completed vs total attempts'),
+          const SizedBox(height: 8),
+          _buildIndicatorRow('${user.sessionsCompleted}/${user.totalSessions} sessions',
+              user.sessionsCompleted > 0 ? Colors.green : Colors.grey),
+          const SizedBox(height: 8),
+          _buildMetricRow('Meaning: ', 'Shows if users feel rhythm — start → middle → goodbye → "see you tomorrow."',
+              const Color(0xFFFEF3C7), labelColor: const Color(0xFFB45309), textColor: const Color(0xFF92400E)),
+
+          // Goodbye Message section
+          const SizedBox(height: 12),
+          const Divider(color: Color(0xFFE5E7EB)),
+          const SizedBox(height: 8),
+          _buildSimpleMetricRow('Bye Message: ', user.goodbyeMessage != null ? 'Yes' : 'No'),
+          if (user.goodbyeMessage != null) ...[
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Text(
+                '"${user.goodbyeMessage}"',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF374151),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

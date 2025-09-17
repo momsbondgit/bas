@@ -40,6 +40,9 @@ class MetricsService {
         // West - Affection: Read from account field (will be updated by reaction services)
         final reactionsGiven = accountData['reactionsGiven'] ?? 0;
 
+        // Get goodbye message if user sent one
+        final goodbyeMessage = accountData['goodbyeMessage'] as String?;
+
         // Get last visit timestamp
         final lastUpdated = accountData['lastUpdated'] as Timestamp?;
         final lastVisit = lastUpdated?.toDate();
@@ -63,6 +66,7 @@ class MetricsService {
           reactionsGiven: reactionsGiven,
           status: status,
           lastVisit: lastVisit,
+          goodbyeMessage: goodbyeMessage,
         ));
       }
 

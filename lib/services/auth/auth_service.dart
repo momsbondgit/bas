@@ -197,4 +197,17 @@ class AuthService {
       return 0;
     }
   }
+
+  /// Store goodbye message when user submits one
+  Future<void> storeGoodbyeMessage(String anonId, String message) async {
+    try {
+      await _firestore.collection(_accountsCollection).doc(anonId).set({
+        'goodbyeMessage': message,
+        'goodbyeMessageTime': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      // Silently fail - don't disrupt user experience
+      print('Error storing goodbye message: $e');
+    }
+  }
 }

@@ -3,6 +3,8 @@ import 'dart:async';
 import '../../../models/user/bot_user.dart';
 import '../../../models/user/queue_user.dart';
 import '../../../config/world_config.dart';
+import '../../../services/auth/auth_service.dart';
+import '../../../services/data/local_storage_service.dart';
 
 class GoodbyePopupModal extends StatefulWidget {
   final WorldConfig worldConfig;
@@ -99,7 +101,7 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
     });
   }
 
-  void _submitGoodbye() {
+  void _submitGoodbye() async {
     // Don't allow submissions when fading out (last 4 seconds)
     if (_remainingSeconds <= 4) return;
 
@@ -107,6 +109,20 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
     if (message.isNotEmpty) {
       _addGoodbyeMessage('You', message);
       _goodbyeController.clear();
+
+      // Store goodbye message in Firebase
+      try {
+        final localStorageService = LocalStorageService();
+        final authService = AuthService();
+        final userId = await localStorageService.getAnonId();
+
+        if (userId != null && userId.isNotEmpty) {
+          await authService.storeGoodbyeMessage(userId, message);
+        }
+      } catch (e) {
+        print('Error storing goodbye message: $e');
+        // Continue anyway - don't block user experience
+      }
     }
   }
 

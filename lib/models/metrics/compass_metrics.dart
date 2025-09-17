@@ -8,6 +8,7 @@ class UserCompassMetrics {
   final int reactionsGiven;
   final String status;
   final DateTime? lastVisit;
+  final String? goodbyeMessage;
 
   const UserCompassMetrics({
     required this.userId,
@@ -19,6 +20,7 @@ class UserCompassMetrics {
     required this.reactionsGiven,
     required this.status,
     this.lastVisit,
+    this.goodbyeMessage,
   });
 }
 

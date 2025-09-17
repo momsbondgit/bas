@@ -57,6 +57,14 @@ For **every change step**, the developer must post:
 
 ---
 
+## 5. **don't touch rule**
+
+* Dont not touch or change any other functionatity that is not related to the task at hand. 
+* if you must change code not related to the task at hand then you must confirm with and wait for my approve.
+
+---
+
+
 ⚠️ **Do not write code** until receiving explicit **“Approved”** reply.
 Once approved, implement **only** what was confirmed.
 
