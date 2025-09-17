@@ -508,7 +508,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             ),
             // Queue section - positioned below chat area
             Positioned(
-              top: screenHeight * 0.28 + 325, // Positioned closer to the bottom border of chat area
+              top: screenHeight * 0.28 + 342, // Positioned closer to the bottom border of chat area
               left: 0,
               right: 0,
               child: Column(
