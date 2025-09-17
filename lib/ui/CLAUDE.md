@@ -94,6 +94,12 @@ This directory contains all user interface components for the BAS Rituals applic
 - **Purpose**: Admin post creation interface
 - **Features**: Post composition, world/floor selection, announcement system
 
+**`admin_bot_settings_section.dart`**
+- **Purpose**: Bot configuration management interface
+- **Features**: Edit bot nicknames, responses, and goodbye messages per world
+- **Integration**: Real-time updates via BotSettingsService
+- **UI Pattern**: Inline editing with save/cancel actions
+
 #### `cards/` - Content Display Components
 
 **`confession_card.dart`**
@@ -115,6 +121,14 @@ This directory contains all user interface components for the BAS Rituals applic
 - **Features**: Access code input, nickname setup, vibe quiz, vibe matching animation, world-specific styling
 - **Flow**: 3-step process (authentication → vibe questions → vibe matching → world entry)
 - **World Capacity Integration**: Bot availability is checked before account creation; users are rejected with Instagram modal if world is full
+
+#### `modals/` - Modal Dialog Components
+
+**`goodbye_popup_modal.dart`**
+- **Purpose**: Session completion modal with bot goodbye messages
+- **Features**: 33-second countdown timer, bot goodbye messages display, user goodbye submission
+- **Integration**: Displays assigned bot farewell messages, tracks goodbye message submissions
+- **Animation**: Fade-in animations for bot messages, auto-navigation on timer completion
 
 #### `indicators/` - Status and Feedback Components
 

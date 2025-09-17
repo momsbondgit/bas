@@ -17,6 +17,7 @@ This directory contains data models that represent the core entities and state i
   - `postsCreated`: Number of posts created by user
   - `reactionsGiven`: Count of reactions given by user
   - `status`: User status (Active/Returning/Completed)
+  - `goodbyeMessage`: Optional farewell message submitted by user
 - **CompassMetricsList**: Container for multiple user metrics with timestamp
 
 **Key Changes** (Latest Implementation):
@@ -81,8 +82,10 @@ This directory contains data models that represent the core entities and state i
 - `botId`: Unique identifier for the bot
 - `nickname`: Display name for the bot
 - `quineResponse`: Predefined response the bot gives
+- `goodbyeText`: Farewell message displayed in goodbye popup modal
 
 **Usage**: Used in world configurations to define bot personalities and responses.
+**Recent Updates**: Added `goodbyeText` field for session completion messages.
 
 #### `queue_user.dart`
 **Purpose**: Comprehensive model for users in the ritual queue system.

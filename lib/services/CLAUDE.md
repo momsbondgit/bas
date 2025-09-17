@@ -17,6 +17,20 @@ This directory contains service classes that handle business logic, external int
 
 **Security Note**: Credentials are hardcoded and should be externalized for production.
 
+#### `bot_settings_service.dart`
+**Purpose**: Manages bot configuration updates through Firebase.
+
+**Features**:
+- Stream-based bot data retrieval for real-time updates
+- Bot nickname, response, and goodbye message editing
+- World and table-specific bot management
+- Firebase integration for persistent bot configuration
+
+**Methods**:
+- `getBotStream()`: Real-time stream of bot configurations
+- `updateBot()`: Update bot properties in Firebase
+- `getBots()`: Fetch current bot configurations
+
 #### `maintenance_service.dart`
 **Purpose**: Manages system maintenance mode and session timers.
 
@@ -136,6 +150,7 @@ The `_createInitialQueue()` method was completely rewritten to eliminate bugs wi
   - **South (Voice)**: Counts posts from posts collection
   - **West (Affection)**: Reads `reactionsGiven` field from accounts
 - **Status Determination**: Assigns user status (Active/Returning/Completed)
+- **Goodbye Message Tracking**: Retrieves optional farewell messages from user accounts
 
 **Data Sources** (optimized):
 - `accounts` collection: User data, visit counts, sessions, reactions (primary)

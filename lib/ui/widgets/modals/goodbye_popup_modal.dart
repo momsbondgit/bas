@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math';
 import '../../../models/user/bot_user.dart';
 import '../../../models/user/queue_user.dart';
 import '../../../config/world_config.dart';
@@ -73,14 +74,20 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
   }
 
   void _addBotGoodbyes() {
-    // Add bot goodbye messages with slight delays
+    // Add bot goodbye messages with realistic delays
+    final random = Random();
+    int cumulativeDelay = 6000; // First bot message after 6 seconds
+
     for (int i = 0; i < widget.assignedBots.length; i++) {
       final bot = widget.assignedBots[i];
-      Timer(Duration(milliseconds: 2500 + (i * 1500)), () {
+      Timer(Duration(milliseconds: cumulativeDelay), () {
         if (mounted) {
           _addGoodbyeMessage(bot.nickname, _getRandomGoodbyeText(bot), isBot: true);
         }
       });
+
+      // Add random 2.5-3.5 second delay for next bot (2500-3500ms)
+      cumulativeDelay += 2500 + random.nextInt(1001);
     }
   }
 
