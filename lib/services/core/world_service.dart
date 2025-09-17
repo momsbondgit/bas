@@ -1,11 +1,15 @@
 import '../../config/world_config.dart';
 import '../../config/worlds/girl_meets_college_world.dart';
 import '../../config/worlds/guy_meets_college_world.dart';
+import '../../models/user/bot_user.dart';
+import '../admin/bot_settings_service.dart';
 
 class WorldService {
   static final WorldService _instance = WorldService._internal();
   factory WorldService() => _instance;
   WorldService._internal();
+
+  final BotSettingsService _botSettingsService = BotSettingsService();
 
   // All available worlds
   static const List<WorldConfig> _availableWorlds = [
@@ -16,6 +20,36 @@ class WorldService {
   // Get all available worlds
   List<WorldConfig> getAllWorlds() {
     return List.from(_availableWorlds);
+  }
+
+  // Get world by ID with dynamic bot data for Girl World
+  Future<WorldConfig> getWorldByIdAsync(String id) async {
+    final baseConfig = _availableWorlds.firstWhere(
+      (world) => world.id == id,
+      orElse: () => GirlMeetsCollegeWorld.config,
+    );
+
+    if (id == 'girl-meets-college') {
+      final botTable1 = await _botSettingsService.getBots(id, 1);
+      final botTable2 = await _botSettingsService.getBots(id, 2);
+
+      return WorldConfig(
+        id: baseConfig.id,
+        displayName: baseConfig.displayName,
+        topicOfDay: baseConfig.topicOfDay,
+        modalTitle: baseConfig.modalTitle,
+        modalDescription: baseConfig.modalDescription,
+        entryTileImage: baseConfig.entryTileImage,
+        vibeSection: baseConfig.vibeSection,
+        headingText: baseConfig.headingText,
+        backgroundColorHue: baseConfig.backgroundColorHue,
+        characterLimit: baseConfig.characterLimit,
+        botTable1: botTable1,
+        botTable2: botTable2,
+      );
+    }
+
+    return baseConfig;
   }
 
   // Get world by ID

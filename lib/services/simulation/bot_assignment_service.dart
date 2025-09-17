@@ -17,7 +17,13 @@ class BotAssignmentService {
 
     // Get current world and user ID
     final currentWorldName = await _localStorageService.getCurrentWorld();
-    final worldConfig = _worldService.getWorldByDisplayName(currentWorldName) ?? _worldService.defaultWorld;
+    var worldConfig = _worldService.getWorldByDisplayName(currentWorldName) ?? _worldService.defaultWorld;
+
+    // Fetch dynamic bot data for Girl World
+    if (worldConfig.id == 'girl-meets-college') {
+      worldConfig = await _worldService.getWorldByIdAsync(worldConfig.id);
+    }
+
     final anonId = await _authService.getOrCreateAnonId();
 
     print('🌍 [BotAssignment] World: $currentWorldName (${worldConfig.id})');
@@ -109,7 +115,12 @@ class BotAssignmentService {
 
       // Get current world and table ID
       final currentWorldName = await _localStorageService.getCurrentWorld();
-      final worldConfig = _worldService.getWorldByDisplayName(currentWorldName) ?? _worldService.defaultWorld;
+      var worldConfig = _worldService.getWorldByDisplayName(currentWorldName) ?? _worldService.defaultWorld;
+
+      // Fetch dynamic bot data for Girl World
+      if (worldConfig.id == 'girl-meets-college') {
+        worldConfig = await _worldService.getWorldByIdAsync(worldConfig.id);
+      }
 
       final tableId = await _localStorageService.getTableId();
       if (tableId == null) {
@@ -145,7 +156,12 @@ class BotAssignmentService {
   /// Get bot table by ID for current world
   Future<List<BotUser>> getBotTable(String tableId) async {
     final currentWorldName = await _localStorageService.getCurrentWorld();
-    final worldConfig = _worldService.getWorldByDisplayName(currentWorldName) ?? _worldService.defaultWorld;
+    var worldConfig = _worldService.getWorldByDisplayName(currentWorldName) ?? _worldService.defaultWorld;
+
+    // Fetch dynamic bot data for Girl World
+    if (worldConfig.id == 'girl-meets-college') {
+      worldConfig = await _worldService.getWorldByIdAsync(worldConfig.id);
+    }
 
     if (tableId == '1') {
       return worldConfig.botTable1;
@@ -158,7 +174,12 @@ class BotAssignmentService {
   /// Get specific bot by ID from current world
   Future<BotUser?> getBotById(String botId) async {
     final currentWorldName = await _localStorageService.getCurrentWorld();
-    final worldConfig = _worldService.getWorldByDisplayName(currentWorldName) ?? _worldService.defaultWorld;
+    var worldConfig = _worldService.getWorldByDisplayName(currentWorldName) ?? _worldService.defaultWorld;
+
+    // Fetch dynamic bot data for Girl World
+    if (worldConfig.id == 'girl-meets-college') {
+      worldConfig = await _worldService.getWorldByIdAsync(worldConfig.id);
+    }
 
     // Check table 1
     for (final bot in worldConfig.botTable1) {
