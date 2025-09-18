@@ -4,6 +4,7 @@ import '../../services/admin/admin_service.dart';
 import '../../services/admin/maintenance_service.dart';
 import '../widgets/admin/admin_metrics_section.dart';
 import '../widgets/admin/admin_bot_settings_section.dart';
+import '../widgets/admin/admin_topic_settings_section.dart';
 import 'admin_login_screen.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -74,6 +75,8 @@ class _AdminScreenState extends State<AdminScreen> {
                       const AdminMetricsSection(),
                       const SizedBox(height: 24),
                       _buildMaintenanceSection(),
+                      const SizedBox(height: 24),
+                      const AdminTopicSettingsSection(),
                       const SizedBox(height: 24),
                       const AdminBotSettingsSection(),
                     ],

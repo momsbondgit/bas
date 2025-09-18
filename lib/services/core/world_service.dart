@@ -3,6 +3,7 @@ import '../../config/worlds/girl_meets_college_world.dart';
 import '../../config/worlds/guy_meets_college_world.dart';
 import '../../models/user/bot_user.dart';
 import '../admin/bot_settings_service.dart';
+import '../admin/topic_settings_service.dart';
 
 class WorldService {
   static final WorldService _instance = WorldService._internal();
@@ -10,6 +11,7 @@ class WorldService {
   WorldService._internal();
 
   final BotSettingsService _botSettingsService = BotSettingsService();
+  final TopicSettingsService _topicSettingsService = TopicSettingsService();
 
   // All available worlds
   static const List<WorldConfig> _availableWorlds = [
@@ -22,52 +24,49 @@ class WorldService {
     return List.from(_availableWorlds);
   }
 
-  // Get world by ID with dynamic bot data for Girl World
+  // Get world by ID with dynamic bot data and topic
   Future<WorldConfig> getWorldByIdAsync(String id) async {
     final baseConfig = _availableWorlds.firstWhere(
       (world) => world.id == id,
       orElse: () => GirlMeetsCollegeWorld.config,
     );
 
-    if (id == 'girl-meets-college') {
-      final botTable1 = await _botSettingsService.getBots(id, 1);
-      final botTable2 = await _botSettingsService.getBots(id, 2);
+    final dynamicTopic = await _topicSettingsService.getTopic(id);
+    final botTable1 = await _botSettingsService.getBots(id, 1);
+    final botTable2 = await _botSettingsService.getBots(id, 2);
 
-      return WorldConfig(
-        id: baseConfig.id,
-        displayName: baseConfig.displayName,
-        topicOfDay: baseConfig.topicOfDay,
-        modalTitle: baseConfig.modalTitle,
-        modalDescription: baseConfig.modalDescription,
-        entryTileImage: baseConfig.entryTileImage,
-        vibeSection: baseConfig.vibeSection,
-        headingText: baseConfig.headingText,
-        backgroundColorHue: baseConfig.backgroundColorHue,
-        characterLimit: baseConfig.characterLimit,
-        botTable1: botTable1,
-        botTable2: botTable2,
-      );
+    return WorldConfig(
+      id: baseConfig.id,
+      displayName: baseConfig.displayName,
+      topicOfDay: dynamicTopic ?? '',
+      modalTitle: baseConfig.modalTitle,
+      modalDescription: baseConfig.modalDescription,
+      entryTileImage: baseConfig.entryTileImage,
+      vibeSection: baseConfig.vibeSection,
+      headingText: baseConfig.headingText,
+      backgroundColorHue: baseConfig.backgroundColorHue,
+      characterLimit: baseConfig.characterLimit,
+      botTable1: botTable1,
+      botTable2: botTable2,
+    );
+  }
+
+  WorldConfig? _findWorld(bool Function(WorldConfig) test) {
+    try {
+      return _availableWorlds.firstWhere(test);
+    } catch (e) {
+      return null;
     }
-
-    return baseConfig;
   }
 
   // Get world by ID
   WorldConfig? getWorldById(String id) {
-    try {
-      return _availableWorlds.firstWhere((world) => world.id == id);
-    } catch (e) {
-      return null;
-    }
+    return _findWorld((world) => world.id == id);
   }
 
   // Get world by display name
   WorldConfig? getWorldByDisplayName(String displayName) {
-    try {
-      return _availableWorlds.firstWhere((world) => world.displayName == displayName);
-    } catch (e) {
-      return null;
-    }
+    return _findWorld((world) => world.displayName == displayName);
   }
 
   // Check if world exists

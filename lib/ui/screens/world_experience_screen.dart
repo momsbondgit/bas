@@ -292,7 +292,7 @@ class _WorldExperienceScreenState extends State<WorldExperienceScreen> with Tick
         MaterialPageRoute(
           builder: (context) => GameExperienceScreen(
             selectedFloor: widget.selectedFloor,
-            worldConfig: world,
+            worldConfig: null,
           ),
         ),
       );

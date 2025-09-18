@@ -4,7 +4,7 @@ class GirlMeetsCollegeWorld {
   static const WorldConfig config = WorldConfig(
     id: 'girl-meets-college',
     displayName: 'Girl Meets College',
-    topicOfDay: "ok… what's the weirdest or most annoying thing u seen in Lions Gate so far 👀💀",
+    topicOfDay: "",
     modalTitle: 'No code, no access. Only members can invite.',
     modalDescription: null,
     entryTileImage: 'assets/images/girl_meets_college.png', // TODO: Add actual asset path

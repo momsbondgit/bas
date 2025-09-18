@@ -89,12 +89,16 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       // Fall back to loading from local storage
       final localStorageService = LocalStorageService();
       final worldName = await localStorageService.getWorld();
+      final worldService = WorldService();
+
       if (worldName != null) {
-        final worldService = WorldService();
-        _currentWorldConfig = worldService.getWorldByDisplayName(worldName);
+        final staticConfig = worldService.getWorldByDisplayName(worldName);
+        if (staticConfig != null) {
+          _currentWorldConfig = await worldService.getWorldByIdAsync(staticConfig.id);
+        }
       }
       // Default to Girl Meets College if no world found
-      _currentWorldConfig ??= WorldService().getWorldByDisplayName('Girl Meets College');
+      _currentWorldConfig ??= await worldService.getWorldByIdAsync('girl-meets-college');
     }
     if (mounted) setState(() {});
   }
@@ -214,9 +218,10 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     return hslColor.toColor();
   }
 
+  bool get _isGuyWorld => _currentWorldConfig?.id == 'guy-meets-college';
+
   Color _getSecondaryBackgroundColor() {
-    final isGuyWorld = _currentWorldConfig?.id == 'guy-meets-college';
-    if (isGuyWorld) {
+    if (_isGuyWorld) {
       // Navy/slate for guy world secondary color (200° hue) - complements deep blue
       final hslColor = HSLColor.fromAHSL(0.5, 200.0, 0.5, 0.8);
       return hslColor.toColor();
@@ -227,8 +232,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   }
 
   Color _getTertiaryBackgroundColor() {
-    final isGuyWorld = _currentWorldConfig?.id == 'guy-meets-college';
-    if (isGuyWorld) {
+    if (_isGuyWorld) {
       // Steel/gray-blue for guy world tertiary color (240° hue) - complements blue family
       final hslColor = HSLColor.fromAHSL(0.5, 240.0, 0.4, 0.8);
       return hslColor.toColor();
@@ -597,7 +601,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
 
   Widget _buildTitle() {
     final worldName = _currentWorldConfig?.displayName ?? 'Girl Meets College';
-    final emoji = _currentWorldConfig?.id == 'guy-meets-college' ? '🏀🌎' : '💅🌎';
+    final emoji = _isGuyWorld ? '🏀🌎' : '💅🌎';
     
     return Text(
       '${worldName.toLowerCase()} $emoji',
@@ -693,8 +697,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     
     String placeholderText;
     if (canPost) {
-      final isGuyWorld = _currentWorldConfig?.id == 'guy-meets-college';
-      placeholderText = isGuyWorld 
+      placeholderText = _isGuyWorld 
         ? 'We know you\'ve had some dumb moments too...'
         : 'We know that you have cringing moments too...';
     } else if (activeUser != null && activeUser.isReal && !activeUser.isTyping) {

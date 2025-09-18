@@ -139,7 +139,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
               MaterialPageRoute(
                 builder: (context) => GameExperienceScreen(
                   selectedFloor: 1,
-                  worldConfig: world,
+                  worldConfig: null,
                 ),
               ),
             );
@@ -403,7 +403,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
               MaterialPageRoute(
                 builder: (context) => GameExperienceScreen(
                   selectedFloor: 1,
-                  worldConfig: world,
+                  worldConfig: null,
                 ),
               ),
             );
