@@ -44,7 +44,6 @@ class _InstagramCollectionModalState extends State<InstagramCollectionModal> {
       }
     } catch (e) {
       // Handle error if needed
-      print('Error saving Instagram: $e');
     } finally {
       if (mounted) {
         setState(() {

@@ -82,19 +82,16 @@ class _GeneralScreenState extends State<GeneralScreen> {
   void _showWorldAccessModal(BuildContext context, WorldConfig world) {
     // Prevent multiple modals from opening
     if (_isModalOpen) {
-      print('🚫 [UI] Modal already open, ignoring tap');
       return;
     }
 
     // If user has already been rejected for full world, show Instagram modal
     if (_hasBeenRejectedForFullWorld) {
-      print('🚫 [UI] User already rejected for full world, showing Instagram modal');
       _showInstagramCollectionModal(context);
       return;
     }
 
     _isModalOpen = true;
-    print('🚀 [UI] Opening world access modal');
 
     showDialog(
       context: context,
@@ -111,14 +108,11 @@ class _GeneralScreenState extends State<GeneralScreen> {
           }
 
           // Check bot availability BEFORE creating account
-          print('🚀 [UI] Checking bot availability...');
           final botAssignmentService = BotAssignmentService();
           final assignedBots = await botAssignmentService.assignBotsBasedOnVibeCheck(vibeAnswers);
 
-          print('🎯 [UI] Bot assignment result: ${assignedBots.length} bots assigned');
 
           if (assignedBots.isEmpty) {
-            print('🚫 [UI] No bots assigned - world is full');
             // World is full - DON'T create account, show Instagram modal
             if (context.mounted) {
               _closeModal(context);
@@ -129,7 +123,6 @@ class _GeneralScreenState extends State<GeneralScreen> {
           }
 
           // Only create account if bots were successfully assigned
-          print('✅ [UI] Bots assigned, creating account...');
           final success = await authService.createAccountForWorld(accessCode, nickname, world.id);
 
           if (success && context.mounted) {
@@ -378,20 +371,17 @@ class _GeneralScreenState extends State<GeneralScreen> {
       barrierDismissible: false,
       builder: (context) => InstagramCollectionModal(
         onInstagramSubmitted: () {
-          print('✅ [UI] Instagram submitted');
         },
       ),
     );
   }
 
   void _showTribeLoadingModal(BuildContext context, WorldConfig world) {
-    print('🌟 [UI] Showing tribe loading modal for returning user');
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => TribeLoadingModal(
         onComplete: () {
-          print('✅ [UI] Tribe loading complete, navigating to game');
           // Close the loading modal
           if (dialogContext.mounted) {
             Navigator.of(dialogContext).pop();

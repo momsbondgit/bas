@@ -127,7 +127,6 @@ class QueueService extends ChangeNotifier {
 
     // Don't create queue if no bots assigned (world was full)
     if (_assignedBots.isEmpty) {
-      print('⚠️ [Queue] No bots assigned - cannot create queue');
       _currentState = QueueState(
         queue: [],
         activeUser: null,

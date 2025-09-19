@@ -116,22 +116,16 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   void _onViewModelChanged() {
     final isExpired = _viewModel.isTimerExpired;
 
-    // Debug: Track when timer expiry is detected
-    print('[DEBUG] _onViewModelChanged called - isExpired: $isExpired, _goodbyePopupShown: $_goodbyePopupShown');
 
     if (isExpired && !_goodbyePopupShown) {
-      print('[DEBUG] Timer expired and popup not shown yet - showing goodbye popup');
       _showGoodbyePopup();
     } else if (isExpired && _goodbyePopupShown) {
-      print('[DEBUG] Timer expired but popup already shown - skipping');
     }
     setState(() {});
   }
 
   void _showGoodbyePopup() async {
     try {
-      // Debug: Track popup creation
-      print('[DEBUG] _showGoodbyePopup called - setting _goodbyePopupShown = true');
       _goodbyePopupShown = true;
 
       // Stop the queue rotation when goodbye popup appears
@@ -148,7 +142,6 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       }
 
       if (mounted) {
-        print('[DEBUG] Creating new GoodbyePopupModal dialog');
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -156,7 +149,6 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
             worldConfig: _currentWorldConfig!,
             assignedBots: assignedBots,
             onComplete: () {
-              print('[DEBUG] GoodbyePopupModal onComplete called - closing popup and navigating to session end');
               Navigator.of(context).pop(); // Close popup
               _navigateToSessionEnd(); // Then go to session end
             },

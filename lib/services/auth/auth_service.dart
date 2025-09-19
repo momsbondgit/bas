@@ -88,15 +88,11 @@ class AuthService {
     try {
       final anonId = await getOrCreateAnonId();
 
-      print('🔑 [AuthService] Creating account for user: $anonId, world: $worldId');
 
       // Check if document already exists (e.g., from bot assignment)
       final existingDoc = await _firestore.collection(_accountsCollection).doc(anonId).get();
       if (existingDoc.exists) {
-        print('📄 [AuthService] Document already exists, merging data instead of overwriting');
-        print('📊 [AuthService] Existing data: ${existingDoc.data()}');
       } else {
-        print('📄 [AuthService] No existing document, creating new one');
       }
 
       // Build Firebase data
@@ -112,10 +108,8 @@ class AuthService {
         firebaseData['worldId'] = worldId;
       }
 
-      print('💾 [AuthService] Storing account data: $firebaseData');
       // Store in Firebase with MERGE to preserve existing bot assignment data
       await _firestore.collection(_accountsCollection).doc(anonId).set(firebaseData, SetOptions(merge: true));
-      print('✅ [AuthService] Account data stored successfully');
 
       // Store locally
       await _localStorage.setAccessCode(accessCode);
@@ -207,7 +201,6 @@ class AuthService {
       }, SetOptions(merge: true));
     } catch (e) {
       // Silently fail - don't disrupt user experience
-      print('Error storing goodbye message: $e');
     }
   }
 }

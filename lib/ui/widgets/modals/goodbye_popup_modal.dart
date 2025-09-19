@@ -34,7 +34,6 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
   @override
   void initState() {
     super.initState();
-    print('[DEBUG] GoodbyePopupModal: initState called - creating new timer instance');
 
     _fadeController = AnimationController(
       duration: const Duration(seconds: 10), // 10 second fade duration
@@ -54,7 +53,6 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
   }
 
   void _startTimer() {
-    print('[DEBUG] GoodbyePopupModal: Starting timer with 33 seconds');
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _remainingSeconds--;
@@ -66,7 +64,6 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
       }
 
       if (_remainingSeconds <= 0) {
-        print('[DEBUG] GoodbyePopupModal: Timer expired - calling onComplete');
         _timer.cancel();
         widget.onComplete();
       }
@@ -127,7 +124,6 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
           await authService.storeGoodbyeMessage(userId, message);
         }
       } catch (e) {
-        print('Error storing goodbye message: $e');
         // Continue anyway - don't block user experience
       }
     }
@@ -135,7 +131,6 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
 
   @override
   void dispose() {
-    print('[DEBUG] GoodbyePopupModal: dispose called - cancelling timer');
     _timer.cancel();
     _goodbyeController.dispose();
     _fadeController.dispose();
