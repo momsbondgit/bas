@@ -699,7 +699,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
     if (canPost) {
       placeholderText = _isGuyWorld 
         ? 'We know you\'ve had some dumb moments too...'
-        : 'We know that you have cringing moments too...';
+        : 'type here girly...';
     } else if (activeUser != null && activeUser.isReal && !activeUser.isTyping) {
       placeholderText = 'It\'s your turn! Start typing...';
     } else if (activeUser != null) {
