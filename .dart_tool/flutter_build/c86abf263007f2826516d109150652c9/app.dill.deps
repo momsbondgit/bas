@@ -538,6 +538,7 @@ file:///Users/alexpozo/Desktop/bas/lib/models/user/queue_user.dart
 file:///Users/alexpozo/Desktop/bas/lib/services/admin/admin_service.dart
 file:///Users/alexpozo/Desktop/bas/lib/services/admin/bot_settings_service.dart
 file:///Users/alexpozo/Desktop/bas/lib/services/admin/maintenance_service.dart
+file:///Users/alexpozo/Desktop/bas/lib/services/admin/topic_settings_service.dart
 file:///Users/alexpozo/Desktop/bas/lib/services/auth/auth_service.dart
 file:///Users/alexpozo/Desktop/bas/lib/services/core/ending_service.dart
 file:///Users/alexpozo/Desktop/bas/lib/services/core/queue_service.dart
@@ -555,6 +556,7 @@ file:///Users/alexpozo/Desktop/bas/lib/ui/screens/maintenance_screen.dart
 file:///Users/alexpozo/Desktop/bas/lib/ui/screens/session_end_screen.dart
 file:///Users/alexpozo/Desktop/bas/lib/ui/widgets/admin/admin_bot_settings_section.dart
 file:///Users/alexpozo/Desktop/bas/lib/ui/widgets/admin/admin_metrics_section.dart
+file:///Users/alexpozo/Desktop/bas/lib/ui/widgets/admin/admin_topic_settings_section.dart
 file:///Users/alexpozo/Desktop/bas/lib/ui/widgets/animations/vibe_matching_animation.dart
 file:///Users/alexpozo/Desktop/bas/lib/ui/widgets/cards/confession_card.dart
 file:///Users/alexpozo/Desktop/bas/lib/ui/widgets/forms/instagram_collection_modal.dart

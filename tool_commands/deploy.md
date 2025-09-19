@@ -1,18 +1,65 @@
-
+- use implementation.md to excute the task below: 
 
 ---
 
-1. **Clean out old builds**
-   First, clear away any old Flutter build files so you’re starting fresh.
+# **AI Agent Task: Deploy Web Build to GitHub Pages**
 
-2. **Make a new build without a service worker**
-   Build your Flutter web app in release mode, but turn off the service worker. This stops browsers from caching an old version of your site.
+## Steps
 
-3. **Copy that build into new  branch**
-   create a new branch where we are going to copy the new web build 
+1. **Clean Old Build**
 
-4. **Add your custom domain (if you use one)**
-   make sure we dont forget our logos and our custom domain. 
+   * Remove all files and signs of the previous web build in the `main` branch.
 
-5. **Commit and push to GitHub**
-   Save and push the changes in the `new branch` branch so they go live.
+2. **Build for Web (No Service Worker)**
+
+   * Run Flutter build with service worker disabled:
+
+     ```bash
+     flutter build web --pwa-strategy=none --base-href /
+     ```
+   * **Why:**
+
+     * Disables service worker so browsers always fetch the latest files.
+     * Ensures correct base href for custom domain **[www.bas.today](http://www.bas.today)**.
+
+3. **Custom Domain Setup**
+
+   * Add `CNAME` file with:
+
+     ```
+     www.bas.today
+     ```
+   * Make sure this file is inside the build directory.
+
+4. **Deploy to harsh2 Branch**
+
+   * Checkout the `harsh2` branch.
+   * Delete everything in it.
+   * Copy **only the contents of the `build/web` folder** into the root of the branch.
+   * Commit and push changes.
+
+   Example commands:
+
+   ```bash
+   git checkout harsh2
+   rm -rf *
+   cp -r ../build/web/* .
+   git add .
+   git commit -m "Deploy new web build"
+   git push origin harsh2
+   ```
+
+5. **GitHub Pages Hosting**
+
+   * Remote is already set up to serve from the `harsh2` branch root.
+   * Once pushed, deployment should update automatically.
+
+---
+
+## Goal
+
+* Fresh, clean deployment with no leftovers.
+* Correct domain setup (`www.bas.today`).
+* Build served from the **root of harsh2 branch** for GitHub Pages.
+
+---
