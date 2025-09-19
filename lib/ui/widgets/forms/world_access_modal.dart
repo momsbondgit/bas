@@ -611,12 +611,6 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-
-    // Calculate popup height and detect overflow
-    final popupMaxHeight = screenHeight * 0.8;
-    final availableHeight = screenHeight - keyboardHeight;
-    final wouldOverflow = popupMaxHeight > availableHeight;
 
     return PopScope(
       canPop: false, // Prevent closing
@@ -637,37 +631,21 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
         ),
         child: Form(
           key: _formKey,
-          child: wouldOverflow
-              ? SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Progress Bar
-                      _buildProgressBar(),
-                      const SizedBox(height: 24),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Progress Bar
+                _buildProgressBar(),
+                const SizedBox(height: 24),
 
-                      // Dynamic content based on step
-                      _getCurrentStepContent(),
-                    ],
-                  ),
-                )
-              : Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Progress Bar
-                      _buildProgressBar(),
-                      const SizedBox(height: 24),
-
-                      // Dynamic content based on step
-                      _getCurrentStepContent(),
-                    ],
-                  ),
-                ),
+                // Dynamic content based on step
+                _getCurrentStepContent(),
+              ],
+            ),
+          ),
         ),
         ),
       ),

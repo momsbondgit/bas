@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 import '../../../models/user/bot_user.dart';
-import '../../../models/user/queue_user.dart';
 import '../../../config/world_config.dart';
 import '../../../services/auth/auth_service.dart';
 import '../../../services/data/local_storage_service.dart';
@@ -139,23 +138,14 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final screenHeight = screenSize.height;
-    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-
-    // Check if popup would overflow when keyboard appears
-    const popupHeight = 500.0;
-    final availableHeight = screenHeight - keyboardHeight;
-    final needsScrolling = keyboardHeight > 0 && popupHeight > availableHeight;
-
     return Dialog(
       backgroundColor: Colors.transparent,
       child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Container(
-            width: 350,
-            height: 500,
-            decoration: BoxDecoration(
+        opacity: _fadeAnimation,
+        child: Container(
+          width: 350,
+          height: 500,
+          decoration: BoxDecoration(
             color: const Color(0xFFF1EDEA),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
@@ -170,286 +160,146 @@ class _GoodbyePopupModalState extends State<GoodbyePopupModal> with TickerProvid
               ),
             ],
           ),
-          child: needsScrolling
-              ? SingleChildScrollView(
-                  child: Column(
-                    children: [
-            // Header with timer
-            Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Text(
-                    'say ur byes 💕',
-                    style: TextStyle(
-                      fontFamily: 'SF Pro',
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '$_remainingSeconds seconds remaining',
-                      style: const TextStyle(
+          child: Column(
+            children: [
+              // Header with timer
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Text(
+                      'say ur byes 💕',
+                      style: TextStyle(
                         fontFamily: 'SF Pro',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Live goodbye messages area
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFAFAFA),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFE5E5E5),
-                    width: 1,
-                  ),
-                ),
-                child: _goodbyeMessages.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'drop a quick bye 👋',
-                          style: TextStyle(
-                            fontFamily: 'SF Pro',
-                            fontSize: 16,
-                            color: Color(0xFF8F8F8F),
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      )
-                    : ListView.builder(
-                        reverse: true, // Show newest messages at bottom
-                        itemCount: _goodbyeMessages.length,
-                        itemBuilder: (context, index) {
-                          final message = _goodbyeMessages[_goodbyeMessages.length - 1 - index];
-                          return _buildGoodbyeMessageCard(message);
-                        },
-                      ),
-              ),
-            ),
-
-            // Input area
-            Container(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(
-                          color: const Color(0xFFE5E5E5),
-                          width: 1,
-                        ),
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      child: TextField(
-                        controller: _goodbyeController,
-                        maxLength: 100,
-                        decoration: const InputDecoration(
-                          hintText: 'drop a quick bye 👋',
-                          hintStyle: TextStyle(
-                            fontFamily: 'SF Pro',
-                            fontSize: 14,
-                            color: Color(0xFF8F8F8F),
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          counterText: '',
-                        ),
+                      child: Text(
+                        '$_remainingSeconds seconds remaining',
                         style: const TextStyle(
                           fontFamily: 'SF Pro',
                           fontSize: 14,
-                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
-                        onSubmitted: (_) => _submitGoodbye(),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: _submitGoodbye,
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: _remainingSeconds <= 4
-                            ? Colors.black.withOpacity(0.3)
-                            : Colors.black,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.send,
-                        color: _remainingSeconds <= 4
-                            ? Colors.white.withOpacity(0.5)
-                            : Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-                    ],
+
+              // Live goodbye messages area
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFAFAFA),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFE5E5E5),
+                      width: 1,
+                    ),
                   ),
-                )
-              : Column(
-                  children: [
-                    // Header with timer
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          Text(
-                            'say ur byes 💕',
+                  child: _goodbyeMessages.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'drop a quick bye 👋',
                             style: TextStyle(
                               fontFamily: 'SF Pro',
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
+                              fontSize: 16,
+                              color: Color(0xFF8F8F8F),
+                              fontStyle: FontStyle.italic,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '$_remainingSeconds seconds remaining',
-                              style: const TextStyle(
-                                fontFamily: 'SF Pro',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        )
+                      : ListView.builder(
+                          reverse: true, // Show newest messages at bottom
+                          itemCount: _goodbyeMessages.length,
+                          itemBuilder: (context, index) {
+                            final message = _goodbyeMessages[_goodbyeMessages.length - 1 - index];
+                            return _buildGoodbyeMessageCard(message);
+                          },
+                        ),
+                ),
+              ),
 
-                    // Live goodbye messages area
+              // Input area
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
                     Expanded(
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFAFAFA),
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(25),
                           border: Border.all(
                             color: const Color(0xFFE5E5E5),
                             width: 1,
                           ),
                         ),
-                        child: _goodbyeMessages.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'drop a quick bye 👋',
-                                  style: TextStyle(
-                                    fontFamily: 'SF Pro',
-                                    fontSize: 16,
-                                    color: Color(0xFF8F8F8F),
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                reverse: true, // Show newest messages at bottom
-                                itemCount: _goodbyeMessages.length,
-                                itemBuilder: (context, index) {
-                                  final message = _goodbyeMessages[_goodbyeMessages.length - 1 - index];
-                                  return _buildGoodbyeMessageCard(message);
-                                },
-                              ),
+                        child: TextField(
+                          controller: _goodbyeController,
+                          maxLength: 100,
+                          decoration: const InputDecoration(
+                            hintText: 'drop a quick bye 👋',
+                            hintStyle: TextStyle(
+                              fontFamily: 'SF Pro',
+                              fontSize: 14,
+                              color: Color(0xFF8F8F8F),
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            counterText: '',
+                          ),
+                          style: const TextStyle(
+                            fontFamily: 'SF Pro',
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                          onSubmitted: (_) => _submitGoodbye(),
+                        ),
                       ),
                     ),
-
-                    // Input area
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(25),
-                                border: Border.all(
-                                  color: const Color(0xFFE5E5E5),
-                                  width: 1,
-                                ),
-                              ),
-                              child: TextField(
-                                controller: _goodbyeController,
-                                maxLength: 100,
-                                decoration: const InputDecoration(
-                                  hintText: 'drop a quick bye 👋',
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'SF Pro',
-                                    fontSize: 14,
-                                    color: Color(0xFF8F8F8F),
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  counterText: '',
-                                ),
-                                style: const TextStyle(
-                                  fontFamily: 'SF Pro',
-                                  fontSize: 14,
-                                  color: Colors.black,
-                                ),
-                                onSubmitted: (_) => _submitGoodbye(),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: _submitGoodbye,
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: _remainingSeconds <= 4
-                                    ? Colors.black.withOpacity(0.3)
-                                    : Colors.black,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.send,
-                                color: _remainingSeconds <= 4
-                                    ? Colors.white.withOpacity(0.5)
-                                    : Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: _submitGoodbye,
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: _remainingSeconds <= 4
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : Colors.black,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.send,
+                          color: _remainingSeconds <= 4
+                              ? Colors.white.withValues(alpha: 0.5)
+                              : Colors.white,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],
                 ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildGoodbyeMessageCard(GoodbyeMessage message) {
