@@ -5,35 +5,19 @@ This directory contains utility classes that provide common functionality and he
 ## Files Overview
 
 ### `admin_navigation.dart`
-**Purpose**: Centralized admin navigation and authentication utilities.
+**Purpose**: Centralized admin navigation utilities.
 
 **Key Components**:
 
 #### `AdminNavigation` Class
 Static utility class for admin navigation flow:
-- **`navigateToLogin()`**: Smart navigation that checks existing authentication
-- **`navigateToDashboard()`**: Direct navigation to admin dashboard
-- **`canAccessAdmin()`**: Permission checking utility
-- **`logoutAndNavigateToLogin()`**: Secure logout with navigation
+- **`navigateToLogin()`**: Navigate to admin login screen
+- **`navigateToDashboard()`**: Navigate to admin dashboard with replacement
 
-**Navigation Logic**:
-- Automatically redirects authenticated users to dashboard
-- Handles authentication state checking before navigation
-- Provides context-aware navigation with proper error handling
-
-#### `AdminAccessMixin`
-Mixin that adds admin functionality to any screen:
-- **`checkAdminAuth()`**: Authentication status checking
-- **`showAdminAccessDialog()`**: User instruction dialog
-- **`navigateToAdmin()`**: Error-safe admin navigation
-
-**Usage Pattern**:
-```dart
-class MyScreen extends StatefulWidget {}
-class _MyScreenState extends State<MyScreen> with AdminAccessMixin {
-  // Now has access to admin navigation methods
-}
-```
+**Navigation Pattern**:
+- Uses MaterialPageRoute for navigation
+- Dashboard navigation uses pushReplacement to prevent back navigation
+- Simple, focused navigation utilities
 
 ### `accessibility_utils.dart`
 **Purpose**: Comprehensive accessibility support for screen readers and assistive technologies.
@@ -44,15 +28,18 @@ class _MyScreenState extends State<MyScreen> with AdminAccessMixin {
 Text generation for dynamic content announcements:
 - **`getTypingAnnouncementText()`**: User typing status
 - **`getRotationAnnouncementText()`**: Queue rotation notifications
-- **`getReactionAnnouncementText()`**: Reaction count updates
+- **`getReactionAnnouncementText()`**: Reaction count updates with pluralization
 - **`getMessageSubmittedAnnouncementText()`**: Message submission feedback
-- **`getRemainingTimeAnnouncementText()`**: Time-based announcements
+- **`getRemainingTimeAnnouncementText()`**: Time-based announcements (minutes/seconds)
 
 #### Semantic Utilities
 Widget wrapper and enhancement methods:
 - **`wrapWithSemantics()`**: Comprehensive semantic wrapper with configurable properties
+  - Supports label, hint, value, button, focusable properties
+  - Handles tap callbacks and live regions
+  - Can exclude semantics when needed
 - **`createAnnouncementWidget()`**: Live region widgets for dynamic updates
-- **`getReactionButtonLabel()`**: Context-aware button labeling
+- **`getReactionButtonLabel()`**: Context-aware button labeling (Add/Remove)
 - **`getQueuePositionLabel()`**: Queue position descriptions
 
 #### Screen Reader Integration
@@ -70,13 +57,18 @@ Direct screen reader communication:
 
 #### Typing Animation Support
 - **`createBounceAnimation()`**: Staggered dot animations for typing indicators
-- Uses `RitualConfig.animationStaggerOffsets` for dot timing
-- Implements elastic curves for natural bounce effects
+  - Uses `RitualConfig.animationStaggerOffsets` for dot timing
+  - Implements elastic curves for natural bounce effects
+  - Calculates interval based on dot index and bounce duration
 
 #### Standard Animations
-- **`createShimmerAnimation()`**: Shimmer loading effects
+- **`createShimmerAnimation()`**: Shimmer loading effects (-1.0 to 1.0 range)
 - **`createSlideInAnimation()`**: Banner and notification slides
+  - Default: slides from top (0.0, -1.0) to center
+  - Uses easeOutBack curve for bounce effect
 - **`createFadeAnimation()`**: General fade transitions
+  - Configurable begin/end opacity values
+  - Uses easeInOut curve for smooth transitions
 
 #### Accessibility Integration
 - **`shouldReduceMotion()`**: Checks MediaQuery for motion preferences
@@ -98,18 +90,13 @@ AccessibilityUtils.announceToScreenReader(context, message);
 AdminNavigation.navigateToLogin(context);
 ```
 
-### Mixin Pattern
-`AdminAccessMixin` provides reusable functionality across multiple screens:
-- Reduces code duplication
-- Provides consistent admin access patterns
-- Includes error handling and user feedback
-
 ### Accessibility-First Design
 Comprehensive accessibility support throughout:
 - Screen reader announcements for all dynamic content
 - Semantic labeling for interactive elements
 - Motion preference respect
 - Live region updates for real-time changes
+- Proper pluralization in announcements
 
 ### Configuration Integration
 Animation utilities integrate with centralized configuration:
@@ -130,28 +117,23 @@ Animation utilities integrate with centralized configuration:
 2. **Use live regions** for dynamic content updates
 3. **Respect user motion preferences** in all animations
 4. **Test with screen readers** during development
+5. **Handle pluralization** correctly in announcements
 
 ### Animation Best Practices
 1. **Use configuration constants** rather than hardcoded values
 2. **Provide motion-reduced alternatives** for all animations
 3. **Follow Material Design** animation guidelines
 4. **Test on different devices** for performance
+5. **Use appropriate curves** for different animation types
 
-### Admin Utilities Usage
-1. **Use mixins** for screens that need admin access
-2. **Check authentication status** before sensitive operations
-3. **Handle navigation errors** gracefully with user feedback
-4. **Provide clear user instructions** for admin access
-
-### Error Handling Pattern
-All utility methods that can fail should:
-- Include try-catch blocks where appropriate
-- Provide meaningful error messages
-- Handle context-dependent operations safely (check `mounted` state)
-- Offer graceful degradation when possible
+### Admin Navigation Usage
+1. **Use simple navigation patterns** for admin flows
+2. **Use pushReplacement** for preventing back navigation
+3. **Keep navigation logic centralized** in this utility
 
 ### Testing Considerations
 - Utilities should be easily unit testable
 - Mock external dependencies (navigation, screen readers)
 - Test accessibility announcements with assistive technology
 - Verify animation behavior with reduced motion settings
+- Test pluralization in announcement texts

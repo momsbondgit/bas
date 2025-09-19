@@ -11,14 +11,16 @@ This directory contains service classes that handle business logic, external int
 
 **Key Features**:
 - **Authentication**: Hardcoded credentials (username: 'hap', password: 'happyman')
-- **Session Management**: 24-hour session duration with automatic expiry
-- **Persistence**: Uses SharedPreferences for session state
-- **Methods**: `login()`, `logout()`, `isLoggedIn()`, `extendSession()`, `getRemainingSessionMinutes()`
+- **Session Management**: Uses SharedPreferences for persistent login state
+- **Methods**:
+  - `login()`: Authenticate with username/password
+  - `logout()`: Clear admin session
+  - `isLoggedIn()`: Check authentication status
 
 **Security Note**: Credentials are hardcoded and should be externalized for production.
 
 #### `bot_settings_service.dart`
-**Purpose**: Manages bot configuration updates through Firebase.
+**Purpose**: Manages dynamic bot configuration through Firebase.
 
 **Features**:
 - Stream-based bot data retrieval for real-time updates
@@ -29,18 +31,34 @@ This directory contains service classes that handle business logic, external int
 **Methods**:
 - `getBotStream()`: Real-time stream of bot configurations
 - `updateBot()`: Update bot properties in Firebase
-- `getBots()`: Fetch current bot configurations
+- `getBots()`: Fetch current bot configurations for a world/table
 
 #### `maintenance_service.dart`
-**Purpose**: Manages system maintenance mode and session timers.
+**Purpose**: Manages system maintenance mode and global settings.
 
 **Features**:
 - Toggle maintenance mode with custom messages
-- Session timer management (start, extend, check remaining time)
 - Real-time status streams for UI updates
 - Firebase integration for persistent maintenance state
+- Global system control
 
+**Methods**:
+- `setMaintenanceMode()`: Enable/disable with optional message
+- `getMaintenanceStream()`: Real-time maintenance status
+- `checkMaintenanceStatus()`: One-time status check
 
+#### `topic_settings_service.dart`
+**Purpose**: Manages world-specific daily topics.
+
+**Features**:
+- Dynamic topic management per world
+- Firebase persistence for topics
+- Integration with WorldService for dynamic loading
+
+**Methods**:
+- `getTopic()`: Fetch current topic for a world
+- `setTopic()`: Update topic for a world
+- `getTopicStream()`: Real-time topic updates
 
 ### `auth/` - Authentication Services
 
@@ -53,13 +71,19 @@ This directory contains service classes that handle business logic, external int
 - Nickname management
 - World authentication tracking
 - Session persistence across app launches
-- **Metrics Tracking**: Simplified increment methods for compass metrics
+- **Metrics Tracking**:
   - `incrementTotalSessions()`: Tracks game session starts
   - `incrementSessionsCompleted()`: Tracks session completions
   - `incrementReactionsGiven()`: Tracks reaction button clicks
-  - Generic `_incrementMetric()` method to reduce code duplication
+  - Generic `_incrementMetric()` for code reuse
 - **Firebase Optimization**: Uses `set` with `merge` to avoid reads before writes
 - **Bot Assignment Preservation**: Account creation uses `SetOptions(merge: true)` to preserve existing bot assignment data
+
+**Critical Methods**:
+- `createAccountForWorld()`: Creates user account with merge option
+- `checkAccessCode()`: Validates world access codes
+- `getCurrentWorld()`: Gets user's current world
+- `setVibeCheckAnswers()`: Stores vibe quiz responses
 
 ### `core/` - Core Business Logic Services
 
@@ -78,6 +102,13 @@ This directory contains service classes that handle business logic, external int
 - `joinQueue()`: Add user to ritual queue
 - `submitMessage()`: Handle message submission and queue rotation
 - `leaveQueue()`: Remove user from queue
+- `_startTurnTimer()`: Manage turn timing
+- `_rotateQueue()`: Handle queue rotation logic
+
+**State Management**:
+- Uses `RitualQueueState` model for queue state
+- StreamController for broadcasting state changes
+- Timer management for turn rotation
 
 #### `queue_service.dart`
 **Purpose**: Local queue management with bot simulation and interaction.
@@ -91,28 +122,47 @@ This directory contains service classes that handle business logic, external int
 - **Response Generation**: Manages bot responses and interactions
 
 **Critical Methods**:
-- `_createInitialQueue()`: **Recently fixed** - Guarantees exactly 6 queue members (5 bots + 1 real user), prevents queue creation without sufficient assigned bots
+- `_createInitialQueue()`: Guarantees exactly 6 queue members (5 bots + 1 real user)
 - `_getBotResponse()`: Generates bot responses using only assigned bots
 - `moveToNextUser()`: Rotates queue to next user's turn
+- `_startTurnManagement()`: Manages turn timing
+- `_startTypingSimulation()`: Simulates bot typing behavior
 
 **Bug Fix Details**:
-The `_createInitialQueue()` method was completely rewritten to eliminate bugs with fallback bots and world rejection handling:
-- **Fallback Bot Removal**: Completely removed fallback bot system (no more Alex, Casey, Jordan, Riley, Quinn placeholder bots)
-- **World Capacity Enforcement**: Only creates queues when sufficient assigned bots are available
-- **Deterministic Queue Building**: Places real user at exactly position 3 (index 2) with 5 assigned bots
-- **Integration with World Access Flow**: Works with updated authentication flow that checks bot availability before account creation
+- Completely removed fallback bot system (no more placeholder bots)
+- Only creates queues when sufficient assigned bots are available
+- Deterministic queue building with real user at position 3
 
 #### `world_service.dart`
 **Purpose**: Manages world configurations and selection.
 
 **Features**:
 - World configuration loading and validation
+- Dynamic bot and topic loading from Firebase
 - World selection by ID or display name
 - Default world handling
 - World metadata and summary generation
 
+**Methods**:
+- `getWorldByIdAsync()`: Load world with dynamic data
+- `getAllWorlds()`: Get list of available worlds
+- `worldExists()`: Check if world exists
+- `isValidWorldConfig()`: Validate world configuration
+
 #### `ending_service.dart`
-**Purpose**: Handles user submission endpoints (Instagram, phone numbers).
+**Purpose**: Handles user submission endpoints (Instagram, phone numbers, goodbye messages).
+
+**Features**:
+- Instagram handle collection
+- Phone number collection
+- Goodbye message submission
+- Analytics tracking for endings
+
+**Methods**:
+- `submitInstagram()`: Store Instagram handle
+- `submitPhoneNumber()`: Store phone number
+- `submitGoodbyeMessage()`: Store farewell message
+- `getEndingsStream()`: Real-time endings updates
 
 ### `data/` - Data Management Services
 
@@ -127,6 +177,12 @@ The `_createInitialQueue()` method was completely rewritten to eliminate bugs wi
 
 **Pattern**: All keys are static constants with descriptive names and category prefixes.
 
+**Methods**:
+- Getters/setters for all data types
+- Null-safe retrieval with default values
+- Async operations with proper error handling
+- Clear methods for data cleanup
+
 #### `post_service.dart`
 **Purpose**: Handles post creation and management for confessions.
 
@@ -135,6 +191,14 @@ The `_createInitialQueue()` method was completely rewritten to eliminate bugs wi
 - Admin post creation with special privileges
 - Post editing and deletion (admin features)
 - Firestore integration with proper error handling
+- World-specific post filtering
+
+**Methods**:
+- `createPost()`: Create user confession
+- `createAdminPost()`: Create admin announcement
+- `editPost()`: Update existing post
+- `deletePost()`: Remove post
+- `getPostsStream()`: Real-time post updates
 
 ### `metrics/` - Metrics and Analytics Services
 
@@ -158,19 +222,26 @@ The `_createInitialQueue()` method was completely rewritten to eliminate bugs wi
 
 **Methods**:
 - `getUserCompassMetrics()`: Returns comprehensive metrics for all real users
-- **Performance**: Reduced from 3 collections to 2 for faster queries
+- Performance optimized to reduce collection reads
 
 ### `simulation/` - Bot and Simulation Services
 
 #### `bot_assignment_service.dart`
-**Purpose**: Manages bot assignment and personality selection.
+**Purpose**: Manages bot assignment and personality selection based on vibe check.
 
 **Logic**:
-- Assigns bots from world configuration bot tables based on vibe check answers
-- **Pure A answers (3 A's)**: Table 1 (chaotic/edgy personalities)
-- **Pure B answers (3 B's)**: Table 2 (goofy/soft personalities)
-- **Mixed answers (1A/2B or 2A/1B)**: Table 3 (balanced/mixed personalities)
+- Assigns bots from world configuration bot tables based on vibe check answers:
+  - **3 A answers**: Table 1 (chaotic/edgy personalities)
+  - **0 A answers (3 B's)**: Table 2 (goofy/soft personalities)
+  - **Mixed answers (1-2 A's)**: Table 3 (balanced personalities from both tables)
 - Ensures unique bot assignments per session
+- Stores assignments in local storage for persistence
+
+**Methods**:
+- `assignBotsBasedOnVibeCheck()`: Main assignment logic
+- `getAssignedBots()`: Retrieve current assignments
+- `clearAssignedBots()`: Reset bot assignments
+- `_getBotsForTable()`: Helper for table selection
 
 #### `reaction_simulation_service.dart`
 **Purpose**: Simulates bot reactions to messages for realistic interactions.
@@ -180,7 +251,10 @@ The `_createInitialQueue()` method was completely rewritten to eliminate bugs wi
 - **Balanced Distribution**: Ensures varied reaction types with guaranteed minimum representation
 - **Content-Aware Weighting**: Adjusts reaction probabilities based on message sentiment
 - **Realistic Timing**: First reaction after 6 seconds, subsequent reactions every 1.5 seconds
-- **Reaction Weights**: LMFAOOO 😭 (34%), so real 💅 (33%), nah that's wild 💀 (33%)
+- **Reaction Types & Weights**:
+  - "LMFAOOO 😭" (34%)
+  - "so real 💅" (33%)
+  - "nah that's wild 💀" (33%)
 
 **Key Methods**:
 - `simulateReactionsForPost()`: Main method to trigger reaction simulation
@@ -206,6 +280,7 @@ Services that interact with Firebase follow consistent patterns:
 - Validation before Firebase operations
 - Server timestamps for consistent timing
 - Stream-based real-time updates
+- Merge options to preserve existing data
 
 ### Local Storage Pattern
 All local storage goes through `LocalStorageService`:
@@ -218,6 +293,7 @@ All local storage goes through `LocalStorageService`:
 Core services require initialization:
 ```dart
 await RitualQueueService().initialize();
+await QueueService().initialize();
 ```
 
 ## Critical Service Dependencies
@@ -226,8 +302,9 @@ await RitualQueueService().initialize();
 1. **AuthService** → Manages user identity
 2. **LocalStorageService** → Persists user data
 3. **WorldService** → Provides world configurations
-4. **RitualQueueService** → Orchestrates main experience
-5. **BotAssignmentService** → Enhances with bot interactions
+4. **BotAssignmentService** → Assigns bots based on vibe check
+5. **RitualQueueService** → Orchestrates main experience
+6. **QueueService** → Manages local bot queue
 
 ### Real-time Data Flow
 - Firebase streams provide real-time updates
@@ -242,21 +319,25 @@ await RitualQueueService().initialize();
 2. Use dependency injection for testable services
 3. Implement proper error handling and validation
 4. Add comprehensive documentation for public methods
+5. Consider initialization requirements
 
 ### Firebase Integration
 - Always validate input before Firebase operations
 - Use server timestamps for consistent timing
 - Implement proper error handling
 - Consider offline scenarios
+- Use merge options when updating existing documents
 
 ### State Management
 - Keep service state immutable where possible
 - Use streams for real-time updates
 - Persist critical state to local storage
 - Handle service initialization properly
+- Clean up resources in disposal methods
 
 ### Testing Considerations
 - Services are designed for unit testing with mocking
 - Use `mocktail` for service mocking (already included in dependencies)
 - Test error conditions and edge cases
 - Mock Firebase operations for isolated testing
+- Test initialization and cleanup logic
