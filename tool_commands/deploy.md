@@ -35,7 +35,7 @@
 
    * Checkout the `harsh2` branch.
    * Delete everything in it.
-   * Copy **only the contents of the `build/web` folder** into the root of the branch.
+   * Copy **only the contents of the new `build/web` folder** into the root of the branch.
    * Commit and push changes.
 
    Example commands:
