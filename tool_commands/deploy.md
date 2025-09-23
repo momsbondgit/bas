@@ -41,7 +41,7 @@
    Example commands:
 
    ```bash
-   git checkout harsh2
+   git checkout deployment
    rm -rf *
    cp -r ../build/web/* .
    git add .
@@ -51,7 +51,7 @@
 
 5. **GitHub Pages Hosting**
 
-   * Remote is already set up to serve from the `harsh2` branch root.
+   * Remote is already set up to serve from the `deployment` branch root.
    * Once pushed, deployment should update automatically.
 
 ---
