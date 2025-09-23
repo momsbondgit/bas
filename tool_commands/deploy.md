@@ -34,7 +34,7 @@
 4. **Deploy to harsh2 Branch**
 
    * Checkout the `harsh2` branch.
-   * Delete everything in it.
+   * Delete everything related to the old build. 
    * Copy **only the contents of the new `build/web` folder** into the root of the branch.
    * Commit and push changes.
 
