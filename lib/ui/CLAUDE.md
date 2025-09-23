@@ -41,7 +41,7 @@ This directory contains all user interface components for the BAS Rituals applic
 - **Features**: Credential validation, session creation, responsive design
 
 **`simple_admin_screen.dart`**
-- **Purpose**: Simplified admin interface for basic operations
+- **Purpose**: Simplified admin interface for basic operations (Note: This file may be deprecated or not actively used)
 
 #### System Screens
 

@@ -6,6 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Flutter web application called "BAS Rituals" - a social interaction platform featuring multiple "worlds" where users participate in confession-style messaging experiences with bot interactions. The app includes a comprehensive admin system for content management.
 
+## Directory Structure
+
+```
+lib/
+├── config/           # Configuration files and world definitions
+├── models/           # Data models and entities
+├── services/         # Business logic and external integrations
+├── ui/              # User interface components
+│   ├── screens/     # Full screen components
+│   └── widgets/     # Reusable UI components
+├── utils/           # Utility classes and helpers
+├── view_models/     # MVVM pattern view models
+└── main.dart        # Application entry point
+```
+
 ## Development Commands
 
 ### Core Flutter Commands
@@ -74,8 +89,10 @@ The app uses a multi-world system where each world has:
    - Credentials: username `hap`, password `happyman`
    - Persistent login state with session extension
 
-2. **Content Management** (`lib/ui/widgets/admin/admin_posts_section.dart`):
-   - Real-time post viewing, editing, and deletion
+2. **Content Management**:
+   - **Posts Section** (`lib/ui/widgets/admin/admin_posts_section.dart`): Real-time post management
+   - **Bot Settings** (`lib/ui/widgets/admin/admin_bot_settings_section.dart`): Dynamic bot configuration
+   - **Topic Settings** (`lib/ui/widgets/admin/admin_topic_settings_section.dart`): World topic management
    - Admin post creation with world/floor selection
    - Announcement system with custom authors
 
@@ -94,6 +111,9 @@ The app uses a multi-world system where each world has:
 - `endings` - User submissions (analytics)
 - `system/maintenance` - Maintenance mode status
 - `returning_users` - User analytics
+- `accounts` - User account data and metrics
+- `bots` - Dynamic bot configurations per world
+- `topics` - Dynamic topic settings per world
 
 ### UI Architecture
 
@@ -109,6 +129,12 @@ The app uses a multi-world system where each world has:
 - Card-based message display with reaction systems
 - Modal dialogs for world access and admin actions
 
+**New UI Components**:
+- **Instagram Collection Modal**: Captures Instagram handles from rejected users due to world capacity
+- **Tribe Loading Modal**: 10-second loading screen for "finding your tribe" experience
+- **Admin Topic Settings Section**: Dynamic topic management interface for each world
+- **Vibe Matching Animation**: Pinterest-inspired card shuffling animation after vibe quiz
+
 ### State Management
 
 **Approach**: Combination of:
@@ -116,6 +142,10 @@ The app uses a multi-world system where each world has:
 - Firestore streams for real-time data synchronization
 - SharedPreferences for persistent local data
 - StreamController for custom event management
+- **View Models**: New MVVM pattern implementation with ChangeNotifier for complex screens
+  - `AdminViewModel` - Admin dashboard state management
+  - `HomeViewModel` - Home screen with local bot posts and queue management
+  - `RitualQueueViewModel` - Ritual queue experience state management
 
 ### Testing & Quality
 
@@ -184,3 +214,15 @@ Admin credentials are currently hardcoded. The system uses session-based authent
 
 ### Firebase Setup
 The app requires Firebase configuration via `firebase_options.dart`. Ensure Firestore security rules allow appropriate read/write access for the collections used.
+
+### View Model Pattern
+The app is transitioning to MVVM architecture for complex screens:
+- View models extend `ChangeNotifier` for state management
+- Use `notifyListeners()` to trigger UI updates
+- Handle business logic and service integration
+- Manage subscriptions and timers with proper cleanup
+
+### Additional Services
+- **EndingService**: Enhanced to handle rejected user Instagram collection
+- **TopicSettingsService**: New service for dynamic topic management per world
+- **BotSettingsService**: Manages bot configuration through Firebase
