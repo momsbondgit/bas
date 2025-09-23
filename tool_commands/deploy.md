@@ -8,7 +8,7 @@
 
 1. **Clean Old Build**
 
-   * Remove all files and signs of the previous web build in the `main` branch.
+   * Remove all files and signs of the previous web build in the `current` branch.
 
 2. **Build for Web (No Service Worker)**
 
@@ -31,11 +31,11 @@
      ```
    * Make sure this file is inside the build directory.
 
-4. **Deploy to harsh2 Branch**
+4. **Deploy to deployment Branch**
 
-   * Checkout the `harsh2` branch.
+   * Checkout the `deployment` branch.
    * Delete everything related to the old build. 
-   * Copy **only the contents of the new `build/web` folder** into the root of the branch.
+   * Copy **only the contents of the new `build/web` folder** into the root of the deployment  branch from the previous branch.
    * Commit and push changes.
 
    Example commands:
@@ -46,7 +46,7 @@
    cp -r ../build/web/* .
    git add .
    git commit -m "Deploy new web build"
-   git push origin harsh2
+   git push origin deployment
    ```
 
 5. **GitHub Pages Hosting**
@@ -60,6 +60,6 @@
 
 * Fresh, clean deployment with no leftovers.
 * Correct domain setup (`www.bas.today`).
-* Build served from the **root of harsh2 branch** for GitHub Pages.
+* Build served from the **root of deployment branch** for GitHub Pages.
 
 ---
