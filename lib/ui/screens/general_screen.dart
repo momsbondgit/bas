@@ -46,17 +46,28 @@ class _GeneralScreenState extends State<GeneralScreen> {
       // This is a RETURNING user with existing account
       // Check if returning users are being blocked
       final maintenanceStatus = await maintenanceService.getMaintenanceStatus();
+      final anonId = await authService.getOrCreateAnonId();
 
       if (maintenanceStatus.blockReturningUsers) {
-        // Returning users are blocked, show Instagram collection modal
+        // Toggle ON: Returning users are completely blocked
         if (context.mounted) {
           _showInstagramCollectionModal(context);
         }
         return;
+      } else {
+        // Toggle OFF: Check if user has already visited today
+        final hasVisitedToday = await authService.hasVisitedToday(anonId, world.id);
+
+        if (hasVisitedToday) {
+          // User already visited today, block them with Instagram modal
+          if (context.mounted) {
+            _showInstagramCollectionModal(context);
+          }
+          return;
+        }
       }
 
-      // Track world visit for returning users
-      final anonId = await authService.getOrCreateAnonId();
+      // Track world visit for returning users (only reaches here if allowed to enter)
       await authService.trackWorldVisit(anonId, world.id);
 
       // Show loading modal for returning users before navigating

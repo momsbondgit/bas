@@ -161,23 +161,53 @@ class AuthService {
   Future<void> trackWorldVisit(String anonId, String worldId) async {
     try {
       final docRef = _firestore.collection(_accountsCollection).doc(anonId);
-      
-      // Simply increment the worldVisitCount field
+
+      // Increment the worldVisitCount field and update lastVisitDate
       await docRef.update({
         'worldVisitCount': FieldValue.increment(1),
+        'lastVisitDate': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       // If document doesn't exist or field doesn't exist, create/set it
       try {
         await _firestore.collection(_accountsCollection).doc(anonId).set({
           'worldVisitCount': 1,
+          'lastVisitDate': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       } catch (e2) {
         // Silently fail if unable to track
       }
     }
   }
-  
+
+  /// Check if user has visited today (same calendar day)
+  Future<bool> hasVisitedToday(String anonId, String worldId) async {
+    try {
+      final doc = await _firestore.collection(_accountsCollection).doc(anonId).get();
+      if (!doc.exists) {
+        return false;
+      }
+
+      final data = doc.data();
+      final lastVisitTimestamp = data?['lastVisitDate'] as Timestamp?;
+
+      if (lastVisitTimestamp == null) {
+        return false;
+      }
+
+      final lastVisitDate = lastVisitTimestamp.toDate();
+      final now = DateTime.now();
+
+      // Check if it's the same calendar day
+      return lastVisitDate.year == now.year &&
+             lastVisitDate.month == now.month &&
+             lastVisitDate.day == now.day;
+    } catch (e) {
+      // If any error occurs, allow access (fail open)
+      return false;
+    }
+  }
+
   /// Get user's world visit count
   Future<int> getUserWorldVisitCount(String anonId) async {
     try {
