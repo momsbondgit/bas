@@ -217,8 +217,9 @@ UI components integrate with services through:
 - Direct service instantiation for simple operations
 - Stream subscriptions for real-time data
 - Future builders for async operations
-- **Queue Services**: Components display queue state from both RitualQueueService and QueueService
-- **Real User Positioning**: UI reflects guaranteed user placement at queue position 3
+- **Lobby Services**: Components receive lobby data and coordinate through Firebase streams
+- **Post Streaming**: Real-time Firebase post updates with lobby nickname display
+- **Queue Coordination**: Queue state based on actual lobby participants
 
 ### Theme and Styling
 - World-specific theming based on configuration
@@ -251,6 +252,9 @@ UI components integrate with services through:
 2. Handle connection errors gracefully
 3. Implement loading states for stream data
 4. Use `StreamBuilder` for automatic UI updates
+5. **Lobby Streams**: Use Firebase streams for lobby user coordination
+6. **Post Streaming**: Implement real-time post updates with world filtering
+7. **Queue Synchronization**: Handle queue state updates from lobby participants
 
 ### Accessibility Considerations
 - Semantic widgets for screen readers

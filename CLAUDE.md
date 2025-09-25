@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Flutter web application called "BAS Rituals" - a social interaction platform featuring multiple "worlds" where users participate in confession-style messaging experiences with bot interactions. The app includes a comprehensive admin system for content management.
+This is a Flutter web application called "BAS Rituals" - a social interaction platform featuring a real-time lobby system where users coordinate and participate in confession-style messaging experiences together. The app includes a comprehensive admin system for content management and focuses on authentic user interactions through lobby-based coordination.
 
 ## Directory Structure
 
@@ -47,38 +47,47 @@ flutter run -d chrome  # For development
 - Global navigator key for programmatic navigation
 
 **Key Services Layer**:
-- **WorldService**: Manages multiple "worlds" (Girl/Guy Meets College) with different bot configurations
-- **RitualQueueService**: Handles real-time messaging queue system with turn-based interactions
-- **QueueService**: Local queue management with bot interactions (guarantees real user at position 3 with exactly 5 bots)
+- **AuthService**: Lobby management, user coordination, and authentication
+- **WorldService**: Manages world configuration (focused on Girl Meets College)
+- **QueueService**: Local queue management from lobby participants
+- **PostService**: Real-time post streaming with lobby nickname integration
+- **HomeViewModel**: Manages lobby-based queue state and Firebase post streaming
 - **AdminService**: Authentication and session management for admin features
 - **LocalStorageService**: Persistent storage using SharedPreferences
 
 ### World System Architecture
 
-The app uses a multi-world system where each world has:
-- **WorldConfig**: Configuration including bot tables, UI theming, character limits
-- **Three bot tables**: Table 1 (chaotic/edgy), Table 2 (goofy/soft), Table 3 (balanced/mixed) personality types
-- **World-specific**: Topic of day, modal copy, background colors, entry images
+The app uses a single-world system focused on "Girl Meets College":
+- **WorldConfig**: Configuration including UI theming, character limits, entry images
+- **Simplified World Selection**: Only Girl Meets College world is active
+- **World-specific**: Topic of day, modal copy, background colors
+- **Lobby Integration**: World access directly launches lobby system
 
 **World Files**:
 - `lib/config/world_config.dart` - Base configuration model
-- `lib/config/worlds/girl_meets_college_world.dart`
-- `lib/config/worlds/guy_meets_college_world.dart`
+- `lib/config/worlds/girl_meets_college_world.dart` - Active world config
 - `lib/services/core/world_service.dart` - World management service
 
-### Real-time Messaging System
+### Real-time Lobby and Messaging System
 
-**Ritual Queue System** (`lib/services/core/ritual_queue_service.dart`):
-- Turn-based messaging with configurable durations
-- Real-time state synchronization via Firestore streams
-- User queue management with bot assignments
-- Local user ID generation and persistence
+**Lobby System** (`lib/services/auth/auth_service.dart`):
+- Multi-user real-time lobby coordination via Firebase
+- Users join lobbies with nicknames and wait for others
+- Real-time user list updates and lobby synchronization
+- Lobby starter triggers game launch for all participants
+- Firebase collections: `lobbies/{worldId}` with users, isStarted, activeUserIds
+
+**Queue System** (`lib/services/core/queue_service.dart`):
+- Creates local queues from lobby participant lists
+- Turn-based rotation with 60-second turns
+- Real-time queue state management and user coordination
+- No bot assignment dependency - uses real lobby users only
 
 **Message Flow**:
-- Users join ritual queues for specific worlds
-- Turn rotation system with configurable timing
-- Bot interactions based on world personality tables
-- Real-time typing indicators and message cards
+- Users enter lobby → wait for others → start together
+- Local queue created from lobby participants
+- Turn rotation system with real-time coordination
+- Posts display with lobby nicknames as authors
 
 ### Admin System
 
@@ -105,15 +114,19 @@ The app uses a multi-world system where each world has:
 ### Firebase Integration
 
 **Collections Used**:
-- `ritual_queue/current` - Active queue state
-- `ritual_messages` - Message history
-- `posts` - User and admin posts
+- `lobbies/{worldId}` - Real-time lobby state with users and coordination
+- `posts` - User posts with customAuthor field for lobby nicknames
+- `accounts` - User metrics, session tracking, and analytics
 - `endings` - User submissions (analytics)
 - `system/maintenance` - Maintenance mode status
-- `returning_users` - User analytics
-- `accounts` - User account data and metrics
-- `bots` - Dynamic bot configurations per world
 - `topics` - Dynamic topic settings per world
+- `bots` - Dynamic bot configurations (for admin management)
+
+**Real-time Streams**:
+- Lobby user updates and synchronization
+- Post streaming with world filtering
+- Maintenance status monitoring
+- Admin dashboard data streams
 
 ### UI Architecture
 
@@ -129,11 +142,11 @@ The app uses a multi-world system where each world has:
 - Card-based message display with reaction systems
 - Modal dialogs for world access and admin actions
 
-**New UI Components**:
-- **Instagram Collection Modal**: Captures Instagram handles from rejected users due to world capacity
-- **Tribe Loading Modal**: 10-second loading screen for "finding your tribe" experience
-- **Admin Topic Settings Section**: Dynamic topic management interface for each world
-- **Vibe Matching Animation**: Pinterest-inspired card shuffling animation after vibe quiz
+**Lobby UI Components**:
+- **World Access Modal**: Real-time lobby system with user list and coordination
+- **Lobby User List**: Live updates showing joined participants with nicknames
+- **Synchronized Start Button**: Launches game experience for all lobby participants
+- **Real-time Lobby Streams**: Firebase-powered user coordination and state synchronization
 
 ### State Management
 
@@ -142,10 +155,10 @@ The app uses a multi-world system where each world has:
 - Firestore streams for real-time data synchronization
 - SharedPreferences for persistent local data
 - StreamController for custom event management
-- **View Models**: New MVVM pattern implementation with ChangeNotifier for complex screens
+- **View Models**: MVVM pattern implementation with ChangeNotifier for complex screens
   - `AdminViewModel` - Admin dashboard state management
-  - `HomeViewModel` - Home screen with local bot posts and queue management
-  - `RitualQueueViewModel` - Ritual queue experience state management
+  - `HomeViewModel` - Lobby-based queue management and Firebase post streaming
+  - `RitualQueueViewModel` - Ritual queue experience state management (if used)
 
 ### Testing & Quality
 
@@ -162,46 +175,51 @@ The app uses a multi-world system where each world has:
 ## Important Implementation Details
 
 ### Queue Management System
-The application uses two distinct queue systems:
+The application uses a simplified lobby-based queue system:
 
-1. **RitualQueueService** (`lib/services/core/ritual_queue_service.dart`):
-   - Firebase-based real-time messaging queue
-   - Turn-based messaging with 60-second turns
-   - Handles real user interactions and message submission
+1. **QueueService** (`lib/services/core/queue_service.dart`):
+   - Creates local queues from lobby participant lists
+   - Turn-based rotation with 60-second turns per user
+   - Uses real lobby users with their chosen nicknames
+   - **Queue Initialization**: `initialize(lobbyUserIds, lobbyUserNicknames)` creates queue from lobby data
+   - **Real User Integration**: Displays real users vs. dummy placeholders for lobby participants
+   - **No Bot Dependency**: Queue creation based on actual lobby participants, not bot assignment
 
-2. **QueueService** (`lib/services/core/queue_service.dart`):
-   - Local bot simulation and queue management
-   - **Critical Feature**: Guarantees exactly 6 queue members (5 bots + 1 real user)
-   - **User Positioning**: Real user is always placed at position 3 (index 2)
-   - **World Capacity Enforcement**: Only creates queues when sufficient assigned bots are available
-   - **Bug Fix**: Completely rewritten `_createInitialQueue()` method eliminates all-bot lobbies and removes fallback bot system
+2. **HomeViewModel Queue Integration**:
+   - Manages queue state updates and turn management
+   - Handles real user posting and queue advancement
+   - Universal reaction timer (30 seconds) after posts
+   - Stream-based real-time queue state synchronization
 
-### Bot Assignment Logic
-The `BotAssignmentService` manages bot personality assignment through a vibe check system:
-- **3 A answers**: Table 1 (chaotic/edgy personalities)
-- **0 A answers**: Table 2 (goofy/soft personalities)
-- **1-2 A answers**: Table 3 (balanced/mixed personalities)
+### Post System with Lobby Integration
+The `PostService` manages real user posts with lobby nickname integration:
+- **Custom Author Support**: Posts display with lobby nicknames instead of generic user IDs
+- **Firebase Posts Streaming**: Real-time post updates from other lobby participants
+- **Local + Firebase Integration**: User posts stored locally and Firebase simultaneously
+- **Reaction System**: Client-only reactions (no Firebase writes for performance)
 
-Assignment is persistent across sessions and tied to the current world's bot configurations.
+**HomeViewModel Integration**:
+- Separates user posts, local bot posts, and Firebase posts from other users
+- Real-time lobby nickname display for post authors
+- Stream-based Firebase post integration with world filtering
 
 ### Critical Bug Fixes
 
-#### World Rejection and Bot Assignment Storage Fix
-**Problem**: Users rejected due to world capacity were experiencing inconsistent behavior:
-- First attempt: Proper vibe check → world full popup (correct)
-- On refresh: Skipped vibe check → placed in fallback world with placeholder bots (Alex, Casey, Jordan, Riley, Quinn)
+#### Lobby System Implementation
+**Architecture**: Real-time multi-user coordination system replacing vibe check workflow:
+- **Firebase Lobbies**: Collection `lobbies/{worldId}` stores active users and lobby state
+- **Real-time Coordination**: Users join lobbies, see other participants in real-time
+- **Synchronized Launch**: When one user clicks "Start", all lobby participants navigate together
+- **Nickname Integration**: Lobby nicknames carry through to post authoring system
 
-**Root Cause**: Two separate issues:
-1. **Data Overwrite**: `AuthService.createAccountForWorld()` was using `set()` without merge, overwriting bot assignment data stored by `BotAssignmentService`
-2. **Fallback Bot System**: `QueueService` created placeholder bots when insufficient assigned bots were available
+**Key Collections**:
+1. **lobbies/{worldId}**: Contains `users` map (userId→nickname), `isStarted` boolean, `activeUserIds` array
+2. **posts**: Enhanced with `customAuthor` field for lobby nicknames
+3. **accounts**: User metrics and session tracking (no bot assignment data)
 
-**Solution Implemented**:
-1. **Authentication Flow Reordering**: Bot availability is now checked BEFORE account creation in `general_screen.dart`
-2. **Data Preservation**: `AuthService._createAccountInternal()` now uses `SetOptions(merge: true)` to preserve existing bot assignments
-3. **Fallback System Removal**: Completely removed fallback bot creation logic from `QueueService`
-4. **Consistent Rejection Handling**: Rejected users have no persistent account and must retry vibe check on refresh
+**Flow**: World selection → lobby join → wait for users → synchronized start → game experience with lobby participants
 
-**Result**: Rejected users now consistently experience: vibe check → capacity check → Instagram modal (no bypass, no placeholder bots).
+**Removed Systems**: Vibe check quiz, bot assignment service integration, world capacity restrictions
 
 ### Real-time Features
 Most UI components use Firestore streams for live updates. Always dispose stream subscriptions properly in `dispose()` methods.
@@ -216,13 +234,32 @@ Admin credentials are currently hardcoded. The system uses session-based authent
 The app requires Firebase configuration via `firebase_options.dart`. Ensure Firestore security rules allow appropriate read/write access for the collections used.
 
 ### View Model Pattern
-The app is transitioning to MVVM architecture for complex screens:
+The app uses MVVM architecture for complex screens:
+- **HomeViewModel**: Manages lobby-based queue, local/Firebase posts, reaction timers
+- **AdminViewModel**: Handles admin dashboard state and real-time data streams
+- **RitualQueueViewModel**: Manages ritual queue experience (if still used)
 - View models extend `ChangeNotifier` for state management
-- Use `notifyListeners()` to trigger UI updates
-- Handle business logic and service integration
-- Manage subscriptions and timers with proper cleanup
+- Stream-based real-time updates with proper resource cleanup
+- Integration with lobby system and Firebase post streaming
 
-### Additional Services
-- **EndingService**: Enhanced to handle rejected user Instagram collection
-- **TopicSettingsService**: New service for dynamic topic management per world
-- **BotSettingsService**: Manages bot configuration through Firebase
+### Key Architectural Changes
+
+#### Major Changes from Previous Implementation:
+1. **Lobby System**: Replaced vibe check quiz with real-time multi-user lobbies
+2. **Real User Focus**: Shifted from bot-heavy queues to real user coordination
+3. **Firebase Streaming**: Enhanced post streaming with lobby nickname integration
+4. **Simplified World System**: Focus on single world (Girl Meets College)
+5. **MVVM Architecture**: Full implementation with HomeViewModel managing complex state
+
+#### Removed/Deprecated Systems:
+- Vibe check quiz and bot personality assignment
+- Multi-world selection (Guy Meets College disabled)
+- Bot-heavy queue systems with guaranteed positioning
+- World capacity restrictions and rejection flows
+- Instagram collection for rejected users
+
+#### Current Service Architecture:
+- **AuthService**: Core lobby management and user coordination
+- **PostService**: Enhanced with customAuthor for lobby nicknames
+- **HomeViewModel**: Central state management for lobby queues and posts
+- **QueueService**: Simplified to handle lobby participant queues only

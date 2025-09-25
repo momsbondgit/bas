@@ -4,7 +4,7 @@ This directory contains view model classes that implement the MVVM (Model-View-V
 
 ## Overview
 
-The app is transitioning to MVVM architecture for complex screens to better separate concerns and improve testability. View models act as the bridge between the UI (View) and business logic (Services/Models).
+The app uses MVVM architecture for complex screens to separate concerns and improve testability. View models act as the bridge between the UI (View) and business logic (Services/Models), with special focus on lobby coordination and real-time Firebase streaming.
 
 ## View Model Files
 
@@ -32,26 +32,33 @@ The app is transitioning to MVVM architecture for complex screens to better sepa
 - Firebase streams for real-time updates
 
 ### `home_view_model.dart`
-**Purpose**: Manages the home screen state with local bot posts and queue simulation.
+**Purpose**: Manages the home screen with lobby-based queue and Firebase post streaming.
 
 **Key Features**:
-- **Local Bot Post Management**: Simulates bot posts in the local feed
-- **Queue State Tracking**: Manages local queue of bot users
-- **Universal Reaction Timer**: 60-second countdown for reaction phase
-- **Viewer Count Simulation**: Random viewer count updates
+- **Lobby-Based Queue Management**: Creates and manages queue from lobby participants
+- **Firebase Post Streaming**: Real-time post updates from other lobby participants
+- **Multi-Source Posts**: Separates user posts, local bot posts, and Firebase posts
+- **Universal Reaction Timer**: 30-second countdown after posts for reactions
+- **Real User Coordination**: Handles real user posting and turn management
+- **Lobby Nickname Integration**: Posts display with lobby nicknames as authors
 
 **State Properties**:
-- User posts and local bot posts
-- Queue state with bot users
-- Reaction timer state
-- Dynamic viewer count
-- Post submission state
+- Three post categories: `_userPosts`, `_localBotPosts`, `_firebasePosts`
+- Queue state from lobby participants
+- Reaction timer state (30 seconds)
+- Static viewer count (set to 6)
+- Real user posting capabilities
+
+**Constructor Integration**:
+```dart
+HomeViewModel({this.lobbyUserIds, this.lobbyUserNicknames})
+```
 
 **Integration**:
-- `QueueService` for local bot queue management
-- `PostService` for post creation
-- `LocalStorageService` for persistence
-- `MaintenanceService` for system status
+- `QueueService` initialized with lobby participant data
+- `PostService` for post creation with custom authors (lobby nicknames)
+- Firebase post streaming filtered by world
+- Real-time queue state management from lobby users
 
 ### `ritual_queue_view_model.dart`
 **Purpose**: Manages the ritual queue experience and real-time messaging state.
@@ -160,26 +167,30 @@ ChangeNotifierProvider(
 )
 ```
 
-### Direct Usage (current pattern):
+### Direct Usage with Lobby Integration (current pattern):
 ```dart
-class _ScreenState extends State<Screen> {
-  late final ViewModelName _viewModel;
+class _GameExperienceScreenState extends State<GameExperienceScreen> {
+  late HomeViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = ViewModelName();
-    _viewModel.addListener(_onViewModelChange);
+    // Initialize with lobby data
+    _viewModel = HomeViewModel(
+      lobbyUserIds: widget.lobbyUserIds,
+      lobbyUserNicknames: widget.lobbyUserNicknames
+    );
+    _viewModel.addListener(_onViewModelChanged);
     _viewModel.initialize();
   }
 
-  void _onViewModelChange() {
+  void _onViewModelChanged() {
     setState(() {});
   }
 
   @override
   void dispose() {
-    _viewModel.removeListener(_onViewModelChange);
+    _viewModel.removeListener(_onViewModelChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -190,10 +201,30 @@ class _ScreenState extends State<Screen> {
 
 ### Creating New View Models
 1. **Extend ChangeNotifier**: All view models should extend `ChangeNotifier`
-2. **Private State**: Keep state properties private with public getters
-3. **Service Injection**: Use dependency injection for services when possible
-4. **Proper Cleanup**: Override `dispose()` to clean up resources
-5. **Error Handling**: Include error state and messages
+2. **Lobby Integration**: Accept lobby data via constructor parameters
+3. **Private State**: Keep state properties private with public getters
+4. **Service Initialization**: Initialize services with lobby participant data
+5. **Firebase Streaming**: Implement real-time Firebase streams for coordination
+6. **Proper Cleanup**: Override `dispose()` to clean up resources and streams
+7. **Error Handling**: Include error state and messages
+
+**Lobby Integration Pattern**:
+```dart
+class CustomViewModel extends ChangeNotifier {
+  final List<String>? lobbyUserIds;
+  final Map<String, String>? lobbyUserNicknames;
+
+  CustomViewModel({this.lobbyUserIds, this.lobbyUserNicknames});
+
+  void initialize() {
+    // Use lobby data to initialize services
+    _service.initialize(
+      lobbyUserIds: lobbyUserIds,
+      lobbyUserNicknames: lobbyUserNicknames
+    );
+  }
+}
+```
 
 ### State Updates
 1. **Always call notifyListeners()** after state changes
@@ -213,18 +244,25 @@ class _ScreenState extends State<Screen> {
 3. **Dispose properly**: Always clean up subscriptions and timers
 4. **Lazy initialization**: Initialize expensive operations only when needed
 
-## Migration Strategy
+## Current Implementation Status
 
-The app is gradually migrating to MVVM pattern:
-1. **Phase 1**: Complex screens (Admin, Home, Ritual Queue) - COMPLETED
-2. **Phase 2**: Remaining screens as needed
-3. **Phase 3**: Add Provider package for better integration
-4. **Phase 4**: Unit testing infrastructure for view models
+MVVM pattern is fully implemented for core screens:
+1. **HomeViewModel**: Lobby-based queue management and Firebase post streaming - ACTIVE
+2. **AdminViewModel**: Admin dashboard with real-time data streams - ACTIVE
+3. **RitualQueueViewModel**: Legacy ritual queue (may not be used in current lobby system)
 
-## Benefits of MVVM Pattern
+**Lobby System Integration**:
+- View models receive lobby participant data via constructor
+- Real-time Firebase streams for post coordination
+- Queue management based on actual lobby participants
+- Nickname integration throughout the data flow
 
-1. **Separation of Concerns**: UI logic separated from business logic
-2. **Testability**: View models can be unit tested without UI
-3. **Reusability**: View models can be shared across different UI implementations
-4. **Maintainability**: Clearer code organization and responsibility
-5. **State Management**: Centralized state handling with ChangeNotifier
+## Benefits of MVVM Pattern in Lobby System
+
+1. **Separation of Concerns**: UI logic separated from lobby coordination and Firebase streaming
+2. **Real-time Coordination**: View models handle Firebase streams for lobby synchronization
+3. **Testability**: View models can be unit tested with mock lobby data
+4. **Lobby State Management**: Centralized handling of lobby participants and queue states
+5. **Multi-source Data**: Clean separation of user posts, Firebase posts, and local bot posts
+6. **Reusability**: Lobby integration patterns can be shared across screens
+7. **State Management**: Centralized state handling with ChangeNotifier and Firebase streams

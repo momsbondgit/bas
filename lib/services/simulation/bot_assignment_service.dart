@@ -11,8 +11,8 @@ class BotAssignmentService {
   final AuthService _authService = AuthService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Assigns bots based on vibe check answers with uniqueness tracking
-  Future<List<BotUser>> assignBotsBasedOnVibeCheck(Map<int, String> vibeAnswers) async {
+  /// Assigns random bots to users
+  Future<List<BotUser>> assignBots() async {
 
     // Get current world and user ID
     final currentWorldName = await _localStorageService.getCurrentWorld();
@@ -32,25 +32,19 @@ class BotAssignmentService {
       return existingAssignment;
     }
 
-    // Count A vs B answers to determine table
-    int aCount = 0;
-    vibeAnswers.forEach((_, answer) {
-      if (answer == 'A') {
-        aCount++;
-      }
-    });
-
-
-    // Determine table based on majority (≥2 answers wins)
+    // Randomly select a table
+    final random = Random();
+    final tableSelection = random.nextInt(3); // 0, 1, or 2
     String tableId;
     List<BotUser> tableBots;
 
-    if (aCount >= 2) {
-      // Majority A answers (2-3 A's) = Table 1 (chaotic/edgy)
+    if (tableSelection == 0) {
       tableId = '1';
       tableBots = worldConfig.botTable1;
+    } else if (tableSelection == 1) {
+      tableId = '2';
+      tableBots = worldConfig.botTable2;
     } else {
-      // Majority B answers (2-3 B's) = Table 2 (chill/soft)
       tableId = '2';
       tableBots = worldConfig.botTable2;
     }
@@ -77,7 +71,6 @@ class BotAssignmentService {
 
     // Save to local storage for quick access
     await _localStorageService.setTableId(tableId);
-    await _localStorageService.setVibeAnswers(vibeAnswers);
     await _localStorageService.setAssignedBots(assignedBotIds);
 
     return assignedBots;

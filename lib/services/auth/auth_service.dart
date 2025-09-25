@@ -233,4 +233,133 @@ class AuthService {
       // Silently fail - don't disrupt user experience
     }
   }
+
+  // ============= LOBBY MANAGEMENT METHODS =============
+
+  /// Join a lobby for a specific world
+  Future<void> joinLobby(String worldId, String username) async {
+    final userId = await getOrCreateAnonId();
+
+    print('[AUTH DEBUG] User $userId joining lobby $worldId with username: $username');
+
+    try {
+      // Get the current lobby state
+      final lobbyDoc = await _firestore.collection('lobbies').doc(worldId).get();
+
+      if (lobbyDoc.exists) {
+        final data = lobbyDoc.data();
+        final isStarted = data?['isStarted'] ?? false;
+        final existingUsers = data?['users'] as Map<String, dynamic>? ?? {};
+
+        print('[AUTH DEBUG] Existing lobby found with users: $existingUsers, isStarted: $isStarted');
+
+        if (isStarted) {
+          // Reset lobby if it was started
+          print('[AUTH DEBUG] Resetting started lobby');
+          await _firestore.collection('lobbies').doc(worldId).set({
+            'users': {userId: username},
+            'isStarted': false,
+            'lastActivity': FieldValue.serverTimestamp(),
+          });
+        } else {
+          // Add user to existing lobby
+          existingUsers[userId] = username;
+          print('[AUTH DEBUG] Adding user to existing lobby, new users: $existingUsers');
+          await _firestore.collection('lobbies').doc(worldId).set({
+            'users': existingUsers,
+            'isStarted': false,
+            'lastActivity': FieldValue.serverTimestamp(),
+          });
+        }
+      } else {
+        // Create new lobby
+        print('[AUTH DEBUG] Creating new lobby with user $userId');
+        await _firestore.collection('lobbies').doc(worldId).set({
+          'users': {userId: username},
+          'isStarted': false,
+          'lastActivity': FieldValue.serverTimestamp(),
+        });
+      }
+      print('[AUTH DEBUG] User $userId successfully added to lobby $worldId in Firebase');
+    } catch (e) {
+      print('[AUTH DEBUG] Error joining lobby: $e');
+      throw e;
+    }
+
+    // Store username locally
+    await _localStorage.setNickname(username);
+    print('[AUTH DEBUG] Username stored locally for user $userId');
+  }
+
+  /// Get stream of users in lobby
+  Stream<Map<String, String>> getLobbyUsersStream(String worldId) {
+    print('[AUTH DEBUG] Creating lobby users stream for world: $worldId');
+    return _firestore
+        .collection('lobbies')
+        .doc(worldId)
+        .snapshots()
+        .map((snapshot) {
+      if (!snapshot.exists) {
+        print('[AUTH DEBUG] Lobby users stream - document does not exist for world: $worldId');
+        return {};
+      }
+      final data = snapshot.data();
+      final users = data?['users'] as Map<String, dynamic>? ?? {};
+      print('[AUTH DEBUG] Lobby users stream update for world $worldId: users = $users');
+      return users.cast<String, String>();
+    });
+  }
+
+  /// Start the lobby and mark it as started
+  Future<void> startLobby(String worldId, List<String> userIds) async {
+    print('[AUTH DEBUG] Starting lobby $worldId with active users: $userIds');
+    await _firestore.collection('lobbies').doc(worldId).update({
+      'isStarted': true,
+      'startedAt': FieldValue.serverTimestamp(),
+      'activeUserIds': userIds,
+    });
+    print('[AUTH DEBUG] Lobby $worldId marked as started in Firebase successfully');
+  }
+
+  /// Leave the lobby
+  Future<void> leaveLobby(String worldId) async {
+    final userId = await getOrCreateAnonId();
+
+    await _firestore.collection('lobbies').doc(worldId).update({
+      'users.$userId': FieldValue.delete(),
+    });
+  }
+
+  /// Check if lobby is started
+  Stream<bool> getLobbyStartedStream(String worldId) {
+    print('[AUTH DEBUG] Creating lobby started stream for world: $worldId');
+    return _firestore
+        .collection('lobbies')
+        .doc(worldId)
+        .snapshots()
+        .map((snapshot) {
+      if (!snapshot.exists) {
+        print('[AUTH DEBUG] Lobby started stream - document does not exist for world: $worldId');
+        return false;
+      }
+      final data = snapshot.data();
+      final isStarted = data?['isStarted'] ?? false;
+      print('[AUTH DEBUG] Lobby started stream update for world $worldId: isStarted = $isStarted');
+      return isStarted;
+    });
+  }
+
+  /// Get active user IDs from lobby (those who were there when Start was pressed)
+  Future<List<String>> getActiveLobbyUsers(String worldId) async {
+    print('[AUTH DEBUG] Getting active lobby users for world: $worldId');
+    final doc = await _firestore.collection('lobbies').doc(worldId).get();
+    if (!doc.exists) {
+      print('[AUTH DEBUG] Lobby document does not exist for world: $worldId');
+      return [];
+    }
+    final data = doc.data();
+    final activeUserIds = data?['activeUserIds'] as List<dynamic>? ?? [];
+    print('[AUTH DEBUG] Found active lobby users: $activeUserIds');
+    return activeUserIds.cast<String>();
+  }
 }

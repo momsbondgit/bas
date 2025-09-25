@@ -19,11 +19,15 @@ import '../../services/simulation/bot_assignment_service.dart';
 class GameExperienceScreen extends StatefulWidget {
   final int selectedFloor;
   final WorldConfig? worldConfig;
-  
+  final List<String>? lobbyUserIds;
+  final Map<String, String>? lobbyUserNicknames;
+
   const GameExperienceScreen({
     super.key,
     required this.selectedFloor,
     this.worldConfig,
+    this.lobbyUserIds,
+    this.lobbyUserNicknames,
   });
 
   @override
@@ -66,7 +70,7 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   void initState() {
     super.initState();
     _loadWorldConfig();
-    _viewModel = HomeViewModel();
+    _viewModel = HomeViewModel(lobbyUserIds: widget.lobbyUserIds, lobbyUserNicknames: widget.lobbyUserNicknames);
     _setupPulseAnimation();
 
     _viewModel.addListener(_onViewModelChanged);
@@ -335,12 +339,12 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
       // Start realistic reaction simulation after a short delay
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
-          // Principle: Bot table integration - Assigned bots from user's vibe-matched table participate in content reactions for personalized experience
+          // Principle: Bot table integration - Assigned bots from user's table participate in content reactions for personalized experience
           _reactionService.simulateReactionsForPost(
             postId: postId,
             content: content,
             onReaction: (emoji) {
-              // Principle: Personalized bot engagement - Vibe-matched bots provide contextually appropriate reactions based on user's personality assessment
+              // Principle: Personalized bot engagement - Bots provide contextually appropriate reactions
               _handleLocalReaction(postId, emoji);
             },
             isRealUserPost: isCurrentUser,
@@ -375,18 +379,22 @@ class _GameExperienceScreenState extends State<GameExperienceScreen> with Ticker
   List<Widget> _buildPostWidgets() {
     final allPosts = <Widget>[];
     final activeUser = _viewModel.activeUser;
-    
+
+    print('[UI DEBUG] Building post widgets. Total posts from viewModel: ${_viewModel.posts.length}');
+
     // Add Firebase posts
     for (int i = 0; i < _viewModel.posts.length; i++) {
       final doc = _viewModel.posts[i];
       final data = doc;
       final postId = doc['id'] ?? 'unknown_${i}';
-      
+
+      print('[UI DEBUG] Post $i: ${data['confession']?.substring(0, 20) ?? 'no content'}... by ${data['customAuthor'] ?? data['userId'] ?? 'no author'}');
+
       // Check if this is the current user's post (first post from real user who has posted)
-      final isCurrentUserPost = activeUser?.isReal == true && 
-                               activeUser?.hasPosted == true && 
+      final isCurrentUserPost = activeUser?.isReal == true &&
+                               activeUser?.hasPosted == true &&
                                i == 0; // Most recent post is first in the list
-      
+
       allPosts.add(_buildPaddedPost(_buildConfessionCard(data, postId, isCurrentUser: isCurrentUserPost)));
     }
     

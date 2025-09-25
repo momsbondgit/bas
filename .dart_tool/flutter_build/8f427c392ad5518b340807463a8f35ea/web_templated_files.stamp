@@ -1,1 +1,0 @@
-{"inputs":["/home/happyman/bas/web/*/index.html","/home/happyman/bas/web/flutter_bootstrap.js","/home/happyman/flutter/bin/cache/engine.stamp"],"outputs":["/home/happyman/bas/build/web/*/index.html","/home/happyman/bas/build/web/flutter_bootstrap.js"],"buildKey":"[{\"compileTarget\":\"dart2js\",\"renderer\":\"canvaskit\",\"mainJsPath\":\"main.dart.js\"},{}]"}

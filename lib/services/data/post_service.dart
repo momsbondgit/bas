@@ -3,20 +3,27 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class PostService {
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
-  Future<void> addPost(String text, String world, String userId) async {
+  Future<void> addPost(String text, String world, String userId, {String? customAuthor}) async {
     // Validate required parameters to prevent null Firebase errors
     if (text.isEmpty) {
       throw ArgumentError('Post text cannot be empty');
     }
-    
-    await _firestore.collection('posts').add({
+
+    final postData = {
       'confession': text,
       'world': world,
       'userId': userId,
       'createdAt': FieldValue.serverTimestamp(),
       'isEdited': false,
       'editCount': 0,
-    });
+    };
+
+    // Add custom author if provided (for lobby nicknames)
+    if (customAuthor != null && customAuthor.isNotEmpty) {
+      postData['customAuthor'] = customAuthor;
+    }
+
+    await _firestore.collection('posts').add(postData);
   }
 
 

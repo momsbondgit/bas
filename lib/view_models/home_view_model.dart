@@ -13,12 +13,15 @@ class HomeViewModel extends ChangeNotifier {
   final LocalStorageService _localStorageService = LocalStorageService();
   final MaintenanceService _maintenanceService = MaintenanceService();
   final QueueService _queueService = QueueService();
+  final List<String>? lobbyUserIds;
+  final Map<String, String>? lobbyUserNicknames;
   
   // State
   bool _hasPosted = false;
   int _viewerCount = 6;
   List<Map<String, dynamic>> _userPosts = []; // User's own posts only
   List<Map<String, dynamic>> _localBotPosts = [];
+  List<Map<String, dynamic>> _firebasePosts = []; // Posts from Firebase (other users)
   QueueState _queueState = const QueueState(queue: [], currentIndex: 0, isInitialized: false);
 
   // Universal reaction timer state
@@ -30,12 +33,16 @@ class HomeViewModel extends ChangeNotifier {
   Timer? _viewerTimer;
   StreamSubscription<QueueState>? _queueSubscription;
   StreamSubscription<MaintenanceStatus>? _maintenanceSubscription;
+  StreamSubscription<QuerySnapshot>? _firebasePostsSubscription;
   final Random _random = Random();
-  
+
+  // Constructor
+  HomeViewModel({this.lobbyUserIds, this.lobbyUserNicknames});
+
   // Getters
   bool get hasPosted => _hasPosted;
   int get viewerCount => _viewerCount;
-  List<Map<String, dynamic>> get posts => [..._userPosts, ..._localBotPosts];
+  List<Map<String, dynamic>> get posts => [..._userPosts, ..._localBotPosts, ..._firebasePosts];
   List<Map<String, dynamic>> get localBotPosts => _localBotPosts;
   bool get shouldShowTimer {
     // Show timer only when the universal reaction timer is active
@@ -64,6 +71,7 @@ class HomeViewModel extends ChangeNotifier {
     _startViewerUpdates();
     _initializeQueue();
     _startUniversalTimerUpdates();
+    _initializeFirebasePostsStream();
   }
 
   void _loadHasPostedStatus() async {
@@ -115,25 +123,42 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> submitPost(String text) async {
+    print('[POST DEBUG] submitPost called with text: ${text.trim()}');
+
     final world = await _localStorageService.getCurrentWorld();
     final userId = await _localStorageService.getAnonId() ?? 'unknown';
-    
+
+    print('[POST DEBUG] User: $userId, World: $world');
+
+    // Get the user's nickname from lobby data
+    final userNickname = lobbyUserNicknames?[userId];
+    print('[POST DEBUG] User nickname from lobby: $userNickname');
+
     // Add to local user posts immediately
     final userPost = {
       'id': 'user_${DateTime.now().millisecondsSinceEpoch}',
       'confession': text.trim(),
       'world': world,
       'userId': userId,
+      'customAuthor': userNickname, // Use the lobby nickname as author
       'createdAt': DateTime.now(),
       'isUserPost': true,
     };
-    
+
     _userPosts.add(userPost);
-    
-    // Save to Firebase in background
-    await _postService.addPost(text.trim(), world, userId);
-    
+    print('[POST DEBUG] Added to local user posts. Total user posts: ${_userPosts.length}');
+    print('[POST DEBUG] User post data: $userPost');
+
+    // Save to Firebase in background with nickname
+    try {
+      await _postService.addPost(text.trim(), world, userId, customAuthor: userNickname);
+      print('[POST DEBUG] Successfully saved to Firebase');
+    } catch (e) {
+      print('[POST DEBUG] Error saving to Firebase: $e');
+    }
+
     onPostSubmitted();
+    print('[POST DEBUG] onPostSubmitted called, hasPosted: $_hasPosted');
   }
 
   void addLocalReaction(String postId, String emoji) {
@@ -184,10 +209,8 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void _initializeQueue() async {
-    // Set up callback for bot posts
-    _queueService.onBotPost = addLocalBotPost;
-    
-    await _queueService.initialize();
+    // Initialize queue with lobby users only
+    await _queueService.initialize(lobbyUserIds: lobbyUserIds, lobbyUserNicknames: lobbyUserNicknames);
     
     // Get the initial state immediately after initialization
     _queueState = _queueService.currentState;
@@ -207,6 +230,36 @@ class HomeViewModel extends ChangeNotifier {
         _startReactionTimer();
       }
 
+      notifyListeners();
+    });
+  }
+
+  void _initializeFirebasePostsStream() async {
+    final world = await _localStorageService.getCurrentWorld();
+    print('[FIREBASE DEBUG] Initializing Firebase posts stream for world: $world');
+
+    // Use the general posts stream to avoid index issues, then filter by world in memory
+    _firebasePostsSubscription = _postService.getPostsStream().listen((snapshot) {
+      print('[FIREBASE DEBUG] Firebase posts stream update received. Docs count: ${snapshot.docs.length}');
+
+      final firebasePosts = <Map<String, dynamic>>[];
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        // Filter by world in memory to avoid index requirements
+        final postWorld = data['world'] as String?;
+        if (postWorld == world) {
+          // Add document ID for unique identification
+          data['id'] = doc.id;
+          firebasePosts.add(data);
+          print('[FIREBASE DEBUG] Firebase post: ${data['confession']?.substring(0, 20) ?? 'no content'}... by ${data['customAuthor'] ?? 'no author'}');
+        }
+      }
+
+      _firebasePosts = firebasePosts;
+      print('[FIREBASE DEBUG] Total Firebase posts for world $world: ${_firebasePosts.length}');
+      print('[FIREBASE DEBUG] Total all posts (user + local bot + firebase): ${posts.length}');
       notifyListeners();
     });
   }
@@ -236,6 +289,7 @@ class HomeViewModel extends ChangeNotifier {
     _viewerTimer?.cancel();
     _maintenanceSubscription?.cancel();
     _queueSubscription?.cancel();
+    _firebasePostsSubscription?.cancel();
     _queueService.dispose();
     super.dispose();
   }

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import '../../../config/world_config.dart';
-import '../animations/vibe_matching_animation.dart';
+import '../../../services/auth/auth_service.dart';
 
 class WorldAccessModal extends StatefulWidget {
   final WorldConfig? worldConfig;
-  final Function(String accessCode, String nickname, Map<int, String> vibeAnswers) onSubmit;
+  final Function(String nickname, List<String> lobbyUserIds, Map<String, String> lobbyUserNicknames) onStart;
   final VoidCallback? onCancel;
 
   const WorldAccessModal({
     super.key,
     this.worldConfig,
-    required this.onSubmit,
+    required this.onStart,
     this.onCancel,
   });
 
@@ -20,153 +22,149 @@ class WorldAccessModal extends StatefulWidget {
 }
 
 class _WorldAccessModalState extends State<WorldAccessModal> {
-  final TextEditingController _accessCodeController = TextEditingController();
   final TextEditingController _nicknameController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
   bool _isSubmitting = false;
-  String? _accessCodeError;
+  bool _hasJoinedLobby = false;
+  String? _currentUserId;
+  Map<String, String> _lobbyUsers = {};
+  StreamSubscription<bool>? _lobbyStartedSubscription;
 
-  // Multi-step state
-  int _currentStep = 1; // 1=code+nickname, 2=vibe check, 3=vibe matching
-  final Map<int, String> _vibeAnswers = {}; // Q1, Q2, Q3 answers
-  int _currentVibeQuestion = 1;
-  String? _selectedOption; // Track which option is selected for current question
-  double _vibeMatchingProgress = 0.0; // Track vibe matching animation progress
 
 
 
   @override
+  void initState() {
+    super.initState();
+    _initializeLobby();
+  }
+
+  Future<void> _initializeLobby() async {
+    _currentUserId = await _authService.getOrCreateAnonId();
+    print('[LOBBY DEBUG] Initialized lobby for user: $_currentUserId, world: ${widget.worldConfig?.id}');
+    _setupLobbyStartedListener();
+  }
+
+  void _setupLobbyStartedListener() {
+    if (widget.worldConfig == null) return;
+
+    print('[LOBBY DEBUG] Setting up lobby started listener for world: ${widget.worldConfig!.id}');
+    _lobbyStartedSubscription = _authService.getLobbyStartedStream(widget.worldConfig!.id).listen((isStarted) {
+      print('[LOBBY DEBUG] Lobby started status changed: $isStarted for user: $_currentUserId');
+      if (isStarted && mounted && _lobbyUsers.length >= 2) {
+        print('[LOBBY DEBUG] Another user started the lobby with ${_lobbyUsers.length} users, handling auto-navigation for user: $_currentUserId');
+        _handleLobbyStartedByOther();
+      } else if (isStarted && _lobbyUsers.length < 2) {
+        print('[LOBBY DEBUG] Lobby started but only ${_lobbyUsers.length} users - ignoring auto-start');
+      }
+    });
+  }
+
+  Future<void> _handleLobbyStartedByOther() async {
+    if (widget.worldConfig == null) return;
+
+    print('[LOBBY DEBUG] Handling lobby started by other user for: $_currentUserId');
+    try {
+      // Get the active user IDs that were in the lobby when it was started
+      final activeUserIds = await _authService.getActiveLobbyUsers(widget.worldConfig!.id);
+      print('[LOBBY DEBUG] Retrieved active lobby users: $activeUserIds');
+
+      // Check if current user was in the lobby when it was started
+      if (activeUserIds.contains(_currentUserId)) {
+        print('[LOBBY DEBUG] Current user $_currentUserId is in active users list, navigating to game...');
+        // Navigate this user to the game
+        await widget.onStart(
+          _nicknameController.text.trim(),
+          activeUserIds,
+          _lobbyUsers,
+        );
+        print('[LOBBY DEBUG] Navigation completed for user: $_currentUserId');
+      } else {
+        print('[LOBBY DEBUG] Current user $_currentUserId NOT in active users list, not navigating');
+      }
+    } catch (e) {
+      print('[LOBBY DEBUG] Error handling lobby started by other: $e');
+    }
+  }
+
+  @override
   void dispose() {
-    _accessCodeController.dispose();
     _nicknameController.dispose();
+    _lobbyStartedSubscription?.cancel();
+    if (_hasJoinedLobby && widget.worldConfig != null) {
+      _authService.leaveLobby(widget.worldConfig!.id);
+    }
     super.dispose();
   }
 
-  void _handleNextStep() async {
-    if (_currentStep == 1) {
-      // Validate both access code and nickname
-      setState(() {
-        _accessCodeError = null;
-      });
+  void _handleJoinLobby() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (widget.worldConfig == null) return;
 
-      if (!_formKey.currentState!.validate()) return;
+    print('[LOBBY DEBUG] User $_currentUserId attempting to join lobby with nickname: ${_nicknameController.text.trim()}');
 
-      // Move to vibe check
-      setState(() {
-        _currentStep = 2;
-        _currentVibeQuestion = 1;
-      });
-    } else if (_currentStep == 2) {
-      // Move to vibe matching animation step
-      setState(() {
-        _currentStep = 3;
-      });
-    } else if (_currentStep == 3) {
-      // Submit everything (this happens after vibe matching animation)
-      setState(() {
-        _isSubmitting = true;
-      });
-
-      try {
-        await widget.onSubmit(
-          _accessCodeController.text.trim(),
-          _nicknameController.text.trim(),
-          _vibeAnswers,
-        );
-      } catch (e) {
-        // If onSubmit throws an error, go back to step 1
-        if (mounted) {
-          setState(() {
-            _accessCodeError = 'wrong code, try again';
-            _currentStep = 1;
-          });
-          _formKey.currentState!.validate();
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isSubmitting = false;
-          });
-        }
-      }
-    }
-  }
-
-  void _handleBack() {
-    if (_currentStep == 2) {
-      // Handle back within vibe check
-      if (_currentVibeQuestion > 1) {
-        // Go to previous vibe question
-        setState(() {
-          _currentVibeQuestion--;
-          // Remove the answer for the current question when going back
-          _vibeAnswers.remove(_currentVibeQuestion + 1);
-        });
-      } else {
-        // Go back to step 1
-        setState(() {
-          _currentStep = 1;
-          _currentVibeQuestion = 1;
-          _vibeAnswers.clear();
-        });
-      }
-    } else if (_currentStep > 1) {
-      // Handle back for other steps
-      setState(() {
-        _currentStep--;
-        // Reset vibe check when going back from step 2
-        if (_currentStep == 1) {
-          _currentVibeQuestion = 1;
-          _vibeAnswers.clear();
-        }
-      });
-    }
-  }
-
-  void _handleVibeAnswer(String answer) async {
-    // First, show the selection feedback
     setState(() {
-      _selectedOption = answer;
-      _vibeAnswers[_currentVibeQuestion] = answer;
+      _isSubmitting = true;
     });
 
-    // Wait a moment for the visual feedback
-    await Future.delayed(const Duration(milliseconds: 400));
+    try {
+      await _authService.joinLobby(
+        widget.worldConfig!.id,
+        _nicknameController.text.trim(),
+      );
 
-    if (mounted) {
+      print('[LOBBY DEBUG] User $_currentUserId successfully joined lobby');
       setState(() {
-        _selectedOption = null; // Reset selection for next question
+        _hasJoinedLobby = true;
       });
-
-      if (_currentVibeQuestion < 3) {
-        // Move to next vibe question
+    } catch (e) {
+      print('[LOBBY DEBUG] Error joining lobby for user $_currentUserId: $e');
+    } finally {
+      if (mounted) {
         setState(() {
-          _currentVibeQuestion++;
+          _isSubmitting = false;
         });
-      } else {
-        // All questions answered, move to vibe matching animation
-        _handleNextStep();
       }
     }
   }
 
-  String? _validateAccessCode(String? value) {
-    // Show access code validation error if present
-    if (_accessCodeError != null) {
-      return _accessCodeError;
+  void _handleStart() async {
+    if (widget.worldConfig == null || _lobbyUsers.isEmpty) return;
+
+    final lobbyUserIds = _lobbyUsers.keys.toList();
+    print('[LOBBY DEBUG] User $_currentUserId clicked START button. Lobby users: $lobbyUserIds');
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Start the game for all users in the lobby
+      print('[LOBBY DEBUG] Calling widget.onStart for user $_currentUserId with lobby users: $lobbyUserIds');
+      await widget.onStart(
+        _nicknameController.text.trim(),
+        lobbyUserIds,
+        _lobbyUsers,
+      );
+      print('[LOBBY DEBUG] widget.onStart completed for user $_currentUserId');
+
+      // Mark lobby as started
+      print('[LOBBY DEBUG] Marking lobby as started in Firebase for users: $lobbyUserIds');
+      await _authService.startLobby(widget.worldConfig!.id, lobbyUserIds);
+      print('[LOBBY DEBUG] Lobby marked as started successfully');
+    } catch (e) {
+      print('[LOBBY DEBUG] Error in _handleStart for user $_currentUserId: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
-    
-    if (value == null || value.trim().isEmpty) {
-      return 'ur access code is required bestie';
-    }
-    if (value.trim().length != 3) {
-      return 'needs to be exactly 3 numbers';
-    }
-    if (!RegExp(r'^\d{3}$').hasMatch(value.trim())) {
-      return 'numbers only pls';
-    }
-    return null;
   }
+
+
 
   String? _validateNickname(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -178,434 +176,289 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
     return null;
   }
 
-  Widget _buildProgressBar() {
-    // Calculate total steps: 1 (code+nickname) + 3 (vibe questions) + 1 (vibe matching) = 5 total
-    int totalSteps = 5;
-    int currentStepNumber = 1;
 
-    if (_currentStep == 1) {
-      currentStepNumber = 1; // Access code + nickname
-    } else if (_currentStep == 2) {
-      currentStepNumber = 1 + _currentVibeQuestion; // 1 + (1,2,3) = 2,3,4
-    } else if (_currentStep == 3) {
-      currentStepNumber = 5; // Vibe matching animation
-    }
-
-    // For step 3 (vibe matching), use the animation progress instead of fixed step progress
-    final progress = _currentStep == 3
-        ? (4.0 + _vibeMatchingProgress) / totalSteps  // Start at 4/5 and progress to 5/5
-        : currentStepNumber / totalSteps;
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Step $currentStepNumber of $totalSteps',
-              style: const TextStyle(
-                fontFamily: 'SF Pro',
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-            Text(
-              '${(progress * 100).toInt()}%',
-              style: const TextStyle(
-                fontFamily: 'SF Pro',
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: progress,
-          backgroundColor: const Color(0xFFE5E5E5),
-          valueColor: const AlwaysStoppedAnimation<Color>(Colors.black),
-          minHeight: 3,
-        ),
-      ],
-    );
-  }
-
-  Widget _getCurrentStepContent() {
-    if (_currentStep == 1) {
-      return _buildStep1Content();
-    } else if (_currentStep == 2) {
-      return _buildVibeCheckStep();
-    } else if (_currentStep == 3) {
-      return VibeMatchingAnimation(
-        vibeAnswers: _vibeAnswers,
-        onAnimationComplete: _handleNextStep,
-        onProgressChanged: (progress) {
-          setState(() {
-            _vibeMatchingProgress = progress;
-          });
-        },
-      );
-    }
-    return const SizedBox.shrink();
-  }
-
-  Widget _buildStep1Content() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Step 1: Access Code
-        Center(
-          child: Text(
-            widget.worldConfig?.modalTitle ?? 'join the world bestie ✨',
-            style: const TextStyle(
-              fontFamily: 'SF Pro',
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (widget.worldConfig?.modalDescription != null)
+  Widget _buildMainContent() {
+    if (!_hasJoinedLobby) {
+      // Show username input
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Center(
             child: Text(
-              widget.worldConfig!.modalDescription!,
-              textAlign: TextAlign.center,
+              'Waiting for your friends to join...',
               style: const TextStyle(
                 fontFamily: 'SF Pro',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF6B7280),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
                 letterSpacing: 0.4,
               ),
             ),
           ),
-        const SizedBox(height: 24),
-        const Text(
-          'ur access code:',
-          style: TextStyle(
-            fontFamily: 'SF Pro',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-            letterSpacing: 0.4,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _accessCodeController,
-          keyboardType: TextInputType.number,
-          maxLength: 3,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(3),
-          ],
-          validator: _validateAccessCode,
-          decoration: InputDecoration(
-            hintText: '123',
-            hintStyle: const TextStyle(
+          const SizedBox(height: 24),
+
+          // Nickname Field
+          const Text(
+            'what should we call u?',
+            style: TextStyle(
               fontFamily: 'SF Pro',
               fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFFB2B2B2),
-              letterSpacing: 0.4,
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFB2B2B2),
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFB2B2B2),
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.black,
-                width: 1,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.red,
-                width: 1,
-              ),
-            ),
-            counterText: '',
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
-          style: const TextStyle(
-            fontFamily: 'SF Pro',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Colors.black,
-            letterSpacing: 0.4,
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Nickname Field
-        const Text(
-          'what should we call u?',
-          style: TextStyle(
-            fontFamily: 'SF Pro',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-            letterSpacing: 0.4,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        TextFormField(
-          controller: _nicknameController,
-          maxLength: 20,
-          validator: _validateNickname,
-          decoration: InputDecoration(
-            hintText: 'ur nickname here...',
-            hintStyle: const TextStyle(
-              fontFamily: 'SF Pro',
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFFB2B2B2),
-              letterSpacing: 0.4,
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFB2B2B2),
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFB2B2B2),
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.black,
-                width: 1,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Colors.red,
-                width: 1,
-              ),
-            ),
-            counterText: '',
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
-          style: const TextStyle(
-            fontFamily: 'SF Pro',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Colors.black,
-            letterSpacing: 0.4,
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Next button for step 1
-        GestureDetector(
-          onTap: _isSubmitting ? null : _handleNextStep,
-          child: Container(
-            width: double.infinity,
-            height: 44,
-            decoration: BoxDecoration(
+              fontWeight: FontWeight.w500,
               color: Colors.black,
-              borderRadius: BorderRadius.circular(12),
+              letterSpacing: 0.4,
             ),
-            child: const Center(
-              child: Text(
-                'let\'s goooo',
-                style: TextStyle(
-                  fontFamily: 'SF Pro',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  letterSpacing: 0.4,
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _nicknameController,
+            maxLength: 20,
+            validator: _validateNickname,
+            enabled: !_isSubmitting,
+            decoration: InputDecoration(
+              hintText: 'ur nickname here...',
+              hintStyle: const TextStyle(
+                fontFamily: 'SF Pro',
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: Color(0xFFB2B2B2),
+                letterSpacing: 0.4,
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFFB2B2B2),
+                  width: 1,
                 ),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFFB2B2B2),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.black,
+                  width: 1,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.red,
+                  width: 1,
+                ),
+              ),
+              counterText: '',
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVibeCheckStep() {
-    final questions = [
-      {
-        'question': 'When dorm drama pops off right in front of me, I usually…',
-        'optionA': 'Gas it up like "nahh that\'s crazyyy" 🍿',
-        'optionB': 'Pull my bestie aside later with all the tea 💌',
-      },
-      {
-        'question': 'Friday night, you\'ll catch me…',
-        'optionA': 'Out with the girls till 2 AM 💃',
-        'optionB': 'Cozy night in w/ face masks + shows 🛏️',
-      },
-      {
-        'question': 'When the GC goes silent, I usually…',
-        'optionA': 'Drop a random meme 🤡',
-        'optionB': 'Wait for someone else to revive it 💤',
-      },
-    ];
-
-    final currentQ = questions[_currentVibeQuestion - 1];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Center(
-          child: Text(
-            'vibe check ✨',
             style: const TextStyle(
               fontFamily: 'SF Pro',
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
               color: Colors.black,
               letterSpacing: 0.4,
             ),
           ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Question $_currentVibeQuestion of 3',
-          style: const TextStyle(
-            fontFamily: 'SF Pro',
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF6B7280),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          currentQ['question']!,
-          style: const TextStyle(
-            fontFamily: 'SF Pro',
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-            letterSpacing: 0.4,
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Option A
-        GestureDetector(
-          onTap: () => _handleVibeAnswer('A'),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _selectedOption == 'A' ? Colors.black : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _selectedOption == 'A' ? Colors.black : const Color(0xFFB2B2B2),
-                width: 1,
-              ),
-            ),
-            child: Text(
-              currentQ['optionA']!,
-              style: TextStyle(
-                fontFamily: 'SF Pro',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: _selectedOption == 'A' ? Colors.white : Colors.black,
-                letterSpacing: 0.4,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Option B
-        GestureDetector(
-          onTap: () => _handleVibeAnswer('B'),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _selectedOption == 'B' ? Colors.black : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _selectedOption == 'B' ? Colors.black : const Color(0xFFB2B2B2),
-                width: 1,
-              ),
-            ),
-            child: Text(
-              currentQ['optionB']!,
-              style: TextStyle(
-                fontFamily: 'SF Pro',
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: _selectedOption == 'B' ? Colors.white : Colors.black,
-                letterSpacing: 0.4,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Back button - show for all vibe questions
+          const SizedBox(height: 24),
+
+          // Join button
           GestureDetector(
-            onTap: _handleBack,
+            onTap: _isSubmitting ? null : _handleJoinLobby,
             child: Container(
               width: double.infinity,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.transparent,
+                color: _isSubmitting ? Colors.grey : Colors.black,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFB2B2B2),
-                  width: 1,
-                ),
               ),
               child: Center(
-                child: Text(
-                  _currentVibeQuestion == 1 ? '← back' : '← previous',
-                  style: const TextStyle(
-                    fontFamily: 'SF Pro',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black,
-                    letterSpacing: 0.4,
-                  ),
-                ),
+                child: _isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Join Lobby',
+                      style: TextStyle(
+                        fontFamily: 'SF Pro',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
               ),
             ),
           ),
-      ],
-    );
+        ],
+      );
+    } else {
+      // Show lobby with users list
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              'Waiting for your friends to join...',
+              style: const TextStyle(
+                fontFamily: 'SF Pro',
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Users in lobby
+          const Text(
+            'Friends in lobby:',
+            style: TextStyle(
+              fontFamily: 'SF Pro',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+              letterSpacing: 0.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Stream of lobby users
+          if (widget.worldConfig != null)
+            StreamBuilder<Map<String, String>>(
+              stream: _authService.getLobbyUsersStream(widget.worldConfig!.id),
+              builder: (context, snapshot) {
+                print('[LOBBY DEBUG] StreamBuilder received data: ${snapshot.hasData}, data: ${snapshot.data}');
+                if (snapshot.hasData) {
+                  final newUsers = snapshot.data ?? {};
+                  if (newUsers.toString() != _lobbyUsers.toString()) {
+                    _lobbyUsers = newUsers;
+                    print('[LOBBY DEBUG] Updated _lobbyUsers: $_lobbyUsers');
+
+                    // Only trigger rebuild if users actually changed
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) setState(() {});
+                    });
+                  }
+
+                  return Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE5E5E5),
+                        width: 1,
+                      ),
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.all(12),
+                      itemCount: _lobbyUsers.length,
+                      itemBuilder: (context, index) {
+                        final userId = _lobbyUsers.keys.elementAt(index);
+                        final username = _lobbyUsers[userId]!;
+                        final isCurrentUser = userId == _currentUserId;
+
+                        // Simple display logic: username + (you) for current user
+                        final displayName = isCurrentUser ? '$username (you)' : username;
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                displayName,
+                                style: TextStyle(
+                                  fontFamily: 'SF Pro',
+                                  fontSize: 14,
+                                  fontWeight: isCurrentUser ? FontWeight.w600 : FontWeight.w400,
+                                  color: Colors.black,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+            ),
+
+          const SizedBox(height: 24),
+
+          // Start button
+          GestureDetector(
+            onTap: () {
+              print('[LOBBY DEBUG] Start button tapped. isSubmitting: $_isSubmitting, lobbyUsers.isEmpty: ${_lobbyUsers.isEmpty}, lobbyUsers: $_lobbyUsers');
+              if (_isSubmitting || _lobbyUsers.isEmpty) {
+                print('[LOBBY DEBUG] Start button disabled - cannot proceed');
+                return;
+              }
+              _handleStart();
+            },
+            child: Container(
+              width: double.infinity,
+              height: 44,
+              decoration: BoxDecoration(
+                color: (_isSubmitting || _lobbyUsers.isEmpty) ? Colors.grey : Colors.black,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: _isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Start',
+                      style: TextStyle(
+                        fontFamily: 'SF Pro',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -637,12 +490,8 @@ class _WorldAccessModalState extends State<WorldAccessModal> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Progress Bar
-                _buildProgressBar(),
-                const SizedBox(height: 24),
-
-                // Dynamic content based on step
-                _getCurrentStepContent(),
+                // Main content
+                _buildMainContent(),
               ],
             ),
           ),

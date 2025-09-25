@@ -4,7 +4,6 @@ class LocalStorageService {
   static const String _floorKey = 'user.floor';
   static const String _worldKey = 'user.world';
   static const String _tableIdKey = 'user.tableId';
-  static const String _vibeAnswersKey = 'user.vibeAnswers';
   static const String _assignedBotsKey = 'user.assignedBots';
   static const String _hasPostedKey = 'user.hasPosted';
   
@@ -43,26 +42,6 @@ class LocalStorageService {
     return prefs.getString(_tableIdKey);
   }
 
-  Future<void> setVibeAnswers(Map<int, String> answers) async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = answers.entries.map((e) => '${e.key}:${e.value}').join(',');
-    await prefs.setString(_vibeAnswersKey, jsonString);
-  }
-
-  Future<Map<int, String>?> getVibeAnswers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_vibeAnswersKey);
-    if (jsonString == null) return null;
-
-    final Map<int, String> answers = {};
-    for (final pair in jsonString.split(',')) {
-      final parts = pair.split(':');
-      if (parts.length == 2) {
-        answers[int.parse(parts[0])] = parts[1];
-      }
-    }
-    return answers;
-  }
 
   Future<void> setAssignedBots(List<String> bots) async {
     final prefs = await SharedPreferences.getInstance();

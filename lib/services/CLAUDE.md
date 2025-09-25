@@ -63,13 +63,12 @@ This directory contains service classes that handle business logic, external int
 ### `auth/` - Authentication Services
 
 #### `auth_service.dart`
-**Purpose**: Handles user authentication, session management, and metrics tracking.
+**Purpose**: Handles user authentication, session management, and lobby coordination.
 
 **Features**:
-- Anonymous user ID generation
-- Access code validation for world entry
-- Nickname management
-- World authentication tracking
+- Anonymous user ID generation and management
+- **Lobby Management**: Real-time multi-user lobby coordination
+- Nickname management and lobby integration
 - Session persistence across app launches
 - **Metrics Tracking**:
   - `incrementTotalSessions()`: Tracks game session starts
@@ -77,13 +76,19 @@ This directory contains service classes that handle business logic, external int
   - `incrementReactionsGiven()`: Tracks reaction button clicks
   - Generic `_incrementMetric()` for code reuse
 - **Firebase Optimization**: Uses `set` with `merge` to avoid reads before writes
-- **Bot Assignment Preservation**: Account creation uses `SetOptions(merge: true)` to preserve existing bot assignment data
 
-**Critical Methods**:
+**Critical Lobby Methods**:
+- `joinLobby(worldId, username)`: Adds user to lobby with real-time coordination
+- `getLobbyUsersStream(worldId)`: Stream of users in lobby with live updates
+- `startLobby(worldId, userIds)`: Marks lobby as started and stores active participants
+- `getLobbyStartedStream(worldId)`: Stream monitoring lobby start events
+- `getActiveLobbyUsers(worldId)`: Gets participants who were present at lobby start
+- `leaveLobby(worldId)`: Removes user from lobby
+
+**Authentication Methods**:
 - `createAccountForWorld()`: Creates user account with merge option
-- `checkAccessCode()`: Validates world access codes
-- `getCurrentWorld()`: Gets user's current world
-- `setVibeCheckAnswers()`: Stores vibe quiz responses
+- `getOrCreateAnonId()`: Gets existing or generates new anonymous ID
+- `trackWorldVisit()`: Increments user visit count for analytics
 
 ### `core/` - Core Business Logic Services
 
@@ -111,27 +116,28 @@ This directory contains service classes that handle business logic, external int
 - Timer management for turn rotation
 
 #### `queue_service.dart`
-**Purpose**: Local queue management with bot simulation and interaction.
+**Purpose**: Local queue management from lobby participants with turn-based coordination.
 
 **Key Responsibilities**:
-- **Bot Queue Management**: Creates and manages local queues with bot users
-- **User Positioning**: Guarantees real user is always at position 3 (index 2) in queue
-- **Bot Assignment Integration**: Works with BotAssignmentService for personality-based bot selection
-- **World Capacity Enforcement**: Prevents queue creation when insufficient assigned bots are available
-- **Turn Management**: Handles bot turn rotation and timing
-- **Response Generation**: Manages bot responses and interactions
+- **Lobby-Based Queue Creation**: Creates queues from real lobby participant data
+- **Turn Management**: Handles 60-second turn rotation among lobby participants
+- **Real User Integration**: Manages real users vs. dummy placeholders for other lobby participants
+- **Queue State Broadcasting**: Provides real-time queue state updates via streams
+- **Typing State Management**: Handles real user typing indicators
+- **Post Submission**: Manages real user post submission and queue advancement
 
 **Critical Methods**:
-- `_createInitialQueue()`: Guarantees exactly 6 queue members (5 bots + 1 real user)
-- `_getBotResponse()`: Generates bot responses using only assigned bots
-- `moveToNextUser()`: Rotates queue to next user's turn
-- `_startTurnManagement()`: Manages turn timing
-- `_startTypingSimulation()`: Simulates bot typing behavior
+- `initialize(lobbyUserIds, lobbyUserNicknames)`: Creates queue from lobby participant data
+- `_createInitialQueue()`: Builds queue using real lobby users with nicknames
+- `canRealUserPost()`: Checks if real user can post (when it's their turn)
+- `handleRealUserPost()`: Processes real user post submission and advances queue
+- `moveToNextUser()`: Advances to next user in queue rotation
+- `startRealUserTyping()`: Manages real user typing state
 
-**Bug Fix Details**:
-- Completely removed fallback bot system (no more placeholder bots)
-- Only creates queues when sufficient assigned bots are available
-- Deterministic queue building with real user at position 3
+**Architecture Changes**:
+- **No Bot Assignment Dependency**: Uses actual lobby participants instead of assigned bots
+- **Real User Focus**: Queue built from real users who joined the lobby together
+- **Simplified Queue Logic**: No complex bot personality or capacity restrictions
 
 #### `world_service.dart`
 **Purpose**: Manages world configurations and selection.
@@ -184,21 +190,25 @@ This directory contains service classes that handle business logic, external int
 - Clear methods for data cleanup
 
 #### `post_service.dart`
-**Purpose**: Handles post creation and management for confessions.
+**Purpose**: Handles post creation and management with lobby nickname integration.
 
 **Features**:
+- **Custom Author Support**: Posts can display with lobby nicknames via `customAuthor` field
 - Regular user post creation with validation
-- Admin post creation with special privileges
-- Post editing and deletion (admin features)
+- World-specific post filtering and streaming
 - Firestore integration with proper error handling
-- World-specific post filtering
+- **Performance Optimization**: Removed Firebase reaction writes (client-only reactions)
 
 **Methods**:
-- `createPost()`: Create user confession
-- `createAdminPost()`: Create admin announcement
-- `editPost()`: Update existing post
-- `deletePost()`: Remove post
-- `getPostsStream()`: Real-time post updates
+- `addPost(text, world, userId, {customAuthor})`: Create post with optional custom author (lobby nickname)
+- `getPostsStream()`: Real-time post updates for all worlds
+- `getPostsStreamForWorld(world)`: Filtered post stream for specific world
+- `migrateGenderToWorldSchema()`: Migration utility for schema updates
+
+**Integration with Lobby System**:
+- Posts created with lobby nicknames as `customAuthor`
+- Real-time streaming enables lobby participants to see each other's posts
+- World filtering ensures posts are scoped correctly
 
 ### `metrics/` - Metrics and Analytics Services
 
@@ -227,21 +237,21 @@ This directory contains service classes that handle business logic, external int
 ### `simulation/` - Bot and Simulation Services
 
 #### `bot_assignment_service.dart`
-**Purpose**: Manages bot assignment and personality selection based on vibe check.
+**Purpose**: Legacy bot assignment service (currently not used in lobby system).
 
-**Logic**:
-- Assigns bots from world configuration bot tables based on vibe check answers:
-  - **3 A answers**: Table 1 (chaotic/edgy personalities)
-  - **0 A answers (3 B's)**: Table 2 (goofy/soft personalities)
-  - **Mixed answers (1-2 A's)**: Table 3 (balanced personalities from both tables)
-- Ensures unique bot assignments per session
-- Stores assignments in local storage for persistence
+**Status**: **DEPRECATED** - Not integrated with current lobby-based architecture.
 
-**Methods**:
-- `assignBotsBasedOnVibeCheck()`: Main assignment logic
+**Previous Logic** (for reference):
+- Assigned bots from world configuration bot tables
+- Used vibe check answers to determine personality tables
+- Stored assignments in local storage for persistence
+
+**Current System**: The lobby-based architecture uses real users instead of bot assignment, making this service redundant. The service remains in the codebase but is not called by the current user flow.
+
+**Methods** (legacy):
+- `assignBots()`: Random bot assignment (bypasses vibe check)
 - `getAssignedBots()`: Retrieve current assignments
 - `clearAssignedBots()`: Reset bot assignments
-- `_getBotsForTable()`: Helper for table selection
 
 #### `reaction_simulation_service.dart`
 **Purpose**: Simulates bot reactions to messages for realistic interactions.
@@ -264,14 +274,24 @@ This directory contains service classes that handle business logic, external int
 
 ## Key Patterns
 
-### Singleton Pattern
-Most services use singleton pattern for global access:
+### Service Instantiation Pattern
+Services are instantiated directly (not singletons) for better testability:
 ```dart
 class ServiceName {
-  static final ServiceName _instance = ServiceName._internal();
-  factory ServiceName() => _instance;
-  ServiceName._internal();
+  // Direct instantiation
+  final ServiceName _service = ServiceName();
 }
+```
+
+### Lobby Coordination Pattern
+Real-time lobby management follows consistent Firebase patterns:
+```dart
+// Join lobby with real-time updates
+await _authService.joinLobby(worldId, username);
+// Listen to lobby changes
+_authService.getLobbyUsersStream(worldId).listen((users) {
+  // Update UI with lobby participants
+});
 ```
 
 ### Firebase Integration Pattern
@@ -299,12 +319,12 @@ await QueueService().initialize();
 ## Critical Service Dependencies
 
 ### Service Interaction Flow
-1. **AuthService** → Manages user identity
-2. **LocalStorageService** → Persists user data
+1. **AuthService** → Manages user identity and lobby coordination
+2. **LocalStorageService** → Persists user data and lobby state
 3. **WorldService** → Provides world configurations
-4. **BotAssignmentService** → Assigns bots based on vibe check
-5. **RitualQueueService** → Orchestrates main experience
-6. **QueueService** → Manages local bot queue
+4. **QueueService** → Creates queues from lobby participants
+5. **PostService** → Handles posts with lobby nickname integration
+6. **HomeViewModel** → Orchestrates lobby queue and Firebase streaming
 
 ### Real-time Data Flow
 - Firebase streams provide real-time updates
@@ -315,18 +335,34 @@ await QueueService().initialize();
 ## Development Guidelines
 
 ### Adding New Services
-1. Follow singleton pattern for global services
-2. Use dependency injection for testable services
-3. Implement proper error handling and validation
-4. Add comprehensive documentation for public methods
-5. Consider initialization requirements
+1. Use direct instantiation for better testability
+2. Implement proper error handling and validation
+3. Add comprehensive documentation for public methods
+4. Consider lobby system integration requirements
+5. Follow Firebase streaming patterns for real-time data
+
+### Lobby-Based Service Integration
+```dart
+// Queue service initialized with lobby participants
+await _queueService.initialize(
+  lobbyUserIds: lobbyUserIds,
+  lobbyUserNicknames: lobbyUserNicknames
+);
+
+// HomeViewModel with lobby integration
+_viewModel = HomeViewModel(
+  lobbyUserIds: widget.lobbyUserIds,
+  lobbyUserNicknames: widget.lobbyUserNicknames
+);
+```
 
 ### Firebase Integration
 - Always validate input before Firebase operations
 - Use server timestamps for consistent timing
 - Implement proper error handling
-- Consider offline scenarios
 - Use merge options when updating existing documents
+- **Lobby Pattern**: Use real-time streams for lobby coordination
+- **Performance**: Minimize Firebase writes (e.g., client-only reactions)
 
 ### State Management
 - Keep service state immutable where possible

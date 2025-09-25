@@ -4,7 +4,6 @@ import 'game_experience_screen.dart';
 import '../../services/auth/auth_service.dart';
 import '../../services/core/world_service.dart';
 import '../../services/data/local_storage_service.dart';
-import '../../services/simulation/bot_assignment_service.dart';
 import '../../services/admin/maintenance_service.dart';
 import '../../config/world_config.dart';
 import '../widgets/forms/world_access_modal.dart';
@@ -31,58 +30,14 @@ class _GeneralScreenState extends State<GeneralScreen> {
   }
 
   Future<void> _checkAuthAndNavigate(BuildContext context, WorldConfig world) async {
-
-    final authService = AuthService();
     final localStorageService = LocalStorageService();
-    final maintenanceService = MaintenanceService();
 
     // Store the selected world
     await localStorageService.setWorld(world.displayName);
 
-    // Check if user is authenticated for this specific world
-    final isLoggedInForWorld = await authService.isLoggedInForWorld(world.id);
-
-    if (isLoggedInForWorld) {
-      // This is a RETURNING user with existing account
-      // Check if returning users are being blocked
-      final maintenanceStatus = await maintenanceService.getMaintenanceStatus();
-      final anonId = await authService.getOrCreateAnonId();
-
-      if (maintenanceStatus.blockReturningUsers) {
-        // Toggle ON: Returning users are completely blocked
-        if (context.mounted) {
-          _showInstagramCollectionModal(context);
-        }
-        return;
-      } else {
-        // Toggle OFF: Check if user has already visited today
-        final hasVisitedToday = await authService.hasVisitedToday(anonId, world.id);
-
-        if (hasVisitedToday) {
-          // User already visited today, block them with Instagram modal
-          if (context.mounted) {
-            _showInstagramCollectionModal(context);
-          }
-          return;
-        }
-      }
-
-      // Track world visit for returning users (only reaches here if allowed to enter)
-      await authService.trackWorldVisit(anonId, world.id);
-
-      // Show loading modal for returning users before navigating
-      if (context.mounted) {
-        _showTribeLoadingModal(context, world);
-      }
-    } else {
-      // This is a NEW user without existing account
-      // New users can always go through the signup process regardless of admin toggle
-      // (The admin toggle only blocks existing users from re-entering)
-
-      // User needs to create account for this world, show modal
-      if (context.mounted) {
-        _showWorldAccessModal(context, world);
-      }
+    // Always show the lobby modal (no more auth check)
+    if (context.mounted) {
+      _showWorldAccessModal(context, world);
     }
   }
 
@@ -109,47 +64,21 @@ class _GeneralScreenState extends State<GeneralScreen> {
       barrierDismissible: false,
       builder: (context) => WorldAccessModal(
         worldConfig: world,
-        onSubmit: (accessCode, nickname, vibeAnswers) async {
-          final authService = AuthService();
-
-          // First validate the access code
-          final correctCode = world.id == 'girl-meets-college' ? '789' : '456';
-          if (accessCode != correctCode) {
-            throw Exception('Invalid access code');
-          }
-
-          // Check bot availability BEFORE creating account
-          final botAssignmentService = BotAssignmentService();
-          final assignedBots = await botAssignmentService.assignBotsBasedOnVibeCheck(vibeAnswers);
-
-
-          if (assignedBots.isEmpty) {
-            // World is full - DON'T create account, show Instagram modal
-            if (context.mounted) {
-              _closeModal(context);
-              _hasBeenRejectedForFullWorld = true;
-              _showInstagramCollectionModal(context);
-            }
-            return false;
-          }
-
-          // Only create account if bots were successfully assigned
-          final success = await authService.createAccountForWorld(accessCode, nickname, world.id);
-
-          if (success && context.mounted) {
+        onStart: (nickname, lobbyUserIds, lobbyUserNicknames) async {
+          // Close modal and navigate to game with lobby users
+          if (context.mounted) {
             _closeModal(context);
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => GameExperienceScreen(
                   selectedFloor: 1,
-                  worldConfig: null,
+                  worldConfig: world,
+                  lobbyUserIds: lobbyUserIds,
+                  lobbyUserNicknames: lobbyUserNicknames,
                 ),
               ),
             );
-          } else {
-            // This shouldn't happen since we validated the code above
-            throw Exception('Failed to create account');
           }
         },
         onCancel: () {
